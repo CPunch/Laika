@@ -15,21 +15,21 @@
 /* if eLaika_errIndx is >= 0, we have a safe spot to jump too if an error is thrown */
 #define LAIKA_ISPROTECTED (eLaika_errIndx >= 0)
 
-/* CERROR(printf args):
+/* LAIKA_ERROR(printf args):
         if called after a LAIKA_TRY block will jump to the previous LAIKA_CATCH/LAIKA_TRYEND block,
     otherwise program is exit()'d. if DEBUG is defined printf is called with passed args, else
     arguments are ignored.
 */
 #ifndef DEBUG
-#define CERROR(...) { \
+#define LAIKA_ERROR(...) { \
     if (LAIKA_ISPROTECTED) \
         longjmp(eLaika_errStack[eLaika_errIndx], 1); \
     else \
         exit(1); \
 }
-#define CWARN(...)
+#define LAIKA_WARN(...)
 #else
-#define CERROR(...) { \
+#define LAIKA_ERROR(...) { \
     printf("[ERROR] : " __VA_ARGS__); \
     if (LAIKA_ISPROTECTED) \
         longjmp(eLaika_errStack[eLaika_errIndx], 1); \
@@ -37,7 +37,7 @@
         exit(1); \
 }
 
-#define CWARN(...) \
+#define LAIKA_WARN(...) \
     printf("[WARN] : " __VA_ARGS__);
 #endif
 

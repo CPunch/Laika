@@ -2,6 +2,7 @@
 #define LAIKA_CNC_H
 
 #include "laika.h"
+#include "lpacket.h"
 #include "lsocket.h"
 #include "lpolllist.h"
 

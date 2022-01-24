@@ -35,7 +35,7 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
 
             /* sanity check packet ID */
             if (peer->pktID >= LAIKAPKT_MAXNONE)
-                CERROR("received evil pktID!")
+                LAIKA_ERROR("received evil pktID!")
 
             peer->pktSize = peer->pktSizeTable[peer->pktID];
             break;
