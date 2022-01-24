@@ -1,0 +1,10 @@
+#ifndef LAIKA_PACKET_H
+#define LAIKA_PACKET_H
+
+typedef enum {
+    LAIKAPKT_HANDSHAKE_REQ,
+    LAIKAPKT_HANDSHAKE_RES,
+    LAIKAPKT_MAXNONE
+} LAIKAPKT_ID;
+
+#endif

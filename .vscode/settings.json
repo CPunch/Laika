@@ -1,0 +1,37 @@
+{
+    "files.associations": {
+        "*.tcc": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp",
+        "cinttypes": "cpp",
+        "cstring": "cpp",
+        "algorithm": "cpp",
+        "chrono": "cpp",
+        "array": "cpp",
+        "compare": "cpp",
+        "functional": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "ratio": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "variant": "cpp"
+    },
+    "cSpell.words": [
+        "CWARN",
+        "epollfd",
+        "EPOLLIN",
+        "EWOULD",
+        "ISPROTECTED",
+        "Laika",
+        "LAIKAMAGIC",
+        "LAIKAMAGICLEN",
+        "NOMINMAX",
+        "rmvarray"
+    ]
+}
