@@ -64,7 +64,7 @@ struct sLaika_socket {
     int inCap;
 };
 
-#define laikaS_isAlive(sock) (sock->sock != INVALID_SOCKET)
+#define laikaS_isAlive(arg) (arg->sock != INVALID_SOCKET)
 
 void laikaS_init(void);
 void laikaS_cleanUp(void);

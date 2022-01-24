@@ -23,7 +23,6 @@ void laikaS_freePeer(struct sLaika_peer *peer) {
 bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
     RAWSOCKCODE err;
     int recvd;
-    bool _tryCatchRes;
 
     switch (peer->pktID) {
         case LAIKAPKT_MAXNONE:
@@ -46,17 +45,20 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
 
             /* have we received the full packet? */
             if (peer->pktSize == peer->sock.inCount) {
-                /* dispatch to packet handler */
-                LAIKA_TRY
-                    peer->pktHandler(peer, peer->pktID);
-                    _tryCatchRes = true;
-                LAIKA_CATCH
-                    _tryCatchRes = false;
-                LAIKA_TRYEND /* can't skip this, so the return is after */
+                peer->pktHandler(peer, peer->pktID); /* dispatch to packet handler */
 
-                return _tryCatchRes;
+                /* reset */
+                peer->sock.inCount = 0;
+                peer->pktID = LAIKAPKT_MAXNONE;
             }
+
+            break;
     }
+
+    if (peer->sock.outCount > 0 && !laikaS_handlePeerOut(peer))
+        return false;
+
+    return laikaS_isAlive((&peer->sock));
 }
 
 bool laikaS_handlePeerOut(struct sLaika_peer *peer) {

