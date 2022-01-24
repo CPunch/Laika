@@ -74,6 +74,7 @@ void laikaS_cleanSocket(struct sLaika_socket *sock);
 void laikaS_kill(struct sLaika_socket *sock); /* kills a socket */
 void laikaS_connect(struct sLaika_socket *sock, char *ip, char *port); /* connect to ip & port */
 void laikaS_bind(struct sLaika_socket *sock, uint16_t port); /* bind sock to port */
+void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from);
 bool laikaS_setNonBlock(struct sLaika_socket *sock);
 
 void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz); /* reads from inBuf */

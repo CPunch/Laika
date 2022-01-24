@@ -1,6 +1,9 @@
 #ifndef LAIKA_PACKET_H
 #define LAIKA_PACKET_H
 
+#define LAIKA_MAGIC "LAI\x12"
+#define LAIKA_MAGICLEN 4
+
 typedef enum {
     LAIKAPKT_HANDSHAKE_REQ,
     LAIKAPKT_HANDSHAKE_RES,
