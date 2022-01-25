@@ -10,9 +10,6 @@ project(LaikaBot VERSION 1.0)
 # Put CMake targets (ALL_BUILD/ZERO_CHECK) into a folder
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Set the project as the default startup project for VS
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT LaikaBot)
-
 # compile LaikaBot
 file(GLOB_RECURSE BOTSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c)
 add_executable(LaikaBot ${BOTSOURCE})
