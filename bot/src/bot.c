@@ -2,11 +2,11 @@
 #include "lerror.h"
 #include "bot.h"
 
-size_t laikaB_pktSizeTbl[LAIKAPKT_MAXNONE] = {
+LAIKAPKT_SIZE laikaB_pktSizeTbl[LAIKAPKT_MAXNONE] = {
     [LAIKAPKT_HANDSHAKE_RES] = sizeof(uint8_t)
 };
 
-void laikaB_pktHandler(struct sLaika_peer *peer, uint8_t id, void *uData) {
+void laikaB_pktHandler(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData) {
     switch (id) {
         case LAIKAPKT_HANDSHAKE_RES: {
             uint8_t endianness = laikaS_readByte(&peer->sock);

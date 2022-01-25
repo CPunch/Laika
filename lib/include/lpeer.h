@@ -11,13 +11,13 @@ struct sLaika_peer {
     struct sLaika_pollList *pList; /* pollList we're active in */
     void (*pktHandler)(struct sLaika_peer *peer, uint8_t id, void *uData);
     void *uData; /* data to be passed to pktHandler */
-    size_t *pktSizeTable; /* const table to pull pkt size data from */
-    size_t pktSize; /* current pkt size */
-    uint8_t pktID; /* current pkt ID */
+    LAIKAPKT_SIZE *pktSizeTable; /* const table to pull pkt size data from */
+    LAIKAPKT_SIZE pktSize; /* current pkt size */
+    LAIKAPKT_ID pktID; /* current pkt ID */
     bool setPollOut; /* is EPOLLOUT/POLLOUT is set on sock's pollfd ? */
 };
 
-struct sLaika_peer *laikaS_newPeer(void (*pktHandler)(struct sLaika_peer *peer, uint8_t id, void *uData), size_t *pktSizeTable, struct sLaika_pollList *pList, void *uData);
+struct sLaika_peer *laikaS_newPeer(void (*pktHandler)(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData), LAIKAPKT_SIZE *pktSizeTable, struct sLaika_pollList *pList, void *uData);
 void laikaS_freePeer(struct sLaika_peer *peer);
 
 bool laikaS_handlePeerIn(struct sLaika_peer *peer);

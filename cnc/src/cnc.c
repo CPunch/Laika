@@ -4,11 +4,11 @@
 
 #include "cnc.h"
 
-size_t laikaC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
+LAIKAPKT_SIZE laikaC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
     [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t)
 };
 
-void laikaC_pktHandler(struct sLaika_peer *peer, uint8_t id, void *uData) {
+void laikaC_pktHandler(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData) {
     switch (id) {
         case LAIKAPKT_HANDSHAKE_REQ: {
             char magicBuf[LAIKA_MAGICLEN];

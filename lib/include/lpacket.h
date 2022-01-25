@@ -4,10 +4,16 @@
 #define LAIKA_MAGIC "LAI\x12"
 #define LAIKA_MAGICLEN 4
 
+#define LAIKA_MAX_PKTSIZE 4096
+
 enum {
     LAIKAPKT_HANDSHAKE_REQ,
     LAIKAPKT_HANDSHAKE_RES,
+    LAIKAPKT_VARPKT_REQ,
     LAIKAPKT_MAXNONE
 };
+
+typedef uint8_t LAIKAPKT_ID;
+typedef uint16_t LAIKAPKT_SIZE;
 
 #endif

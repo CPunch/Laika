@@ -2,7 +2,7 @@
 #include "lmem.h"
 #include "lpeer.h"
 
-struct sLaika_peer *laikaS_newPeer(void (*pktHandler)(struct sLaika_peer *peer, uint8_t id, void *uData), size_t *pktSizeTable, struct sLaika_pollList *pList, void *uData) {
+struct sLaika_peer *laikaS_newPeer(void (*pktHandler)(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData), LAIKAPKT_SIZE *pktSizeTable, struct sLaika_pollList *pList, void *uData) {
     struct sLaika_peer *peer = laikaM_malloc(sizeof(struct sLaika_peer));
 
     laikaS_initSocket(&peer->sock);
@@ -38,6 +38,26 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
                 LAIKA_ERROR("received evil pktID!\n")
 
             peer->pktSize = peer->pktSizeTable[peer->pktID];
+            break;
+        case LAIKAPKT_VARPKT_REQ:
+            /* try grabbing pktID & size */
+            if (laikaS_rawRecv(&peer->sock, sizeof(uint8_t) + sizeof(LAIKAPKT_SIZE), &recvd) != RAWSOCK_OK)
+                return false;
+
+            if (recvd != sizeof(uint8_t) + sizeof(LAIKAPKT_SIZE))
+                LAIKA_ERROR("couldn't read whole LAIKAPKT_VARPKT_REQ")
+
+            peer->pktID = laikaS_readByte(&peer->sock);
+
+            /* sanity check packet ID */
+            if (peer->pktID >= LAIKAPKT_MAXNONE)
+                LAIKA_ERROR("received evil pktID!\n")
+
+            /* try reading new packet size */
+            laikaS_readInt(&peer->sock, (void*)&peer->pktSize, sizeof(LAIKAPKT_SIZE));
+
+            if (peer->pktSize > LAIKA_MAX_PKTSIZE)
+                LAIKA_ERROR("variable packet too large!")
             break;
         default:
             /* try grabbing the rest of the packet */
