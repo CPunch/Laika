@@ -15,7 +15,7 @@ void laikaS_init(void) {
     WSADATA wsaData;
 
     if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0)
-        LAIKA_ERROR("WSAStartup failed!")
+        LAIKA_ERROR("WSAStartup failed!\n")
 #endif
 }
 
@@ -39,7 +39,6 @@ void laikaS_initSocket(struct sLaika_socket *sock) {
     sock->flipEndian = false;
 
     laikaS_init();
-    return sock;
 }
 
 void laikaS_cleanSocket(struct sLaika_socket *sock) {
@@ -71,7 +70,7 @@ void laikaS_connect(struct sLaika_socket *sock, char *ip, char *port) {
     struct addrinfo res, *result, *curr;
 
     if (!SOCKETINVALID(sock->sock))
-        LAIKA_ERROR("socket already setup!");
+        LAIKA_ERROR("socket already setup!\n");
 
     /* zero out our address info and setup the type */
     memset(&res, 0, sizeof(struct addrinfo));
@@ -80,7 +79,7 @@ void laikaS_connect(struct sLaika_socket *sock, char *ip, char *port) {
 
     /* grab the address info */
     if (getaddrinfo(ip, port, &res, &result) != 0)
-        LAIKA_ERROR("getaddrinfo() failed!");
+        LAIKA_ERROR("getaddrinfo() failed!\n");
 
     /* getaddrinfo returns a list of possible addresses, step through them and try them until we find a valid address */
     for (curr = result; curr != NULL; curr = curr->ai_next) {
@@ -100,20 +99,20 @@ void laikaS_connect(struct sLaika_socket *sock, char *ip, char *port) {
 
     /* if we reached the end of the linked list, we failed looking up the addr */
     if (curr == NULL)
-        LAIKA_ERROR("couldn't connect a valid address handle to socket!");
+        LAIKA_ERROR("couldn't connect a valid address handle to socket!\n");
 }
 
 void laikaS_bind(struct sLaika_socket *sock, uint16_t port) {
     socklen_t addressSize;
     struct sockaddr_in address;
 
-    if (!SOCKETINVALID(sock))
-        LAIKA_ERROR("socket already setup!")
+    if (!SOCKETINVALID(sock->sock))
+        LAIKA_ERROR("socket already setup!\n")
 
     /* open our socket */
     sock->sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (SOCKETINVALID(sock))
-        LAIKA_ERROR("socket() failed!");
+    if (SOCKETINVALID(sock->sock))
+        LAIKA_ERROR("socket() failed!\n");
 
     /* attach socket to the port */
     int opt = 1;
@@ -122,7 +121,7 @@ void laikaS_bind(struct sLaika_socket *sock, uint16_t port) {
 #else
     if (setsockopt(sock->sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) != 0)
 #endif
-        LAIKA_ERROR("setsockopt() failed!");
+        LAIKA_ERROR("setsockopt() failed!\n");
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
@@ -132,19 +131,19 @@ void laikaS_bind(struct sLaika_socket *sock, uint16_t port) {
 
     /* bind to the port */
     if (SOCKETERROR(bind(sock->sock, (struct sockaddr *)&address, addressSize)))
-        LAIKA_ERROR("bind() failed!");
+        LAIKA_ERROR("bind() failed!\n");
 
     if (SOCKETERROR(listen(sock->sock, SOMAXCONN)))
-        LAIKA_ERROR("listen() failed!");
+        LAIKA_ERROR("listen() failed!\n");
 }
 
 void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from) {
     socklen_t addressSize;
     struct sockaddr address;
 
-    sock = accept(from->sock, &address, &addressSize);
-    if (SOCKETINVALID(sock))
-        LAIKA_ERROR("accept() failed!")
+    sock->sock = accept(from->sock, &address, &addressSize);
+    if (SOCKETINVALID(sock->sock))
+        LAIKA_ERROR("accept() failed!\n")
 }
 
 bool laikaS_setNonBlock(struct sLaika_socket *sock) {
@@ -154,7 +153,7 @@ bool laikaS_setNonBlock(struct sLaika_socket *sock) {
 #else
     if (fcntl(sock->sock, F_SETFL, (fcntl(sock->sock, F_GETFL, 0) | O_NONBLOCK)) != 0) {
 #endif
-        LAIKA_WARN("fcntl failed on new connection");
+        LAIKA_WARN("fcntl failed on new connection\n");
         laikaS_kill(sock);
         return false;
     }

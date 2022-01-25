@@ -7,7 +7,7 @@ size_t laikaC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
     [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t)
 };
 
-void laikaC_pktHandler(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData) {
+void laikaC_pktHandler(struct sLaika_peer *peer, uint8_t id, void *uData) {
     printf("got %d packet id!\n", id);
 }
 
@@ -34,7 +34,8 @@ void laikaC_freeCNC(struct sLaika_cnc *cnc) {
 }
 
 void laikaC_killPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
-    laikaP_rmvSock(&cnc->pList, (struct sLaika_sock*)peer);
+    printf("peer %x killed!\n", peer);
+    laikaP_rmvSock(&cnc->pList, (struct sLaika_socket*)peer);
     laikaS_kill(&peer->sock);
 }
 
@@ -66,6 +67,8 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
 
             /* add to our pollList */
             laikaP_addSock(&cnc->pList, &peer->sock);
+
+            printf("new peer %x!\n", peer);
             continue;
         }
 

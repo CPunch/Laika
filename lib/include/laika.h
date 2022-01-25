@@ -10,4 +10,13 @@
 
 #define ARRAY_START 4
 
+/* for intellisense */
+#ifndef LIB_VERSION_MAJOR
+#define LIB_VERSION_MAJOR 0
+#endif
+
+#ifndef LIB_VERSION_MINOR
+#define LIB_VERSION_MINOR 0
+#endif
+
 #endif

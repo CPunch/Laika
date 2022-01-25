@@ -14,9 +14,6 @@ project(LaikaLib VERSION ${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR})
 # Put CMake targets (ALL_BUILD/ZERO_CHECK) into a folder
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Set the project as the default startup project for VS
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT LaikaLib)
-
 # compile LaikaLib library
 file(GLOB_RECURSE LIBSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c)
 add_library(LaikaLib STATIC ${LIBSOURCE})
@@ -28,4 +25,4 @@ target_compile_definitions(LaikaLib PUBLIC LIB_VERSION_MAJOR=${LIB_VERSION_MAJOR
 target_include_directories(LaikaLib PUBLIC ${LIB_INCLUDEDIR})
 
 # set library name
-set_target_properties(LaikaLib PROPERTIES OUTPUT_NAME net-${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR})
+set_target_properties(LaikaLib PROPERTIES OUTPUT_NAME laika-${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR})

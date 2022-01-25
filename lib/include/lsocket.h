@@ -1,3 +1,7 @@
+#ifndef LAIKA_SOCKET_H
+#define LAIKA_SOCKET_H
+
+
 /* socket/winsock headers */
 #ifdef _WIN32
 /* windows */
@@ -62,7 +66,7 @@ struct sLaika_socket {
     int inCount;
     int outCap;
     int inCap;
-    bool flipEndian
+    bool flipEndian;
 };
 
 #define laikaS_isAlive(arg) (arg->sock != INVALID_SOCKET)
@@ -96,3 +100,5 @@ void laikaS_writeInt(struct sLaika_socket *sock, void *buf, size_t sz); /* write
 
 RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed);
 RAWSOCKCODE laikaS_rawSend(struct sLaika_socket *sock, size_t sz, int *processed);
+
+#endif

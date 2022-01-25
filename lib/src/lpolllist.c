@@ -32,7 +32,7 @@ void laikaP_initPList(struct sLaika_pollList *pList) {
     /* setup our epoll */
     memset(&pList->ev, 0, sizeof(struct epoll_event));
     if ((pList->epollfd = epoll_create(POLLSTARTCAP)) == -1)
-        LAIKA_ERROR("epoll_create() failed!");
+        LAIKA_ERROR("epoll_create() failed!\n");
 
 #else
     pList->fds = NULL; /* laikaP_addSock will allocate the buffer */
@@ -62,7 +62,7 @@ void laikaP_addSock(struct sLaika_pollList *pList, struct sLaika_socket *sock) {
     pList->ev.data.ptr = (void*)sock;
 
     if (epoll_ctl(pList->epollfd, EPOLL_CTL_ADD, sock->sock, &pList->ev) == -1)
-        LAIKA_ERROR("epoll_ctl [ADD] failed");
+        LAIKA_ERROR("epoll_ctl [ADD] failed\n");
 
 #else
     /* allocate space in array & add PollFD */
@@ -79,7 +79,7 @@ void laikaP_rmvSock(struct sLaika_pollList *pList, struct sLaika_socket *sock) {
     /* epoll_event* isn't needed with EPOLL_CTL_DEL, however we still need to pass a NON-NULL pointer. [see: https://man7.org/linux/man-pages/man2/epoll_ctl.2.html#BUGS] */
     if (epoll_ctl(pList->epollfd, EPOLL_CTL_DEL, sock->sock, &pList->ev) == -1) {
         /* non-fatal error, socket probably just didn't exist, so ignore it. */
-        LAIKA_WARN("epoll_ctl [DEL] failed");
+        LAIKA_WARN("epoll_ctl [DEL] failed\n");
     }
 #else
     int i;
@@ -101,7 +101,7 @@ void laikaP_addPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock
     pList->ev.data.ptr = (void*)sock;
     if (epoll_ctl(pList->epollfd, EPOLL_CTL_MOD, sock->sock, &pList->ev) == -1) {
         /* non-fatal error, socket probably just didn't exist, so ignore it. */
-        LAIKA_WARN("epoll_ctl [MOD] failed");
+        LAIKA_WARN("epoll_ctl [MOD] failed\n");
     }
 #else
     int i;
@@ -122,7 +122,7 @@ void laikaP_rmvPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock
     pList->ev.data.ptr = (void*)sock;
     if (epoll_ctl(pList->epollfd, EPOLL_CTL_MOD, sock->sock, &pList->ev) == -1) {
         /* non-fatal error, socket probably just didn't exist, so ignore it. */
-        LAIKA_WARN("epoll_ctl [MOD] failed");
+        LAIKA_WARN("epoll_ctl [MOD] failed\n");
     }
 #else
     int i;
@@ -148,7 +148,7 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
     nEvents = epoll_wait(pList->epollfd, pList->ep_events, MAX_EPOLL_EVENTS, timeout);
 
     if (SOCKETERROR(nEvents))
-        LAIKA_ERROR("epoll_wait() failed!");
+        LAIKA_ERROR("epoll_wait() failed!\n");
 
     for (i = 0; i < nEvents; i++) {
         /* add event to revent array */
@@ -163,7 +163,7 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
     nEvents = poll(pList->fds, pList->fdCount, timeout); /* poll returns -1 for error, or the number of events */
 
     if (SOCKETERROR(nEvents))
-        LAIKA_ERROR("poll() failed!");
+        LAIKA_ERROR("poll() failed!\n");
 
     /* walk through the returned poll fds, if they have an event, add it to our revents array */
     for (i = 0; i < pList->fdCount && nEvents > 0; i++) {

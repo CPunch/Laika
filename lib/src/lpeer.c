@@ -2,7 +2,7 @@
 #include "lmem.h"
 #include "lpeer.h"
 
-struct sLaika_peer *laikaS_newPeer(void (*pktHandler)(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData), size_t *pktSizeTable, struct sLaika_pollList *pList, void *uData) {
+struct sLaika_peer *laikaS_newPeer(void (*pktHandler)(struct sLaika_peer *peer, uint8_t id, void *uData), size_t *pktSizeTable, struct sLaika_pollList *pList, void *uData) {
     struct sLaika_peer *peer = laikaM_malloc(sizeof(struct sLaika_peer));
 
     laikaS_initSocket(&peer->sock);
@@ -35,7 +35,7 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
 
             /* sanity check packet ID */
             if (peer->pktID >= LAIKAPKT_MAXNONE)
-                LAIKA_ERROR("received evil pktID!")
+                LAIKA_ERROR("received evil pktID!\n")
 
             peer->pktSize = peer->pktSizeTable[peer->pktID];
             break;
@@ -67,7 +67,7 @@ bool laikaS_handlePeerOut(struct sLaika_peer *peer) {
     int sent;
 
     if (peer->sock.outCount == 0) /* sanity check */
-        return;
+        return true;
 
     switch (laikaS_rawSend(&peer->sock, peer->sock.outCount, &sent)) {
         case RAWSOCK_OK: /* we're ok! */

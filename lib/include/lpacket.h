@@ -4,10 +4,10 @@
 #define LAIKA_MAGIC "LAI\x12"
 #define LAIKA_MAGICLEN 4
 
-typedef enum {
+enum {
     LAIKAPKT_HANDSHAKE_REQ,
     LAIKAPKT_HANDSHAKE_RES,
     LAIKAPKT_MAXNONE
-} LAIKAPKT_ID;
+};
 
 #endif

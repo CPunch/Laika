@@ -11,7 +11,7 @@
 #define laikaM_growarray(type, buf, count, capacity) \
     if (count >= capacity || buf == NULL) { \
         capacity *= GROW_FACTOR; \
-        buf = (type*)cosmoM_realloc(buf, sizeof(type)*capacity); \
+        buf = (type*)laikaM_realloc(buf, sizeof(type)*capacity); \
     }
 
 /* moves array elements above indx down by numElem, removing numElem elements at indx */ 

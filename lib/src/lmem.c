@@ -12,7 +12,7 @@ void *laikaM_realloc(void *buf, size_t sz) {
 
     /* if NULL is passed, realloc() acts like malloc() */
     if ((newBuf = realloc(buf, sz)) == NULL)
-        LAIKA_ERROR("failed to allocate memory!");
+        LAIKA_ERROR("failed to allocate memory!\n");
 
     return newBuf;
 }
