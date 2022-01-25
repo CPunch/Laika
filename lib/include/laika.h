@@ -10,13 +10,19 @@
 
 #define ARRAY_START 4
 
-/* for intellisense */
-#ifndef LIB_VERSION_MAJOR
-#define LIB_VERSION_MAJOR 0
+#ifdef DEBUG
+#define LAIKA_DEBUG(...) printf(__VA_ARGS__);
+#else
+#define LAIKA_DEBUG(...)
 #endif
 
-#ifndef LIB_VERSION_MINOR
-#define LIB_VERSION_MINOR 0
+/* for intellisense */
+#ifndef LAIKA_VERSION_MAJOR
+#define LAIKA_VERSION_MAJOR 0
+#endif
+
+#ifndef LAIKA_VERSION_MINOR
+#define LAIKA_VERSION_MINOR 0
 #endif
 
 #endif

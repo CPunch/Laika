@@ -7,10 +7,11 @@ int main(int argv, char **argc) {
 
     while (true) {
         if (!laikaC_pollPeers(cnc, 1000)) {
-            printf("no events!\n");
+            LAIKA_DEBUG("no events!\n");
         }
     }
 
-    printf("cnc killed\n");
+    laikaC_freeCNC(cnc);
+    LAIKA_DEBUG("cnc killed\n");
     return 0;
 }

@@ -16,6 +16,7 @@ int main(int argv, char **argc) {
         }
     }
 
+    laikaB_freeBot(bot);
     printf("bot killed\n");
     return 0;
 }
