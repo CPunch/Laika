@@ -2,7 +2,7 @@
 #include "lmem.h"
 #include "lpeer.h"
 
-struct sLaika_peer *laikaS_newPeer(void (*pktHandler)(struct sLaika_peer *peer, LAIKAPKT_ID id), struct sLaika_pollList *pList, size_t *pktSizeTable) {
+struct sLaika_peer *laikaS_newPeer(void (*pktHandler)(struct sLaika_peer *peer, LAIKAPKT_ID id), size_t *pktSizeTable, struct sLaika_pollList *pList) {
     struct sLaika_peer *peer = laikaM_malloc(sizeof(struct sLaika_peer));
 
     laikaS_initSocket(&peer->sock);

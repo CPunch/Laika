@@ -7,7 +7,6 @@
 
 #define laikaM_malloc(sz) laikaM_realloc(NULL, sz)
 #define laikaM_free(buf) laikaM_realloc(buf, 0)
-#define laikaM_free(buf) laikaM_realloc(buf, 0)
 
 #define laikaM_growarray(type, buf, count, capacity) \
     if (count >= capacity || buf == NULL) { \

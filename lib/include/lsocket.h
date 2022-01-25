@@ -62,9 +62,19 @@ struct sLaika_socket {
     int inCount;
     int outCap;
     int inCap;
+    bool flipEndian
 };
 
 #define laikaS_isAlive(arg) (arg->sock != INVALID_SOCKET)
+
+inline bool laikaS_isBigEndian(void) {
+    union {
+        uint32_t i;
+        uint8_t c[4];
+    } _indxint = {0xDEADB33F};
+
+    return _indxint.c[0] == 0xDE;
+}
 
 void laikaS_init(void);
 void laikaS_cleanUp(void);
@@ -79,9 +89,10 @@ bool laikaS_setNonBlock(struct sLaika_socket *sock);
 
 void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz); /* reads from inBuf */
 void laikaS_write(struct sLaika_socket *sock, void *buf, size_t sz); /* writes to outBuf */
-
 void laikaS_writeByte(struct sLaika_socket *sock, uint8_t data);
 uint8_t laikaS_readByte(struct sLaika_socket *sock);
+void laikaS_readInt(struct sLaika_socket *sock, void *buf, size_t sz); /* reads INT, respecting endianness */
+void laikaS_writeInt(struct sLaika_socket *sock, void *buf, size_t sz); /* writes INT, respecting endianness */
 
 RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed);
 RAWSOCKCODE laikaS_rawSend(struct sLaika_socket *sock, size_t sz, int *processed);

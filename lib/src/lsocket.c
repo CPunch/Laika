@@ -1,3 +1,5 @@
+#include <alloca.h>
+
 #include "lerror.h"
 #include "lmem.h"
 #include "lpolllist.h"
@@ -34,6 +36,7 @@ void laikaS_initSocket(struct sLaika_socket *sock) {
     sock->outBuf = NULL;
     sock->outCap = ARRAY_START;
     sock->outCount = 0;
+    sock->flipEndian = false;
 
     laikaS_init();
     return sock;
@@ -184,6 +187,38 @@ uint8_t laikaS_readByte(struct sLaika_socket *sock) {
     /* pop 1 byte */
     laikaM_rmvarray(uint8_t, sock->inBuf, sock->inCount, 0, 1);
     return tmp;
+}
+
+void laikaS_readInt(struct sLaika_socket *sock, void *buf, size_t sz) {
+    if (sock->flipEndian) {
+        uint8_t tmp[sz]; /* allocate tmp buffer to hold data while we switch endianness */
+        int k;
+
+        laikaS_read(sock, (void*)tmp, sz);
+
+        /* copy tmp buffer to user buffer, flipping endianness */
+        for (k = 0; k < sz; k++)
+            *(uint8_t*)(buf + k) = tmp[sz - k - 1];
+    } else {
+        /* just a wrapper for laikaS_read */
+        laikaS_read(sock, buf, sz);
+    }
+}
+
+void laikaS_writeInt(struct sLaika_socket *sock, void *buf, size_t sz) {
+    if (sock->flipEndian) {
+        uint8_t tmp[sz]; /* allocate tmp buffer to hold data while we switch endianness */
+        int k;
+
+        /* copy user buffer to tmp buffer, flipping endianness */
+        for (k = 0; k < sz; k++)
+            tmp[k] = *(uint8_t*)(buf + (sz - k - 1));
+
+        laikaS_write(sock, (void*)tmp, sz);
+    } else {
+        /* just a wrapper for laikaS_write */
+        laikaS_write(sock, buf, sz);
+    }
 }
 
 RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed) {
