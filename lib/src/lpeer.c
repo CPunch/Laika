@@ -2,13 +2,14 @@
 #include "lmem.h"
 #include "lpeer.h"
 
-struct sLaika_peer *laikaS_newPeer(void (*pktHandler)(struct sLaika_peer *peer, LAIKAPKT_ID id), size_t *pktSizeTable, struct sLaika_pollList *pList) {
+struct sLaika_peer *laikaS_newPeer(void (*pktHandler)(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData), size_t *pktSizeTable, struct sLaika_pollList *pList, void *uData) {
     struct sLaika_peer *peer = laikaM_malloc(sizeof(struct sLaika_peer));
 
     laikaS_initSocket(&peer->sock);
     peer->pktHandler = pktHandler;
-    peer->pList = pList;
     peer->pktSizeTable = pktSizeTable;
+    peer->pList = pList;
+    peer->uData = uData;
     peer->pktSize = 0;
     peer->pktID = LAIKAPKT_MAXNONE;
     peer->setPollOut = false;
@@ -45,7 +46,7 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
 
             /* have we received the full packet? */
             if (peer->pktSize == peer->sock.inCount) {
-                peer->pktHandler(peer, peer->pktID); /* dispatch to packet handler */
+                peer->pktHandler(peer, peer->pktID, peer->uData); /* dispatch to packet handler */
 
                 /* reset */
                 peer->sock.inCount = 0;
