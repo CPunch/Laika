@@ -7,6 +7,15 @@
 
 static int _LNSetup = 0;
 
+bool laikaS_isBigEndian(void) {
+    union {
+        uint32_t i;
+        uint8_t c[4];
+    } _indxint = {0xDEADB33F};
+
+    return _indxint.c[0] == 0xDE;
+}
+
 void laikaS_init(void) {
     if (_LNSetup++ > 0)
         return; /* WSA is already setup! */

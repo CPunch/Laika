@@ -71,14 +71,7 @@ struct sLaika_socket {
 
 #define laikaS_isAlive(arg) (arg->sock != INVALID_SOCKET)
 
-inline bool laikaS_isBigEndian(void) {
-    union {
-        uint32_t i;
-        uint8_t c[4];
-    } _indxint = {0xDEADB33F};
-
-    return _indxint.c[0] == 0xDE;
-}
+bool laikaS_isBigEndian(void);
 
 void laikaS_init(void);
 void laikaS_cleanUp(void);
