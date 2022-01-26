@@ -49,8 +49,8 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
 
             peer->pktID = laikaS_readByte(&peer->sock);
 
-            /* sanity check packet ID */
-            if (peer->pktID >= LAIKAPKT_MAXNONE)
+            /* sanity check packet ID, (check valid range, check it's variadic) */
+            if (peer->pktID >= LAIKAPKT_MAXNONE || peer->pktSizeTable[peer->pktID])
                 LAIKA_ERROR("received evil pktID!\n")
 
             /* try reading new packet size */
