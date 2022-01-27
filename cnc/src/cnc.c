@@ -56,7 +56,7 @@ void laikaC_freeCNC(struct sLaika_cnc *cnc) {
 }
 
 void laikaC_killPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
-    printf("peer %x killed!\n", peer);
+    LAIKA_DEBUG("peer %x killed!\n", peer);
     laikaP_rmvSock(&cnc->pList, (struct sLaika_socket*)peer);
     laikaS_freePeer(peer);
 }
@@ -90,7 +90,7 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
             /* add to our pollList */
             laikaP_addSock(&cnc->pList, &peer->sock);
 
-            printf("new peer %x!\n", peer);
+            LAIKA_DEBUG("new peer %x!\n", peer);
             continue;
         }
 

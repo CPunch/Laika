@@ -20,7 +20,10 @@
         "tuple": "cpp",
         "type_traits": "cpp",
         "utility": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "stdio.h": "c",
+        "bit": "c",
+        "limits": "c"
     },
     "cSpell.words": [
         "CWARN",

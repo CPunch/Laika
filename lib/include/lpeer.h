@@ -6,6 +6,12 @@
 #include "lpacket.h"
 #include "lpolllist.h"
 
+typedef enum {
+    PEER_BOT,
+    PEER_CNC, /* cnc 2 cnc communication */
+    PEER_AUTH /* authorized peers can send commands to cnc */
+} PEERTYPE;
+
 struct sLaika_peer {
     struct sLaika_socket sock; /* DO NOT MOVE THIS. this member HAS TO BE FIRST so that typecasting sLaika_peer* to sLaika_sock* works as intended */
     struct sLaika_pollList *pList; /* pollList we're active in */
@@ -14,6 +20,7 @@ struct sLaika_peer {
     LAIKAPKT_SIZE *pktSizeTable; /* const table to pull pkt size data from */
     LAIKAPKT_SIZE pktSize; /* current pkt size */
     LAIKAPKT_ID pktID; /* current pkt ID */
+    PEERTYPE type;
     bool setPollOut; /* is EPOLLOUT/POLLOUT is set on sock's pollfd ? */
 };
 
