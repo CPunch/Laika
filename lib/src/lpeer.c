@@ -45,6 +45,10 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
                 LAIKA_ERROR("received evil pktID!\n")
 
             peer->pktSize = peer->pktSizeTable[peer->pktID];
+
+            if (peer->pktSize == 0)
+                LAIKA_ERROR("unsupported packet!\n")
+
             break;
         case LAIKAPKT_VARPKT_REQ:
             /* try grabbing pktID & size */
