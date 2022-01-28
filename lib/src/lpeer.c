@@ -10,10 +10,17 @@ struct sLaika_peer *laikaS_newPeer(void (*pktHandler)(struct sLaika_peer *peer, 
     peer->pktSizeTable = pktSizeTable;
     peer->pList = pList;
     peer->uData = uData;
+    peer->priv = NULL;
+    peer->pub = NULL;
     peer->pktSize = 0;
     peer->pktID = LAIKAPKT_MAXNONE;
     peer->setPollOut = false;
     return peer;
+}
+
+void laikaS_setKeys(struct sLaika_peer *peer, uint8_t *priv, uint8_t *pub) {
+    peer->priv = priv;
+    peer->pub = pub;
 }
 
 void laikaS_freePeer(struct sLaika_peer *peer) {

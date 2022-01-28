@@ -8,15 +8,17 @@
 #define laikaM_malloc(sz) laikaM_realloc(NULL, sz)
 #define laikaM_free(buf) laikaM_realloc(buf, 0)
 
-#define laikaM_growarray(type, buf, count, capacity) \
-    if (count >= capacity || buf == NULL) { \
-        capacity *= GROW_FACTOR; \
+#define laikaM_growarray(type, buf, needed, count, capacity) \
+    if (count + needed >= capacity || buf == NULL) { \
+        capacity = (capacity + needed) * GROW_FACTOR; \
         buf = (type*)laikaM_realloc(buf, sizeof(type)*capacity); \
     }
 
 /* moves array elements above indx down by numElem, removing numElem elements at indx */ 
 #define laikaM_rmvarray(type, buf, count, indx, numElem) { \
-    memmove(&buf[indx], &buf[indx+numElem], ((count-indx)-numElem)*sizeof(type)); \
+    int _i, _sz = ((count-indx)-numElem)*sizeof(type); \
+    for (_i = 0; _i < _sz; _i++) \
+        buf[indx+_i] = buf[indx+numElem+_i]; \
     count -= numElem; \
 }
 

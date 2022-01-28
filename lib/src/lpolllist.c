@@ -66,7 +66,7 @@ void laikaP_addSock(struct sLaika_pollList *pList, struct sLaika_socket *sock) {
 
 #else
     /* allocate space in array & add PollFD */
-    laikaM_growarray(PollFD, pList->fds, pList->fdCount, pList->fdCapacity);
+    laikaM_growarray(PollFD, pList->fds, 1, pList->fdCount, pList->fdCapacity);
     pList->fds[pList->fdCount++] = (PollFD){sock->sock, POLLIN};
 #endif
 }
@@ -152,7 +152,7 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
 
     for (i = 0; i < nEvents; i++) {
         /* add event to revent array */
-        laikaM_growarray(struct sLaika_pollEvent, pList->revents, pList->reventCount, pList->reventCapacity);
+        laikaM_growarray(struct sLaika_pollEvent, pList->revents, 1, pList->reventCount, pList->reventCapacity);
         pList->revents[pList->reventCount++] = (struct sLaika_pollEvent){
             .sock = pList->ep_events[i].data.ptr,
             .pollIn = pList->ep_events[i].events & EPOLLIN,
@@ -173,7 +173,7 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
             struct sLaika_socket *sock = hashmap_get(pList->sockets, &(tLaika_hashMapElem){.fd = (SOCKET)pfd.fd});
 
             /* insert event into revents array */
-            laikaM_growarray(struct sLaika_pollEvent, pList->revents, pList->reventCount, pList->reventCapacity);
+            laikaM_growarray(struct sLaika_pollEvent, pList->revents, 1, pList->reventCount, pList->reventCapacity);
             pList->revents[pList->reventCount++] = (struct sLaika_pollEvent){
                 .sock = sock,
                 .pollIn = pfd.revents & POLLIN,

@@ -25,4 +25,13 @@
 #define LAIKA_VERSION_MINOR 0
 #endif
 
+/* for testing!! make sure you pass your generated keypair to cmake */
+#ifndef LAIKA_PUBKEY
+#define LAIKA_PUBKEY "997d026d1c65deb6c30468525132be4ea44116d6f194c142347b67ee73d18814"
+#endif
+
+#ifndef LAIKA_PRIVKEY
+#define LAIKA_PRIVKEY "1dbd33962f1e170d1e745c6d3e19175049b5616822fac2fa3535d7477957a841"
+#endif
+
 #endif

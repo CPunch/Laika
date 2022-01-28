@@ -177,7 +177,7 @@ void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz) {
 
 void laikaS_write(struct sLaika_socket *sock, void *buf, size_t sz) {
     /* make sure we have enough space to copy the buffer */
-    laikaM_growarray(uint8_t, sock->outBuf, sock->outCount + sz, sock->outCap);\
+    laikaM_growarray(uint8_t, sock->outBuf, sz, sock->outCount, sock->outCap);\
 
     /* copy the buffer, then increment outCount */
     memcpy(&sock->outBuf[sock->outCount], buf, sz);
@@ -185,7 +185,7 @@ void laikaS_write(struct sLaika_socket *sock, void *buf, size_t sz) {
 }
 
 void laikaS_writeByte(struct sLaika_socket *sock, uint8_t data) {
-    laikaM_growarray(uint8_t, sock->outBuf, sock->outCount, sock->outCap);
+    laikaM_growarray(uint8_t, sock->outBuf, 1, sock->outCount, sock->outCap);
     sock->outBuf[sock->outCount++] = data;
 }
 
@@ -234,7 +234,7 @@ RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed
     int rcvd, start = sock->inCount;
 
     /* make sure we have enough space to recv */
-    laikaM_growarray(uint8_t, sock->inBuf, sock->inCount + sz, sock->inCap);
+    laikaM_growarray(uint8_t, sock->inBuf, sz, sock->inCount, sock->inCap);
     rcvd = recv(sock->sock, (buffer_t*)&sock->inBuf[sock->inCount], sz, LN_MSG_NOSIGNAL);
 
     if (rcvd == 0) {
