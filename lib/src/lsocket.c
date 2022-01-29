@@ -3,6 +3,7 @@
 #include "lerror.h"
 #include "lmem.h"
 #include "lpolllist.h"
+#include "lrsa.h"
 #include "lsocket.h"
 
 static int _LNSetup = 0;
@@ -182,6 +183,25 @@ void laikaS_write(struct sLaika_socket *sock, void *buf, size_t sz) {
     /* copy the buffer, then increment outCount */
     memcpy(&sock->outBuf[sock->outCount], buf, sz);
     sock->outCount += sz;
+}
+
+void laikaS_writeENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub) {
+    /* make sure we have enough space to encrypt the buffer */
+    laikaM_growarray(uint8_t, sock->outBuf, LAIKAENC_SIZE(sz), sock->outCount, sock->outCap);
+
+    /* encrypt the buffer into outBuf */
+    if (crypto_box_seal(&sock->outBuf[sock->outCount], buf, sz, pub) != 0)
+        LAIKA_ERROR("Failed to encrypt!");
+
+    sock->outCount += LAIKAENC_SIZE(sz);
+}
+
+void laikaS_readENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub, uint8_t *priv) {
+    /* decrypt into buf */
+    if (crypto_box_seal_open(buf, sock->inBuf, LAIKAENC_SIZE(sz), pub, priv) != 0)
+        LAIKA_ERROR("Failed to decrypt!");
+
+    laikaM_rmvarray(uint8_t, sock->inBuf, sock->inCount, 0, LAIKAENC_SIZE(sz));
 }
 
 void laikaS_writeByte(struct sLaika_socket *sock, uint8_t data) {

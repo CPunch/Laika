@@ -58,9 +58,10 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
             if (recvd != sizeof(uint8_t) + sizeof(LAIKAPKT_SIZE))
                 LAIKA_ERROR("couldn't read whole LAIKAPKT_VARPKT_REQ")
 
+            /* read pktID */
             peer->pktID = laikaS_readByte(&peer->sock);
 
-            /* sanity check packet ID, (check valid range, check it's variadic) */
+            /* sanity check pktID, (check valid range, check it's variadic) */
             if (peer->pktID >= LAIKAPKT_MAXNONE || peer->pktSizeTable[peer->pktID])
                 LAIKA_ERROR("received evil pktID!\n")
 

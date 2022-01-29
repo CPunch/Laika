@@ -12,11 +12,11 @@ int main(int argv, char **argc) {
     /* while connection is still alive, poll bot */
     while (laikaS_isAlive((&bot->peer->sock))) {
         if (!laikaB_poll(bot, 1000)) {
-            printf("no events!\n");
+            LAIKA_DEBUG("no events!\n");
         }
     }
 
     laikaB_freeBot(bot);
-    printf("bot killed\n");
+    LAIKA_DEBUG("bot killed\n");
     return 0;
 }

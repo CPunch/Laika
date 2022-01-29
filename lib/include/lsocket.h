@@ -86,6 +86,8 @@ bool laikaS_setNonBlock(struct sLaika_socket *sock);
 
 void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz); /* reads from inBuf */
 void laikaS_write(struct sLaika_socket *sock, void *buf, size_t sz); /* writes to outBuf */
+void laikaS_writeENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub); /* encrypts & writes from buf */
+void laikaS_readENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub, uint8_t *priv); /* decrypts & reads to buf */
 void laikaS_writeByte(struct sLaika_socket *sock, uint8_t data);
 uint8_t laikaS_readByte(struct sLaika_socket *sock);
 void laikaS_readInt(struct sLaika_socket *sock, void *buf, size_t sz); /* reads INT, respecting endianness */

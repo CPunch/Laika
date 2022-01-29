@@ -3,4 +3,6 @@
 
 #include "sodium.h"
 
+#define LAIKAENC_SIZE(sz) (sz + crypto_box_SEALBYTES)
+
 #endif

