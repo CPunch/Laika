@@ -43,6 +43,7 @@ void laikaP_initPList(struct sLaika_pollList *pList) {
 
 void laikaP_cleanPList(struct sLaika_pollList *pList) {
     laikaM_free(pList->revents);
+    hashmap_free(pList->sockets);
 
 #ifdef LAIKA_USE_EPOLL
     close(pList->epollfd);
