@@ -55,5 +55,6 @@ function (add_sanitize_address TARGET)
         return()
     endif ()
 
+    message(STATUS "Adding ASAN for " ${TARGET} "")
     sanitizer_add_flags(${TARGET} "AddressSanitizer" "ASan")
 endfunction ()
