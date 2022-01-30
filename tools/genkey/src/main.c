@@ -5,7 +5,7 @@
 #include "lrsa.h"
 
 #define DATA "Encryption/Decryption test passed!\n"
-#define DATALEN 35
+#define DATALEN 36
 #define CIPHERLEN crypto_box_SEALBYTES + DATALEN
 
 int main(int argv, char **argc) {

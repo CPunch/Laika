@@ -23,7 +23,8 @@
         "variant": "cpp",
         "stdio.h": "c",
         "bit": "c",
-        "limits": "c"
+        "limits": "c",
+        "*.in": "cpp"
     },
     "cSpell.words": [
         "CWARN",

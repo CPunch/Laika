@@ -1,0 +1,13 @@
+#ifndef LAIKA_CONFIG_H
+#define LAIKA_CONFIG_H
+
+/* version info */
+#define LAIKA_VERSION_MAJOR @LAIKA_VERSION_MAJOR@
+#define LAIKA_VERSION_MINOR @LAIKA_VERSION_MINOR@
+
+/* keys */
+#define LAIKA_PUBKEY "@LAIKA_PUBKEY@"
+#define LAIKA_PRIVKEY "@LAIKA_PRIVKEY@"
+
+
+#endif
