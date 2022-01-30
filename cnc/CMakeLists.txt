@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-
 set(CNC_INCLUDEDIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 project(LaikaCNC VERSION 1.0)

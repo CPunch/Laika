@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-
 project(genKey VERSION 1.0)
 
 # Put CMake targets (ALL_BUILD/ZERO_CHECK) into a folder
