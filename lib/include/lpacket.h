@@ -14,6 +14,7 @@ enum {
     *   uint8_t laikaMagic[LAIKA_MAGICLEN];
     *   uint8_t majorVer;
     *   uint8_t minorVer;
+    *   uint8_t peerType;
     *   uint8_t encNonce[LAIKAENC_SIZE(LAIKA_NONCESIZE)]; -- encrypted using shared pubKey
     *   uint8_t pubKey[crypto_box_PUBLICKEYBYTES]; -- freshly generated pubKey to encrypt decrypted nonce with
     */
@@ -27,6 +28,8 @@ enum {
     *   uint8_t pktID;
     *   uint16_t pktSize;
     */
+    LAIKAPKT_CHALLENGE_REQ,
+    LAIKAPKT_CHALLENGE_RES,
     LAIKAPKT_MAXNONE
 };
 

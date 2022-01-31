@@ -13,22 +13,25 @@ typedef enum {
     PEER_AUTH /* authorized peers can send commands to cnc */
 } PEERTYPE;
 
+struct sLaika_peer;
+typedef void (*PeerPktHandler)(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
+
 struct sLaika_peer {
     struct sLaika_socket sock; /* DO NOT MOVE THIS. this member HAS TO BE FIRST so that typecasting sLaika_peer* to sLaika_sock* works as intended */
-    uint8_t *priv; /* key to decrypt incoming packets */
-    uint8_t *pub; /* pub key matching to priv */
     uint8_t peerPub[crypto_box_PUBLICKEYBYTES]; /* key to encrypt outgoing packets */
     struct sLaika_pollList *pList; /* pollList we're active in */
-    void (*pktHandler)(struct sLaika_peer *peer, uint8_t id, void *uData);
-    void *uData; /* data to be passed to pktHandler */
+    PeerPktHandler *handlers;
     LAIKAPKT_SIZE *pktSizeTable; /* const table to pull pkt size data from */
+    uint8_t *priv; /* key to decrypt incoming packets */
+    uint8_t *pub; /* pub key matching to priv */
+    void *uData; /* data to be passed to pktHandler */
     LAIKAPKT_SIZE pktSize; /* current pkt size */
     LAIKAPKT_ID pktID; /* current pkt ID */
     PEERTYPE type;
     bool setPollOut; /* is EPOLLOUT/POLLOUT is set on sock's pollfd ? */
 };
 
-struct sLaika_peer *laikaS_newPeer(void (*pktHandler)(struct sLaika_peer *peer, LAIKAPKT_ID id, void *uData), LAIKAPKT_SIZE *pktSizeTable, struct sLaika_pollList *pList, void *uData);
+struct sLaika_peer *laikaS_newPeer(PeerPktHandler *handlers, LAIKAPKT_SIZE *pktSizeTable, struct sLaika_pollList *pList, void *uData);
 void laikaS_freePeer(struct sLaika_peer *peer);
 
 void laikaS_setKeys(struct sLaika_peer *peer, uint8_t *priv, uint8_t *pub);

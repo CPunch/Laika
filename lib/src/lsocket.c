@@ -191,7 +191,7 @@ void laikaS_writeENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *
 
     /* encrypt the buffer into outBuf */
     if (crypto_box_seal(&sock->outBuf[sock->outCount], buf, sz, pub) != 0)
-        LAIKA_ERROR("Failed to encrypt!");
+        LAIKA_ERROR("Failed to encrypt!\n");
 
     sock->outCount += LAIKAENC_SIZE(sz);
 }
@@ -199,7 +199,7 @@ void laikaS_writeENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *
 void laikaS_readENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub, uint8_t *priv) {
     /* decrypt into buf */
     if (crypto_box_seal_open(buf, sock->inBuf, LAIKAENC_SIZE(sz), pub, priv) != 0)
-        LAIKA_ERROR("Failed to decrypt!");
+        LAIKA_ERROR("Failed to decrypt!\n");
 
     laikaM_rmvarray(uint8_t, sock->inBuf, sock->inCount, 0, LAIKAENC_SIZE(sz));
 }
