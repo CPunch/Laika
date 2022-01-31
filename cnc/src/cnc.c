@@ -36,7 +36,7 @@ void handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     laikaS_writeByte(&peer->sock, laikaS_isBigEndian());
     laikaS_writeENC(&peer->sock, nonce, LAIKA_NONCESIZE, peer->peerPub); /* encrypt nonce with peer's public key */
 
-    LAIKA_DEBUG("accepted handshake from peer %x\n", peer);
+    LAIKA_DEBUG("accepted handshake from peer %lx\n", peer);
 }
 
 PeerPktHandler laikaC_handlerTbl[LAIKAPKT_MAXNONE] = {
@@ -84,7 +84,7 @@ void laikaC_freeCNC(struct sLaika_cnc *cnc) {
 }
 
 void laikaC_killPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
-    LAIKA_DEBUG("peer %x killed!\n", peer);
+    LAIKA_DEBUG("peer %lx killed!\n", peer);
     laikaP_rmvSock(&cnc->pList, (struct sLaika_socket*)peer);
     laikaS_freePeer(peer);
 }
@@ -119,7 +119,7 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
             /* add to our pollList */
             laikaP_addSock(&cnc->pList, &peer->sock);
 
-            LAIKA_DEBUG("new peer %x!\n", peer);
+            LAIKA_DEBUG("new peer %lx!\n", peer);
             continue;
         }
 

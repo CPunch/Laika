@@ -151,6 +151,7 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
     if (SOCKETERROR(nEvents))
         LAIKA_ERROR("epoll_wait() failed!\n");
 
+    *_nevents = nEvents;
     for (i = 0; i < nEvents; i++) {
         /* add event to revent array */
         laikaM_growarray(struct sLaika_pollEvent, pList->revents, 1, pList->reventCount, pList->reventCapacity);
@@ -166,17 +167,18 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
     if (SOCKETERROR(nEvents))
         LAIKA_ERROR("poll() failed!\n");
 
+    *_nevents = nEvents;
     /* walk through the returned poll fds, if they have an event, add it to our revents array */
     for (i = 0; i < pList->fdCount && nEvents > 0; i++) {
         PollFD pfd = pList->fds[i];
         if (pList->fds[i].revents != 0) {
             /* grab socket from hashmap */
-            struct sLaika_socket *sock = hashmap_get(pList->sockets, &(tLaika_hashMapElem){.fd = (SOCKET)pfd.fd});
+            struct sLaika_hashMapElem *_sock = hashmap_get(pList->sockets, &(tLaika_hashMapElem){.fd = (SOCKET)pfd.fd});
 
             /* insert event into revents array */
             laikaM_growarray(struct sLaika_pollEvent, pList->revents, 1, pList->reventCount, pList->reventCapacity);
             pList->revents[pList->reventCount++] = (struct sLaika_pollEvent){
-                .sock = sock,
+                .sock = _sock->sock,
                 .pollIn = pfd.revents & POLLIN,
                 .pollOut = pfd.revents & POLLOUT
             };
@@ -187,6 +189,5 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
 #endif
 
     /* return revents array */
-    *_nevents = i;
     return pList->revents;
 }
