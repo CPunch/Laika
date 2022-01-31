@@ -13,6 +13,7 @@ struct sLaika_peer *laikaS_newPeer(PeerPktHandler *handlers, LAIKAPKT_SIZE *pktS
     peer->priv = NULL;
     peer->pub = NULL;
     peer->pktSize = 0;
+    peer->type = PEER_UNVERIFIED;
     peer->pktID = LAIKAPKT_MAXNONE;
     peer->setPollOut = false;
     return peer;
