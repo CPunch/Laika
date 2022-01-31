@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <setjmp.h>
 
+#include "laika.h"
+
 /* defines errorstack size */
 #define LAIKA_MAXERRORS 32
 

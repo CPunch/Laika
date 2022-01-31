@@ -15,7 +15,7 @@
     }
 
 /* moves array elements above indx down by numElem, removing numElem elements at indx */ 
-#define laikaM_rmvarray(type, buf, count, indx, numElem) { \
+#define laikaM_rmvarray(buf, count, indx, numElem) { \
     int _i, _sz = ((count-indx)-numElem); \
     for (_i = 0; _i < _sz; _i++) \
         buf[indx+_i] = buf[indx+numElem+_i]; \

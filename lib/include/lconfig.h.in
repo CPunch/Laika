@@ -9,5 +9,4 @@
 #define LAIKA_PUBKEY "@LAIKA_PUBKEY@"
 #define LAIKA_PRIVKEY "@LAIKA_PRIVKEY@"
 
-
 #endif

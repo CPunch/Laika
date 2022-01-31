@@ -173,7 +173,7 @@ bool laikaS_setNonBlock(struct sLaika_socket *sock) {
 
 void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz) {
     memcpy(buf, sock->inBuf, sz);
-    laikaM_rmvarray(uint8_t, sock->inBuf, sock->inCount, 0, sz);
+    laikaM_rmvarray(sock->inBuf, sock->inCount, 0, sz);
 }
 
 void laikaS_write(struct sLaika_socket *sock, void *buf, size_t sz) {
@@ -201,7 +201,7 @@ void laikaS_readENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *p
     if (crypto_box_seal_open(buf, sock->inBuf, LAIKAENC_SIZE(sz), pub, priv) != 0)
         LAIKA_ERROR("Failed to decrypt!\n");
 
-    laikaM_rmvarray(uint8_t, sock->inBuf, sock->inCount, 0, LAIKAENC_SIZE(sz));
+    laikaM_rmvarray(sock->inBuf, sock->inCount, 0, LAIKAENC_SIZE(sz));
 }
 
 void laikaS_writeByte(struct sLaika_socket *sock, uint8_t data) {
@@ -213,7 +213,7 @@ uint8_t laikaS_readByte(struct sLaika_socket *sock) {
     uint8_t tmp = *sock->inBuf;
 
     /* pop 1 byte */
-    laikaM_rmvarray(uint8_t, sock->inBuf, sock->inCount, 0, 1);
+    laikaM_rmvarray(sock->inBuf, sock->inCount, 0, 1);
     return tmp;
 }
 
@@ -310,7 +310,7 @@ RAWSOCKCODE laikaS_rawSend(struct sLaika_socket *sock, size_t sz, int *processed
 
 _rawWriteExit:
     /* trim sent data from outBuf */
-    laikaM_rmvarray(uint8_t, sock->outBuf, sock->outCount, 0, sentBytes);
+    laikaM_rmvarray(sock->outBuf, sock->outCount, 0, sentBytes);
 
     *processed = sentBytes;
     return errCode;

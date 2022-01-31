@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "lconfig.h"
+
 #define ARRAY_START 4
 
 #ifdef DEBUG
@@ -15,7 +17,5 @@
 #else
 #define LAIKA_DEBUG(...)
 #endif
-
-#include "lconfig.h"
 
 #endif
