@@ -12,7 +12,7 @@ void handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
     uint8_t endianness = laikaS_readByte(&peer->sock);
 
     peer->sock.flipEndian = endianness != laikaS_isBigEndian();
-    LAIKA_DEBUG("handshake accepted by cnc! got endian flag : %s\n", (endianness ? "TRUE" : "FALSE"))
+    LAIKA_DEBUG("handshake accepted by cnc! got endian flag : %s\n", (endianness ? "TRUE" : "FALSE"));
 }
 
 PeerPktHandler laikaB_handlerTbl[LAIKAPKT_MAXNONE] = {

