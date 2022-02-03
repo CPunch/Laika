@@ -6,7 +6,14 @@
 
 #define LAIKA_MAX_PKTSIZE 4096
 
-#define LAIKA_NONCESIZE 16
+/* NONCE: randomly generated uint8_t[LAIKA_NONCESIZE] */
+
+/* first handshake between peer & cnc works as so:
+    - peer connects to cnc and sends a LAIKAPKT_HANDSHAKE_REQ with the peer's pubkey
+    - after cnc receives LAIKAPKT_HANDSHAKE_REQ, all packets are encrypted
+    - cnc responds with LAIKAPKT_HANDSHAKE_RES
+    - if peer is an authenticated client (panel), LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ is then sent
+*/
 
 enum {
     LAIKAPKT_HANDSHAKE_REQ,
@@ -14,22 +21,21 @@ enum {
     *   uint8_t laikaMagic[LAIKA_MAGICLEN];
     *   uint8_t majorVer;
     *   uint8_t minorVer;
-    *   uint8_t peerType;
-    *   uint8_t encNonce[LAIKAENC_SIZE(LAIKA_NONCESIZE)]; -- encrypted using shared pubKey
-    *   uint8_t pubKey[crypto_box_PUBLICKEYBYTES]; -- freshly generated pubKey to encrypt decrypted nonce with
+    *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- freshly generated pubKey to encrypt decrypted nonce with
     */
     LAIKAPKT_HANDSHAKE_RES,
     /* layout of LAIKAPKT_HANDSHAKE_RES:
     *   uint8_t endian;
-    *   uint8_t reEncryptedNonce[LAIKAENC_SIZE(LAIKA_NONCESIZE)]; -- encrypted using received pubKey from LAIKAPKT_AUTH_REQ pkt
     */
-    LAIKAPKT_VARPKT_REQ,
+    //LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ,
+    /* layout of LAIKAPKT_STAGE2_HANDSHAKE_REQ
+    *   uint8_t peerType;
+    */
+    //LAIKAPKT_VARPKT_REQ,
     /* layout of LAIKAPKT_VARPKT_REQ:
     *   uint8_t pktID;
     *   uint16_t pktSize;
     */
-    LAIKAPKT_CHALLENGE_REQ,
-    LAIKAPKT_CHALLENGE_RES,
     LAIKAPKT_MAXNONE
 };
 

@@ -19,12 +19,10 @@ typedef void (*PeerPktHandler)(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void 
 
 struct sLaika_peer {
     struct sLaika_socket sock; /* DO NOT MOVE THIS. this member HAS TO BE FIRST so that typecasting sLaika_peer* to sLaika_sock* works as intended */
-    uint8_t peerPub[crypto_box_PUBLICKEYBYTES]; /* key to encrypt outgoing packets */
+    uint8_t peerPub[crypto_kx_PUBLICKEYBYTES]; /* connected peer's public key */
     struct sLaika_pollList *pList; /* pollList we're active in */
     PeerPktHandler *handlers;
     LAIKAPKT_SIZE *pktSizeTable; /* const table to pull pkt size data from */
-    uint8_t *priv; /* key to decrypt incoming packets */
-    uint8_t *pub; /* pub key matching to priv */
     void *uData; /* data to be passed to pktHandler */
     LAIKAPKT_SIZE pktSize; /* current pkt size */
     LAIKAPKT_ID pktID; /* current pkt ID */
@@ -34,8 +32,6 @@ struct sLaika_peer {
 
 struct sLaika_peer *laikaS_newPeer(PeerPktHandler *handlers, LAIKAPKT_SIZE *pktSizeTable, struct sLaika_pollList *pList, void *uData);
 void laikaS_freePeer(struct sLaika_peer *peer);
-
-void laikaS_setKeys(struct sLaika_peer *peer, uint8_t *priv, uint8_t *pub);
 
 bool laikaS_handlePeerIn(struct sLaika_peer *peer);
 bool laikaS_handlePeerOut(struct sLaika_peer *peer);

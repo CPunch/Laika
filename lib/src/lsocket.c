@@ -5,6 +5,7 @@
 #include "lpolllist.h"
 #include "lrsa.h"
 #include "lsocket.h"
+#include "lpacket.h"
 
 static int _LNSetup = 0;
 
@@ -46,7 +47,10 @@ void laikaS_initSocket(struct sLaika_socket *sock) {
     sock->outBuf = NULL;
     sock->outCap = ARRAY_START;
     sock->outCount = 0;
+    sock->inStart = -1;
+    sock->outStart = -1;
     sock->flipEndian = false;
+    sock->useSecure = false;
 
     laikaS_init();
 }
@@ -171,6 +175,79 @@ bool laikaS_setNonBlock(struct sLaika_socket *sock) {
     return true;
 }
 
+void laikaS_startOutPacket(struct sLaika_socket *sock, uint8_t id) {
+    if (sock->outStart != -1) { /* sanity check */
+        LAIKA_ERROR("unended OUT packet!\n")
+    }
+    laikaS_writeByte(sock, id);
+
+    sock->outStart = sock->outCount;
+    if (sock->useSecure) { /* if we're encrypting this packet, append the nonce right after the packet ID */
+        uint8_t nonce[crypto_secretbox_NONCEBYTES];
+        randombytes_buf(nonce, crypto_secretbox_NONCEBYTES);
+        laikaS_write(sock, nonce, crypto_secretbox_NONCEBYTES);
+    }
+}
+
+int laikaS_endOutPacket(struct sLaika_socket *sock) {
+    uint8_t *body;
+    size_t sz;
+
+    if (sock->useSecure) {
+        /* make sure we have enough space */
+        laikaM_growarray(uint8_t, sock->outBuf, crypto_secretbox_MACBYTES, sock->outCount, sock->outCap);
+
+        /* packet body starts after the id & nonce */
+        body = &sock->outBuf[sock->outStart + crypto_secretbox_NONCEBYTES];
+        /* encrypt packet body in-place */
+        if (crypto_secretbox_easy(body, body, (sock->outCount - sock->outStart) - crypto_secretbox_NONCEBYTES,
+                &sock->outBuf[sock->outStart], sock->outKey) != 0) {
+            LAIKA_ERROR("Failed to encrypt packet!\n")
+        }
+
+        sock->outCount += crypto_secretbox_MACBYTES;
+    }
+
+    sz = sock->outCount - sock->outStart;
+    sock->outStart = -1;
+    return sz;
+}
+
+void laikaS_startInPacket(struct sLaika_socket *sock) {
+    if (sock->inStart != -1) { /* sanity check */
+        LAIKA_ERROR("unended IN packet!\n")
+    }
+
+    sock->inStart = sock->inCount;
+}
+
+int laikaS_endInPacket(struct sLaika_socket *sock) {
+    uint8_t *body;
+    size_t sz = sock->inCount - sock->inStart;
+
+    if (sock->useSecure) {
+        body = &sock->inBuf[sock->inStart + crypto_secretbox_NONCEBYTES];
+
+        /* decrypt packet body in-place */
+        if (crypto_secretbox_open_easy(body, body, (sock->inCount - sock->inStart) - crypto_secretbox_NONCEBYTES,
+                &sock->inBuf[sock->inStart], sock->inKey) != 0) {
+            LAIKA_ERROR("Failed to decrypt packet!\n")
+        }
+
+        /* remove nonce */
+        laikaM_rmvarray(sock->inBuf, sock->inCount, sock->inStart, crypto_secretbox_NONCEBYTES);
+
+        sz -= crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES;
+    }
+
+    sock->inStart = -1;
+    return sz;
+}
+
+void laikaS_setSecure(struct sLaika_socket *sock, bool flag) {
+    sock->useSecure = flag;
+}
+
 void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz) {
     memcpy(buf, sock->inBuf, sz);
     laikaM_rmvarray(sock->inBuf, sock->inCount, 0, sz);
@@ -178,14 +255,14 @@ void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz) {
 
 void laikaS_write(struct sLaika_socket *sock, void *buf, size_t sz) {
     /* make sure we have enough space to copy the buffer */
-    laikaM_growarray(uint8_t, sock->outBuf, sz, sock->outCount, sock->outCap);\
+    laikaM_growarray(uint8_t, sock->outBuf, sz, sock->outCount, sock->outCap);
 
     /* copy the buffer, then increment outCount */
     memcpy(&sock->outBuf[sock->outCount], buf, sz);
     sock->outCount += sz;
 }
 
-void laikaS_writeENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub) {
+void laikaS_writeKeyEncrypt(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub) {
     /* make sure we have enough space to encrypt the buffer */
     laikaM_growarray(uint8_t, sock->outBuf, LAIKAENC_SIZE(sz), sock->outCount, sock->outCap);
 
@@ -196,7 +273,7 @@ void laikaS_writeENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *
     sock->outCount += LAIKAENC_SIZE(sz);
 }
 
-void laikaS_readENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub, uint8_t *priv) {
+void laikaS_readKeyDecrypt(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub, uint8_t *priv) {
     /* decrypt into buf */
     if (crypto_box_seal_open(buf, sock->inBuf, LAIKAENC_SIZE(sz), pub, priv) != 0)
         LAIKA_ERROR("Failed to decrypt!\n");

@@ -10,18 +10,11 @@ struct sLaika_peer *laikaS_newPeer(PeerPktHandler *handlers, LAIKAPKT_SIZE *pktS
     peer->pktSizeTable = pktSizeTable;
     peer->pList = pList;
     peer->uData = uData;
-    peer->priv = NULL;
-    peer->pub = NULL;
     peer->pktSize = 0;
     peer->type = PEER_UNVERIFIED;
     peer->pktID = LAIKAPKT_MAXNONE;
     peer->setPollOut = false;
     return peer;
-}
-
-void laikaS_setKeys(struct sLaika_peer *peer, uint8_t *priv, uint8_t *pub) {
-    peer->priv = priv;
-    peer->pub = pub;
 }
 
 void laikaS_freePeer(struct sLaika_peer *peer) {
@@ -40,6 +33,7 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
                 return false;
 
             peer->pktID = laikaS_readByte(&peer->sock);
+            laikaS_startInPacket(&peer->sock);
 
             /* sanity check packet ID */
             if (peer->pktID >= LAIKAPKT_MAXNONE)
@@ -50,28 +44,32 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
             if (peer->pktSize == 0)
                 LAIKA_ERROR("unsupported packet!\n")
 
-            break;
-        case LAIKAPKT_VARPKT_REQ:
-            /* try grabbing pktID & size */
-            if (laikaS_rawRecv(&peer->sock, sizeof(uint8_t) + sizeof(LAIKAPKT_SIZE), &recvd) != RAWSOCK_OK)
-                return false;
+            /* if we're encrypting/decrypting all packets, make sure to make the packetsize reflect this */
+            if (peer->sock.useSecure)
+                peer->pktSize += crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES;
 
-            if (recvd != sizeof(uint8_t) + sizeof(LAIKAPKT_SIZE))
-                LAIKA_ERROR("couldn't read whole LAIKAPKT_VARPKT_REQ")
+            break;
+        //case LAIKAPKT_VARPKT_REQ:
+            /* try grabbing pktID & size */
+        //    if (laikaS_rawRecv(&peer->sock, sizeof(uint8_t) + sizeof(LAIKAPKT_SIZE), &recvd) != RAWSOCK_OK)
+        //        return false;
+
+        //    if (recvd != sizeof(uint8_t) + sizeof(LAIKAPKT_SIZE))
+        //        LAIKA_ERROR("couldn't read whole LAIKAPKT_VARPKT_REQ")
 
             /* read pktID */
-            peer->pktID = laikaS_readByte(&peer->sock);
+        //    peer->pktID = laikaS_readByte(&peer->sock);
 
             /* sanity check pktID, (check valid range, check it's variadic) */
-            if (peer->pktID >= LAIKAPKT_MAXNONE || peer->pktSizeTable[peer->pktID])
-                LAIKA_ERROR("received evil pktID!\n")
+        //    if (peer->pktID >= LAIKAPKT_MAXNONE || peer->pktSizeTable[peer->pktID])
+        //        LAIKA_ERROR("received evil pktID!\n")
 
             /* try reading new packet size */
-            laikaS_readInt(&peer->sock, (void*)&peer->pktSize, sizeof(LAIKAPKT_SIZE));
+        //    laikaS_readInt(&peer->sock, (void*)&peer->pktSize, sizeof(LAIKAPKT_SIZE));
 
-            if (peer->pktSize > LAIKA_MAX_PKTSIZE)
-                LAIKA_ERROR("variable packet too large!")
-            break;
+        //    if (peer->pktSize > LAIKA_MAX_PKTSIZE)
+        //        LAIKA_ERROR("variable packet too large!")
+        //    break;
         default:
             /* try grabbing the rest of the packet */
             if (laikaS_rawRecv(&peer->sock, peer->pktSize - peer->sock.inCount, &recvd) != RAWSOCK_OK)
@@ -80,9 +78,10 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
             /* have we received the full packet? */
             if (peer->pktSize == peer->sock.inCount) {
                 PeerPktHandler hndlr = peer->handlers[peer->pktID];
+                peer->pktSize = laikaS_endInPacket(&peer->sock);
 
                 if (hndlr != NULL) {
-                    hndlr(peer, peer->pktID, peer->uData); /* dispatch to packet handler */
+                    hndlr(peer, peer->pktSize, peer->uData); /* dispatch to packet handler */
                 } else
                     LAIKA_ERROR("peer %x doesn't support packet id [%d]!\n", peer, peer->pktID); 
 

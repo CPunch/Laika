@@ -51,6 +51,8 @@
 #endif
 #include <fcntl.h>
 
+#include "lrsa.h"
+
 typedef enum {
     RAWSOCK_OK,
     RAWSOCK_ERROR,
@@ -61,12 +63,16 @@ typedef enum {
 struct sLaika_socket {
     uint8_t *outBuf; /* raw data to be sent() */
     uint8_t *inBuf; /* raw data we recv()'d */
+    uint8_t inKey[crypto_kx_SESSIONKEYBYTES], outKey[crypto_kx_SESSIONKEYBYTES];
     SOCKET sock; /* raw socket fd */
     int outCount;
     int inCount;
     int outCap;
     int inCap;
+    int outStart; /* index of pktID for out packet */
+    int inStart; /* index of pktID for in packet */
     bool flipEndian;
+    bool useSecure; /* if true, sock will transmit/receive encrypted data using inKey & outKey */
 };
 
 #define laikaS_isAlive(arg) (arg->sock != INVALID_SOCKET)
@@ -84,10 +90,15 @@ void laikaS_bind(struct sLaika_socket *sock, uint16_t port); /* bind sock to por
 void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from);
 bool laikaS_setNonBlock(struct sLaika_socket *sock);
 
+void laikaS_startOutPacket(struct sLaika_socket *sock, uint8_t id);
+int laikaS_endOutPacket(struct sLaika_socket *sock);
+void laikaS_startInPacket(struct sLaika_socket *sock);
+int laikaS_endInPacket(struct sLaika_socket *sock);
+void laikaS_setSecure(struct sLaika_socket *sock, bool flag);
 void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz); /* reads from inBuf */
 void laikaS_write(struct sLaika_socket *sock, void *buf, size_t sz); /* writes to outBuf */
-void laikaS_writeENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub); /* encrypts & writes from buf */
-void laikaS_readENC(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub, uint8_t *priv); /* decrypts & reads to buf */
+void laikaS_writeKeyEncrypt(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub); /* encrypts & writes from buf using pub key */
+void laikaS_readKeyDecrypt(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub, uint8_t *priv); /* decrypts & reads to buf using pub & priv key*/
 void laikaS_writeByte(struct sLaika_socket *sock, uint8_t data);
 uint8_t laikaS_readByte(struct sLaika_socket *sock);
 void laikaS_readInt(struct sLaika_socket *sock, void *buf, size_t sz); /* reads INT, respecting endianness */

