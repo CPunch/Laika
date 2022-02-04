@@ -27,7 +27,7 @@ enum {
     /* layout of LAIKAPKT_HANDSHAKE_RES:
     *   uint8_t endian;
     */
-    //LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ,
+    LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ,
     /* layout of LAIKAPKT_STAGE2_HANDSHAKE_REQ
     *   uint8_t peerType;
     */

