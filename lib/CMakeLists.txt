@@ -13,7 +13,7 @@ endif ()
 
 # version details
 set(LAIKA_VERSION_MAJOR 0)
-set(LAIKA_VERSION_MINOR 0)
+set(LAIKA_VERSION_MINOR 1)
 
 project(LaikaLib VERSION ${LAIKA_VERSION_MAJOR}.${LAIKA_VERSION_MINOR})
 

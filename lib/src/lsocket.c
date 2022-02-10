@@ -172,6 +172,10 @@ bool laikaS_setNonBlock(struct sLaika_socket *sock) {
     return true;
 }
 
+void laikaS_consumeRead(struct sLaika_socket *sock, size_t sz) {
+    laikaM_rmvarray(sock->inBuf, sock->inCount, 0, sz);
+}
+
 void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz) {
     memcpy(buf, sock->inBuf, sz);
     laikaM_rmvarray(sock->inBuf, sock->inCount, 0, sz);

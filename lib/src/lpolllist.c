@@ -191,3 +191,26 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
     /* return revents array */
     return pList->revents;
 }
+
+struct sWrapperData {
+    tLaika_pollIter iter;
+    void *uData;
+};
+
+/* wrapper iterator */
+bool iterWrapper(const void *rawItem, void *uData) {
+    struct sWrapperData *data = (struct sWrapperData*)uData;
+    tLaika_hashMapElem *item = (tLaika_hashMapElem*)rawItem;
+    return data->iter(item->sock, data->uData);
+}
+
+void laikaP_iterList(struct sLaika_pollList *pList, tLaika_pollIter iter, void *uData) {
+    struct sWrapperData wrapper;
+    wrapper.iter = iter;
+    wrapper.uData = uData;
+
+    /* iterate over hashmap calling our iterWrapper, pass the *real* iterator to
+        itemWrapper so that it can call it. probably a better way to do this 
+        but w/e lol */
+    hashmap_scan(pList->sockets, iterWrapper, &wrapper);
+}

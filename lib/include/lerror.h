@@ -23,21 +23,21 @@
     arguments are ignored.
 */
 #ifndef DEBUG
-#define LAIKA_ERROR(...) { \
+#define LAIKA_ERROR(...) do { \
     if (LAIKA_ISPROTECTED) \
         longjmp(eLaika_errStack[eLaika_errIndx], 1); \
     else \
         exit(1); \
-}
+} while(0);
 #define LAIKA_WARN(...)
 #else
-#define LAIKA_ERROR(...) { \
+#define LAIKA_ERROR(...) do { \
     printf("[ERROR] : " __VA_ARGS__); \
     if (LAIKA_ISPROTECTED) \
         longjmp(eLaika_errStack[eLaika_errIndx], 1); \
     else \
         exit(1); \
-}
+} while(0);
 
 #define LAIKA_WARN(...) \
     printf("[WARN] : " __VA_ARGS__);

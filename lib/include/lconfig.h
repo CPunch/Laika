@@ -3,7 +3,7 @@
 
 /* version info */
 #define LAIKA_VERSION_MAJOR 0
-#define LAIKA_VERSION_MINOR 0
+#define LAIKA_VERSION_MINOR 1
 
 /* keys */
 #define LAIKA_PUBKEY "40d5534aca77d1f5ec2bbe79dd9d0f52a78148918f95814404cefe97c34c5c27"

@@ -11,7 +11,7 @@ typedef enum {
     PEER_UNVERIFIED,
     PEER_BOT,
     PEER_CNC, /* cnc 2 cnc communication */
-    PEER_AUTH /* authorized peers can send commands to cnc */
+    PEER_PANEL /* authorized peers can send commands to cnc */
 } PEERTYPE;
 
 struct sLaika_peer;
@@ -21,7 +21,7 @@ struct sLaika_peer {
     struct sLaika_socket sock; /* DO NOT MOVE THIS. this member HAS TO BE FIRST so that typecasting sLaika_peer* to sLaika_sock* works as intended */
     uint8_t peerPub[crypto_kx_PUBLICKEYBYTES]; /* connected peer's public key */
     uint8_t inKey[crypto_kx_SESSIONKEYBYTES], outKey[crypto_kx_SESSIONKEYBYTES];
-    struct sLaika_pollList *pList; /* pollList we're active in */
+    struct sLaika_pollList *pList; /* pollList we're activeList in */
     PeerPktHandler *handlers;
     LAIKAPKT_SIZE *pktSizeTable; /* const table to pull pkt size data from */
     void *uData; /* data to be passed to pktHandler */
