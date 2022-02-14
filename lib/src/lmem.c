@@ -6,7 +6,8 @@ void *laikaM_realloc(void *buf, size_t sz) {
 
     /* are we free'ing the buffer? */
     if (sz == 0) {
-        free(buf);
+        if (buf != NULL) /* sanity check :) */
+            free(buf);
         return NULL;
     }
 

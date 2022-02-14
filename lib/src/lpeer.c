@@ -61,6 +61,9 @@ int laikaS_endOutPacket(struct sLaika_peer *peer) {
         sock->outCount += crypto_secretbox_MACBYTES;
     }
 
+    /* add to pollList's out queue */
+    laikaP_pushOutQueue(peer->pList, peer);
+
     sz = sock->outCount - peer->outStart;
     peer->outStart = -1;
     return sz;
@@ -178,9 +181,6 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
 
             break;
     }
-
-    if (peer->sock.outCount > 0 && !laikaS_handlePeerOut(peer))
-        return false;
 
     return laikaS_isAlive((&peer->sock));
 }

