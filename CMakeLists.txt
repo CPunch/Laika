@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(Laika)
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Set the project as the default startup project for VS
@@ -37,3 +37,4 @@ add_subdirectory(lib)
 add_subdirectory(tools)
 add_subdirectory(cnc)
 add_subdirectory(bot)
+add_subdirectory(panel)

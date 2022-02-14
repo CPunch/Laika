@@ -77,8 +77,17 @@ void laikaP_addSock(struct sLaika_pollList *pList, struct sLaika_socket *sock) {
 }
 
 void laikaP_rmvSock(struct sLaika_pollList *pList, struct sLaika_socket *sock) {
+    int i;
+
     /* remove socket from hashmap */
     hashmap_delete(pList->sockets, &(tLaika_hashMapElem){.fd = sock->sock, .sock = sock});
+
+    /* make sure peer isn't in outQueue */
+    for (i = 0; i < pList->outCount; i++) {
+        if ((void*)pList->outQueue[i] == (void*)sock) {
+            laikaM_rmvarray(pList->outQueue, pList->outCount, i, 1);
+        }
+    }
 
 #ifdef LAIKA_USE_EPOLL
     /* epoll_event* isn't needed with EPOLL_CTL_DEL, however we still need to pass a NON-NULL pointer. [see: https://man7.org/linux/man-pages/man2/epoll_ctl.2.html#BUGS] */

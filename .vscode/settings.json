@@ -24,18 +24,24 @@
         "stdio.h": "c",
         "bit": "c",
         "limits": "c",
-        "*.in": "cpp"
+        "*.in": "cpp",
+        "lerror.h": "c"
     },
     "cSpell.words": [
+        "cnc's",
         "CWARN",
         "epollfd",
         "EPOLLIN",
+        "evnt",
         "EWOULD",
         "ISPROTECTED",
         "Laika",
         "LAIKAMAGIC",
         "LAIKAMAGICLEN",
+        "LAIKAPKT",
         "NOMINMAX",
-        "rmvarray"
+        "PCLIENT",
+        "rmvarray",
+        "wmain"
     ]
 }

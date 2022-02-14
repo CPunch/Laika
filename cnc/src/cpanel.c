@@ -58,6 +58,10 @@ void laikaC_handleAuthenticatedHandshake(struct sLaika_peer *panel, LAIKAPKT_SIZ
 
             /* they passed! send list of our peers */
             laikaP_iterList(&cnc->pList, sendPanelPeerIter, (void*)panel);
+
+            /* notify other peers */
+            laikaC_onRmvPeer(cnc, panel);
+            laikaC_onAddPeer(cnc, panel);
             break;
         default:
             LAIKA_ERROR("unknown peerType [%d]!\n", panel->type);
