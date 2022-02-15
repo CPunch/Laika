@@ -21,6 +21,7 @@ struct sLaika_peer {
     struct sLaika_socket sock; /* DO NOT MOVE THIS. this member HAS TO BE FIRST so that typecasting sLaika_peer* to sLaika_sock* works as intended */
     uint8_t peerPub[crypto_kx_PUBLICKEYBYTES]; /* connected peer's public key */
     uint8_t inKey[crypto_kx_SESSIONKEYBYTES], outKey[crypto_kx_SESSIONKEYBYTES];
+    char hostname[LAIKA_HOSTNAME_LEN], ipv4[LAIKA_IPV4_LEN];
     struct sLaika_pollList *pList; /* pollList we're activeList in */
     PeerPktHandler *handlers;
     LAIKAPKT_SIZE *pktSizeTable; /* const table to pull pkt size data from */

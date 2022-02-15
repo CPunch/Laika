@@ -4,14 +4,25 @@
 
 #include "panel.h"
 
-tPanel_bot *panelB_newBot(uint8_t *pubKey) {
+tPanel_bot *panelB_newBot(uint8_t *pubKey, char *hostname, char *ipv4) {
     tPanel_bot *bot = laikaM_malloc(sizeof(tPanel_bot));
-    bot->name = laikaM_malloc(256);
-
-    sodium_bin2hex(bot->name, 256, pubKey, crypto_kx_PUBLICKEYBYTES);
+    int length;
 
     /* copy pubKey to bot's pubKey */
     memcpy(bot->pub, pubKey, crypto_kx_PUBLICKEYBYTES);
+
+    /* copy hostname & ipv4 */
+    memcpy(bot->hostname, hostname, LAIKA_HOSTNAME_LEN);
+    memcpy(bot->ipv4, ipv4, LAIKA_IPV4_LEN);
+
+    /* restore NULL terminators */
+    bot->hostname[LAIKA_HOSTNAME_LEN-1] = 0;
+    bot->ipv4[LAIKA_IPV4_LEN-1] = 0;
+
+    /* make bot name */
+    length = strlen(bot->hostname) + 1 + strlen(bot->ipv4) + 1;
+    bot->name = laikaM_malloc(length);
+    sprintf(bot->name, "%s@%s", bot->hostname, bot->ipv4);
 
     return bot;
 }

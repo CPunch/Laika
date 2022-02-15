@@ -87,6 +87,7 @@ void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from);
 bool laikaS_setNonBlock(struct sLaika_socket *sock);
 
 void laikaS_consumeRead(struct sLaika_socket *sock, size_t sz); /* throws sz bytes away from the inBuf */
+void laikaS_zeroWrite(struct sLaika_socket *sock, size_t sz); /* writes sz NULL bytes to the outBuf */
 void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz); /* reads from inBuf */
 void laikaS_write(struct sLaika_socket *sock, void *buf, size_t sz); /* writes to outBuf */
 void laikaS_writeKeyEncrypt(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub); /* encrypts & writes from buf using pub key */

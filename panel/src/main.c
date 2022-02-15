@@ -23,6 +23,7 @@ void connectToCNC(void *uData) {
     panel_botList = panelL_newList();
 
     /* init tabs */
+    panelL_newListItem(&panel_tabList->list, NULL, "CNC Flags", NULL, NULL);
     panelL_newListItem(&panel_tabList->list, panel_botList, "Bot List", NULL, NULL);
     panelL_init(&panel_tabList->list);
     panelL_init(panel_botList);

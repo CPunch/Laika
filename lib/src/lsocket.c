@@ -176,6 +176,14 @@ void laikaS_consumeRead(struct sLaika_socket *sock, size_t sz) {
     laikaM_rmvarray(sock->inBuf, sock->inCount, 0, sz);
 }
 
+void laikaS_zeroWrite(struct sLaika_socket *sock, size_t sz) {
+    laikaM_growarray(uint8_t, sock->outBuf, sz, sock->outCount, sock->outCap);
+
+    /* set NULL bytes */
+    memset(&sock->outBuf[sock->outCount], 0, sz);
+    sock->outCount += sz;
+}
+
 void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz) {
     memcpy(buf, sock->inBuf, sz);
     laikaM_rmvarray(sock->inBuf, sock->inCount, 0, sz);

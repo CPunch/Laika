@@ -9,12 +9,13 @@
 
 typedef struct sPanel_bot {
     uint8_t pub[crypto_kx_PUBLICKEYBYTES];
+    char hostname[LAIKA_HOSTNAME_LEN], ipv4[LAIKA_IPV4_LEN];
     PEERTYPE type;
     tPanel_listItem *item;
     char *name; /* heap allocated string */
 } tPanel_bot;
 
-tPanel_bot *panelB_newBot(uint8_t *pubKey);
+tPanel_bot *panelB_newBot(uint8_t *pubKey, char *hostname, char *ipv4);
 void panelB_freeBot(tPanel_bot *bot);
 
 /* search connected bots by public key */
