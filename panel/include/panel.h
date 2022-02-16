@@ -13,6 +13,7 @@ typedef enum {
     LIST_LIST,
     LIST_TABS,
     LIST_MENU,
+    LIST_TEXT,
     LIST_NONE
 } LISTTYPE;
 
@@ -44,6 +45,12 @@ typedef struct sPanel_menu {
     COMMONPANELLIST;
     char *title;
 } tPanel_menu;
+
+typedef struct sPanel_text {
+    COMMONPANELLIST;
+    char *title;
+    char *text;
+} tPanel_text;
 
 extern WINDOW *wmain;
 extern tPanel_list *panel_botList;
@@ -87,6 +94,10 @@ void panelL_freeTabs(tPanel_tabs *tabs);
 /* menu popup */
 tPanel_menu *panelL_newMenu(char *title);
 void panelL_freeMenu(tPanel_menu *menu);
+
+/* textbot popup */
+tPanel_text *panelL_newText(char *title, char *text);
+void panelL_freeText(tPanel_text *text);
 
 #undef COMMONPANELLIST
 

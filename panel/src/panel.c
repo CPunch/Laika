@@ -348,7 +348,21 @@ bool panelL_tickMenu(tPanel_menu *menu, int ch) {
     return true;
 }
 
-/* ==================================================[[ Panel Direct ]]================================================== */
+/* ==================================================[[ Text ]]================================================== */
+
+tPanel_text *panelL_newText(char *title, char *text) {
+    tPanel_text *textP = (tPanel_text*)panel_newBaseList(sizeof(tPanel_text), LIST_TEXT);
+    textP->title = title;
+    textP->list.width = strlen(title) + 4;
+
+    return textP;
+}
+
+void panelL_freeText(tPanel_text *textP) {
+    panel_freeBaseList((tPanel_list*)textP);
+}
+
+/* ==============================================[[ Panel Direct ]]============================================== */
 
 tPanel_listItem *panelL_newListItem(tPanel_list *list, tPanel_list *child, char *name, panelCallback callback, void *uData) {
     tPanel_listItem *item = laikaM_malloc(sizeof(tPanel_listItem));

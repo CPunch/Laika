@@ -48,7 +48,7 @@ enum {
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
     *   uint8_t peerType;
     */
-    //LAIKAPKT_VARPKT_REQ,
+    LAIKAPKT_VARPKT_REQ,
     /* layout of LAIKAPKT_VARPKT_REQ:
     *   uint8_t pktID;
     *   uint16_t pktSize;

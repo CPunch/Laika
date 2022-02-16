@@ -41,8 +41,6 @@ void laikaS_freePeer(struct sLaika_peer *peer);
 void laikaS_setSecure(struct sLaika_peer *peer, bool flag);
 void laikaS_startOutPacket(struct sLaika_peer *peer, uint8_t id);
 int laikaS_endOutPacket(struct sLaika_peer *peer);
-void laikaS_startInPacket(struct sLaika_peer *peer);
-int laikaS_endInPacket(struct sLaika_peer *peer);
 bool laikaS_handlePeerIn(struct sLaika_peer *peer);
 bool laikaS_handlePeerOut(struct sLaika_peer *peer);
 
