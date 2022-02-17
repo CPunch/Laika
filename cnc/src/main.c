@@ -30,6 +30,7 @@ int main(int argv, char **argc) {
         laikaT_pollTasks(&tService);
     }
 
+    laikaT_cleanTaskService(&tService);
     laikaC_freeCNC(cnc);
     LAIKA_DEBUG("cnc killed\n");
     return 0;

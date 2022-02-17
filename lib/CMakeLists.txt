@@ -27,7 +27,7 @@ set(sodium_USE_STATIC_LIBS)
 find_package(Sodium)
 
 # compile LaikaLib library
-file(GLOB_RECURSE LIBSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c)
+file(GLOB_RECURSE LIBSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c ${CMAKE_CURRENT_SOURCE_DIR}/vendor/**.c)
 add_library(LaikaLib STATIC ${LIBSOURCE})
 target_link_libraries(LaikaLib PRIVATE ${sodium_LIBRARY_RELEASE})
 

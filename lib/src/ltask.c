@@ -6,7 +6,7 @@
 long getTime() {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
-    return ts.tv_sec*1000 + ts.tv_nsec/1000000; /* convert nanoseconds to milliseconds */
+    return ts.tv_sec*1000 + ts.tv_nsec/1000000; /* convert time (seconds & nanoseconds) to milliseconds */
 }
 
 void laikaT_initTaskService(struct sLaika_taskService *service) {
