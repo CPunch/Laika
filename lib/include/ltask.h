@@ -12,6 +12,7 @@ struct sLaika_task {
     taskCallback callback;
     void *uData;
     long scheduled;
+    int delta;
 };
 
 struct sLaika_taskService {

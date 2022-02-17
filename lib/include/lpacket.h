@@ -1,6 +1,8 @@
 #ifndef LAIKA_PACKET_H
 #define LAIKA_PACKET_H
 
+#include <inttypes.h>
+
 #define LAIKA_MAGIC "LAI\x12"
 #define LAIKA_MAGICLEN 4
 

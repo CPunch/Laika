@@ -24,14 +24,12 @@ void laikaT_cleanTaskService(struct sLaika_taskService *service) {
     }
 }
 
-struct sLaika_task *laikaT_newTask(struct sLaika_taskService *service, int delta, taskCallback callback, void *uData) {
-    struct sLaika_task *curr = service->headTask, *last = NULL, *task = laikaM_malloc(sizeof(struct sLaika_task));
+void scheduleTask(struct sLaika_taskService *service, struct sLaika_task *task) {
+    struct sLaika_task *curr = service->headTask, *last = NULL;
 
-    task->callback = callback;
-    task->uData = uData;
-    task->scheduled = getTime() + delta;
+    task->scheduled = getTime() + task->delta;
 
-    /* search list for event for which we're scheduled before */
+    /* search list for task for which we're scheduled before */
     while (curr != NULL && curr->scheduled < task->scheduled) {
         last = curr;
         curr = curr->next;
@@ -49,10 +47,10 @@ struct sLaika_task *laikaT_newTask(struct sLaika_taskService *service, int delta
     }
 }
 
-void laikaT_delTask(struct sLaika_taskService *service, struct sLaika_task *task) {
+void unscheduleTask(struct sLaika_taskService *service, struct sLaika_task *task) {
     struct sLaika_task *curr = service->headTask, *last = NULL;
 
-    if (task == service->headTask) {
+    if (task == service->headTask) { /* if task is root, set root to next */
         service->headTask = task->next;
     } else {
         /* find in list */
@@ -63,8 +61,23 @@ void laikaT_delTask(struct sLaika_taskService *service, struct sLaika_task *task
 
         /* unlink */
         last->next = task->next;
+        task->next = NULL;
     }
+}
 
+struct sLaika_task *laikaT_newTask(struct sLaika_taskService *service, int delta, taskCallback callback, void *uData) {
+    struct sLaika_task *task = laikaM_malloc(sizeof(struct sLaika_task));
+
+    task->callback = callback;
+    task->uData = uData;
+    task->delta = delta;
+    task->next = NULL;
+
+    scheduleTask(service, task);
+}
+
+void laikaT_delTask(struct sLaika_taskService *service, struct sLaika_task *task) {
+    unscheduleTask(service, task);
     laikaM_free(task);
 }
 
@@ -73,21 +86,25 @@ void laikaT_pollTasks(struct sLaika_taskService *service) {
     clock_t currTick = getTime();
 
     /* run each task, list is already sorted from closest scheduled task to furthest */
-    while (curr != NULL && curr->scheduled < currTick) { /* if scheduled time is greater than currTime, all events that follow are also not scheduled yet */
-        /* dispatch task callback */
-        curr->callback(service, curr, currTick, curr->uData);
-        
-        /* walk to next task and free */
+    while (curr != NULL && curr->scheduled <= currTick) { /* if scheduled time is greater than currTime, all events that follow are also not scheduled yet */
+        /* walk to next task */
         last = curr;
         curr = curr->next;
-        laikaT_delTask(service, last);
+
+        /* reset task timer */
+        unscheduleTask(service, last);
+        scheduleTask(service, last);
+
+        /* dispatch task callback */
+        last->callback(service, last, currTick, last->uData);
     }
 }
 
 /* will return the delta time in ms till the next event. -1 for no tasks scheduled */
 int laikaT_timeTillTask(struct sLaika_taskService *service) {
-    if (service->headTask)
-        return service->headTask->scheduled - getTime();
-    else
+    if (service->headTask) {
+        int pause = service->headTask->scheduled - getTime();
+        return (pause > 0) ? pause : 0;
+    } else
         return -1; /* no tasks scheduled */
 }
