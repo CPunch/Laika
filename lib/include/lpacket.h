@@ -9,30 +9,34 @@
 #define LAIKA_HOSTNAME_LEN 64
 #define LAIKA_IPV4_LEN 16
 
-/* NONCE: randomly generated uint8_t[LAIKA_NONCESIZE] */
-
 /* first handshake between peer & cnc works as so:
-    - peer connects to cnc and sends a LAIKAPKT_HANDSHAKE_REQ with the peer's pubkey
+    - peer connects to cnc and sends a LAIKAPKT_HANDSHAKE_REQ with the peer's pubkey, hostname & inet ip
     - after cnc receives LAIKAPKT_HANDSHAKE_REQ, all packets are encrypted
     - cnc responds with LAIKAPKT_HANDSHAKE_RES
     - if peer is an authenticated client (panel), LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ is then sent
 */
 
+/* encrypted packets are laid out like so: (any packet sent/received where peer->useSecure is true)
+    LAIKAPKT_ID pktID; -- plain text
+    uint8_t nonce[crypto_secretbox_NONCEBYTES]; -- plain text
+    uint8_t body[pktSize + crypto_secretbox_MACBYTES]; -- encrypted with shared key & nonce
+*/
+
 enum {
-    LAIKAPKT_HANDSHAKE_REQ,
+    LAIKAPKT_HANDSHAKE_REQ, /* first packet sent by peer & received by cnc */
     /* layout of LAIKAPKT_HANDSHAKE_REQ:
-    *   uint8_t laikaMagic[LAIKA_MAGICLEN];
+    *   uint8_t laikaMagic[LAIKA_MAGICLEN]; -- LAIKA_MAGIC
     *   uint8_t majorVer;
     *   uint8_t minorVer;
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- freshly generated pubKey to encrypt decrypted nonce with
-    *   char hostname[LAIKA_HOSTNAME_LEN];
-    *   char ipv4[LAIKA_IPV4_LEN];
+    *   char hostname[LAIKA_HOSTNAME_LEN]; -- can be empty (ie. all NULL bytes)
+    *   char ipv4[LAIKA_IPV4_LEN]; -- can be empty (ie. all NULL bytes)
     */
     LAIKAPKT_HANDSHAKE_RES,
     /* layout of LAIKAPKT_HANDSHAKE_RES:
-    *   uint8_t endian;
+    *   uint8_t cncEndian;
     */
-    LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ,
+    LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ, /* second packet sent by authenticated peers (panel). there is no response packet */
     /* layout of LAIKAPKT_STAGE2_HANDSHAKE_REQ
     *   uint8_t peerType;
     */
@@ -50,8 +54,8 @@ enum {
     */
     LAIKAPKT_VARPKT_REQ,
     /* layout of LAIKAPKT_VARPKT_REQ:
-    *   uint8_t pktID;
-    *   uint16_t pktSize;
+    *   LAIKAPKT_ID pktID;
+    *   LAIKAPKT_SIZE pktSize;
     */
     LAIKAPKT_MAXNONE
 };

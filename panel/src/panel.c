@@ -92,7 +92,7 @@ tPanel_list *panel_getActiveList() {
 
 int panel_getChar() {
     /* if we have an activeList panel, grab the input from that otherwise return -1 */
-    if (activeList)
+    if (panel_getActiveList() != NULL)
         return wgetch(panel_getActiveList()->win);
     return -1;
 }
@@ -473,7 +473,7 @@ bool panelL_tick(tPanel_list *list, int ch) {
         case LIST_LIST: return panelL_tickList(list, ch);
         case LIST_TABS: return panelL_tickTabs((tPanel_tabs*)list, ch);
         case LIST_MENU: return panelL_tickMenu((tPanel_menu*)list, ch);
-        return false;
+        default: return false;
     }
 }
 

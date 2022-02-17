@@ -305,7 +305,7 @@ RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed
 
 RAWSOCKCODE laikaS_rawSend(struct sLaika_socket *sock, size_t sz, int *processed) {
     RAWSOCKCODE errCode = RAWSOCK_OK;
-    int sent, sentBytes = 0;
+    int sent, i, sentBytes = 0;
 
     /* write bytes to the socket until an error occurs or we finish sending */
     do {
@@ -338,7 +338,6 @@ RAWSOCKCODE laikaS_rawSend(struct sLaika_socket *sock, size_t sz, int *processed
 _rawWriteExit:
 #ifdef DEBUG
     /* for debugging */
-    int i;
     printf("---sent %d bytes---\n", sent);
     for (i = 1; i <= sentBytes; i++) {
         printf("%.2x ", sock->outBuf[i-1]);
