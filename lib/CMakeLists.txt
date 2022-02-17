@@ -23,7 +23,7 @@ configure_file(${LIB_INCLUDEDIR}/lconfig.h.in ${LIB_INCLUDEDIR}/lconfig.h)
 # Put CMake targets (ALL_BUILD/ZERO_CHECK) into a folder
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(sodium_USE_STATIC_LIBS)
+set(sodium_USE_STATIC_LIBS ON)
 find_package(Sodium)
 
 # compile LaikaLib library

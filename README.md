@@ -3,9 +3,11 @@
 Laika is a simple botnet stack for red teaming. It allows authenticated communication across a custom protocol with generated key pairs which are embedded into the executable. 
 
 Some notable features thus far:
-- Lightweight, the bot alone is 80kb and uses very little resources.
-- Uses obfuscation techniques also seen in the wild (string obfuscation, tiny VMs executing sensitive operations, etc.)
-- Simple configuration using CMake (setting keys, obfuscation modes, etc.)
+- [X] Lightweight, the bot alone is 270kb (22kb if not statically linked) and uses very little resources.
+- [ ] Uses obfuscation techniques also seen in the wild (string obfuscation, tiny VMs executing sensitive operations, etc.)
+- [ ] Simple configuration using CMake
+    - [X] Setting keypairs (`-DLAIKA_PUBKEY=? -DLAIKA_PRIVKEY=?`)
+    - [ ] Obfuscation modes
 
 ## Why 'Laika'?
 
