@@ -8,7 +8,7 @@ if(NOT LAIKA_PUBKEY)
 endif ()
 
 if(NOT LAIKA_PRIVKEY)
-set(LAIKA_PRIVKEY "90305aa77023d1c1e03265c3b6af046eb58d6ec8ba650b0dffed01379feab8cc")
+    set(LAIKA_PRIVKEY "90305aa77023d1c1e03265c3b6af046eb58d6ec8ba650b0dffed01379feab8cc")
 endif ()
 
 # version details
@@ -17,7 +17,7 @@ set(LAIKA_VERSION_MINOR 1)
 
 project(LaikaLib VERSION ${LAIKA_VERSION_MAJOR}.${LAIKA_VERSION_MINOR})
 
-message(STATUS "Building config file")
+message(STATUS "Building config file...")
 configure_file(${LIB_INCLUDEDIR}/lconfig.h.in ${LIB_INCLUDEDIR}/lconfig.h)
 
 # Put CMake targets (ALL_BUILD/ZERO_CHECK) into a folder

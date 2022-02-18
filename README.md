@@ -22,28 +22,28 @@ I could add some padding to each packet to make it look pseudo-HTTP-like, howeve
 ## Configuration and compilation
 
 Make sure you have the following libraries and tools installed:
-- CMake (>=3.11)
+- CMake (>=3.10)
 - LibSodium (static library)
 - NCurses
 
 First, compile the target normally
 
-```
-cmake -B build && cmake --build build
+```sh
+$ cmake -B build && cmake --build build
 ```
 
 Now, generate your custom key pair using `genKey`
 
-```
-./bin/genKey
+```sh
+$ ./bin/genKey
 ```
 
 Next, rerun cmake, but passing your public and private keypairs
 
-```
-rm -rf build &&\
-cmake -B build -DLAIKA_PUBKEY=997d026d1c65deb6c30468525132be4ea44116d6f194c142347b67ee73d18814 -DLAIKA_PRIVKEY=1dbd33962f1e170d1e745c6d3e19175049b5616822fac2fa3535d7477957a841 -DCMAKE_BUILD_TYPE=MinSizeRel &&\
-cmake --build build
+```sh
+$ rm -rf build &&\
+    cmake -B build -DLAIKA_PUBKEY=997d026d1c65deb6c30468525132be4ea44116d6f194c142347b67ee73d18814 -DLAIKA_PRIVKEY=1dbd33962f1e170d1e745c6d3e19175049b5616822fac2fa3535d7477957a841 -DCMAKE_BUILD_TYPE=MinSizeRel &&\
+    cmake --build build
 ```
 
 Output binaries are put in the `./bin` folder
