@@ -28,7 +28,7 @@ void laikaS_freePeer(struct sLaika_peer *peer) {
     laikaM_free(peer);
 }
 
-void laikaS_startOutPacket(struct sLaika_peer *peer, uint8_t id) {
+void laikaS_startOutPacket(struct sLaika_peer *peer, LAIKAPKT_ID id) {
     struct sLaika_socket *sock = &peer->sock;
 
     if (peer->outStart != -1) { /* sanity check */
@@ -69,6 +69,28 @@ int laikaS_endOutPacket(struct sLaika_peer *peer) {
 
     sz = sock->outCount - peer->outStart;
     peer->outStart = -1;
+    return sz;
+}
+
+void laikaS_startVarPacket(struct sLaika_peer *peer, LAIKAPKT_ID id) {
+    struct sLaika_socket *sock = &peer->sock;
+
+    if (peer->outStart != -1) { /* sanity check */
+        LAIKA_ERROR("unended OUT packet!\n")
+    }
+
+    laikaS_writeByte(sock, LAIKAPKT_VARPKT_REQ);
+    laikaS_zeroWrite(sock, sizeof(LAIKAPKT_SIZE)); /* allocate space for packet size to patch later */
+    laikaS_startOutPacket(peer, id);
+}
+
+int laikaS_endVarPacket(struct sLaika_peer *peer) {
+    struct sLaika_socket *sock = &peer->sock;
+    int patchIndx = peer->outStart - 3; /* gets index of packet size */
+    LAIKAPKT_SIZE sz = (LAIKAPKT_SIZE)laikaS_endOutPacket(peer);
+
+    /* patch packet size */
+    memcpy((void*)&sock->outBuf[patchIndx], (void*)&sz, sizeof(LAIKAPKT_SIZE));
     return sz;
 }
 
@@ -151,18 +173,18 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
             if (recvd != sizeof(LAIKAPKT_ID) + sizeof(LAIKAPKT_SIZE))
                 LAIKA_ERROR("couldn't read whole LAIKAPKT_VARPKT_REQ")
 
+            /* read packet size */
+            laikaS_readInt(&peer->sock, (void*)&peer->pktSize, sizeof(LAIKAPKT_SIZE));
+
+            if (peer->pktSize > LAIKA_MAX_PKTSIZE)
+               LAIKA_ERROR("variable packet too large!")
+
             /* read pktID */
             peer->pktID = laikaS_readByte(&peer->sock);
 
             /* sanity check pktID, check valid range, check it's variadic (marked by a size of 0 & a defined packet handler) */
             if (peer->pktID >= LAIKAPKT_MAXNONE || peer->pktSizeTable[peer->pktID] != 0 || peer->handlers[peer->pktID] == NULL)
                 LAIKA_ERROR("requested packet id [%d] is not variadic!", peer->pktID)
-
-            /* read packet size */
-            laikaS_readInt(&peer->sock, (void*)&peer->pktSize, sizeof(LAIKAPKT_SIZE));
-
-            if (peer->pktSize > LAIKA_MAX_PKTSIZE)
-               LAIKA_ERROR("variable packet too large!")
 
             /* if peer->useSecure is true, body is encrypted */
             laikaS_startInPacket(peer);

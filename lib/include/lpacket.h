@@ -56,8 +56,8 @@ enum {
     */
     LAIKAPKT_VARPKT_REQ,
     /* layout of LAIKAPKT_VARPKT_REQ:
-    *   LAIKAPKT_ID pktID;
     *   LAIKAPKT_SIZE pktSize;
+    *   LAIKAPKT_ID pktID;
     */
     LAIKAPKT_MAXNONE
 };

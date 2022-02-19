@@ -39,8 +39,10 @@ struct sLaika_peer *laikaS_newPeer(PeerPktHandler *handlers, LAIKAPKT_SIZE *pktS
 void laikaS_freePeer(struct sLaika_peer *peer);
 
 void laikaS_setSecure(struct sLaika_peer *peer, bool flag);
-void laikaS_startOutPacket(struct sLaika_peer *peer, uint8_t id);
+void laikaS_startOutPacket(struct sLaika_peer *peer, LAIKAPKT_ID id);
 int laikaS_endOutPacket(struct sLaika_peer *peer);
+void laikaS_startVarPacket(struct sLaika_peer *peer, LAIKAPKT_ID id);
+int laikaS_endVarPacket(struct sLaika_peer *peer);
 bool laikaS_handlePeerIn(struct sLaika_peer *peer);
 bool laikaS_handlePeerOut(struct sLaika_peer *peer);
 
