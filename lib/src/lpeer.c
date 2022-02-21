@@ -79,14 +79,14 @@ void laikaS_startVarPacket(struct sLaika_peer *peer, LAIKAPKT_ID id) {
         LAIKA_ERROR("unended OUT packet!\n")
     }
 
-    laikaS_writeByte(sock, LAIKAPKT_VARPKT_REQ);
+    laikaS_writeByte(sock, LAIKAPKT_VARPKT);
     laikaS_zeroWrite(sock, sizeof(LAIKAPKT_SIZE)); /* allocate space for packet size to patch later */
     laikaS_startOutPacket(peer, id);
 }
 
 int laikaS_endVarPacket(struct sLaika_peer *peer) {
     struct sLaika_socket *sock = &peer->sock;
-    int patchIndx = peer->outStart - 3; /* gets index of packet size */
+    int patchIndx = peer->outStart - (sizeof(LAIKAPKT_SIZE) + sizeof(LAIKAPKT_ID)); /* gets index of packet size */
     LAIKAPKT_SIZE sz = (LAIKAPKT_SIZE)laikaS_endOutPacket(peer);
 
     /* patch packet size */
@@ -94,7 +94,7 @@ int laikaS_endVarPacket(struct sLaika_peer *peer) {
     return sz;
 }
 
-void laikaS_startInPacket(struct sLaika_peer *peer) {
+void laikaS_startInPacket(struct sLaika_peer *peer, bool variadic) {
     struct sLaika_socket *sock = &peer->sock;
 
     if (peer->inStart != -1) { /* sanity check */
@@ -102,7 +102,7 @@ void laikaS_startInPacket(struct sLaika_peer *peer) {
     }
 
     /* if we're encrypting/decrypting all packets, make sure to make the packetsize reflect this */
-    if (peer->useSecure)
+    if (peer->useSecure && !variadic)
         peer->pktSize += crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES;
 
     peer->inStart = sock->inCount;
@@ -152,42 +152,42 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
             /* read packet ID & mark start of packet */
             peer->pktID = laikaS_readByte(&peer->sock);
 
-            /* LAIKAPKT_VARPKT_REQ's body is unencrypted, and handled by this switch statement. LAIKAPKT_VARPKT_REQ is 
-                also likely not to be defined in our pktSizeTable. the LAIKAPKT_VARPKT_REQ case calls laikaS_startInPacket
+            /* LAIKAPKT_VARPKT's body is unencrypted, and handled by this switch statement. LAIKAPKT_VARPKT is 
+                also likely not to be defined in our pktSizeTable. the LAIKAPKT_VARPKT case calls laikaS_startInPacket
                 for itself, so skip all of this */ 
-            if (peer->pktID == LAIKAPKT_VARPKT_REQ)
+            if (peer->pktID == LAIKAPKT_VARPKT)
                 break;
 
             /* sanity check pktID, pktSize && pktID's handler */
             if (peer->pktID >= LAIKAPKT_MAXNONE || (peer->pktSize = peer->pktSizeTable[peer->pktID]) == 0 || peer->handlers[peer->pktID] == NULL)
-                LAIKA_ERROR("peer %x doesn't support packet id [%d]!\n", peer, peer->pktID);
+                LAIKA_ERROR("peer %lx doesn't support packet id [%d]!\n", peer, peer->pktID);
 
             /* if peer->useSecure is true, body is encrypted */
-            laikaS_startInPacket(peer);
+            laikaS_startInPacket(peer, false);
             break;
-        case LAIKAPKT_VARPKT_REQ:
+        case LAIKAPKT_VARPKT:
             /* try grabbing pktID & size */
             if (laikaS_rawRecv(&peer->sock, sizeof(LAIKAPKT_ID) + sizeof(LAIKAPKT_SIZE), &recvd) != RAWSOCK_OK)
                 return false;
 
             if (recvd != sizeof(LAIKAPKT_ID) + sizeof(LAIKAPKT_SIZE))
-                LAIKA_ERROR("couldn't read whole LAIKAPKT_VARPKT_REQ")
+                LAIKA_ERROR("couldn't read whole LAIKAPKT_VARPKT\n")
 
             /* read packet size */
             laikaS_readInt(&peer->sock, (void*)&peer->pktSize, sizeof(LAIKAPKT_SIZE));
 
             if (peer->pktSize > LAIKA_MAX_PKTSIZE)
-               LAIKA_ERROR("variable packet too large!")
+               LAIKA_ERROR("variable packet too large!\n")
 
             /* read pktID */
             peer->pktID = laikaS_readByte(&peer->sock);
 
             /* sanity check pktID, check valid range, check it's variadic (marked by a size of 0 & a defined packet handler) */
             if (peer->pktID >= LAIKAPKT_MAXNONE || peer->pktSizeTable[peer->pktID] != 0 || peer->handlers[peer->pktID] == NULL)
-                LAIKA_ERROR("requested packet id [%d] is not variadic!", peer->pktID)
+                LAIKA_ERROR("requested packet id [%d] is not variadic!\n", peer->pktID)
 
             /* if peer->useSecure is true, body is encrypted */
-            laikaS_startInPacket(peer);
+            laikaS_startInPacket(peer, true);
             break;
         default:
             /* try grabbing the rest of the packet */

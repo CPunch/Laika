@@ -22,7 +22,7 @@ bool sendPanelPeerIter(struct sLaika_socket *sock, void *uData) {
 }
 
 void laikaC_sendNewPeer(struct sLaika_peer *panel, struct sLaika_peer *peer) {
-    laikaS_startOutPacket(panel, LAIKAPKT_AUTHENTICATED_ADD_PEER);
+    laikaS_startOutPacket(panel, LAIKAPKT_AUTHENTICATED_ADD_PEER_RES);
 
     /* write the peer's info */
     laikaS_write(&panel->sock, peer->peerPub, sizeof(peer->peerPub));
@@ -34,7 +34,7 @@ void laikaC_sendNewPeer(struct sLaika_peer *panel, struct sLaika_peer *peer) {
 }
 
 void laikaC_sendRmvPeer(struct sLaika_peer *panel, struct sLaika_peer *peer) {
-    laikaS_startOutPacket(panel, LAIKAPKT_AUTHENTICATED_RMV_PEER);
+    laikaS_startOutPacket(panel, LAIKAPKT_AUTHENTICATED_RMV_PEER_RES);
 
     /* write the peer's pubkey */
     laikaS_write(&panel->sock, peer->peerPub, sizeof(peer->peerPub));

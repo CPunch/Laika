@@ -8,10 +8,12 @@
 #include "lpolllist.h"
 #include "lrsa.h"
 
+struct sLaika_shell;
 struct sLaika_bot {
     uint8_t priv[crypto_kx_SECRETKEYBYTES], pub[crypto_kx_PUBLICKEYBYTES];
     struct sLaika_pollList pList;
     struct sLaika_peer *peer;
+    struct sLaika_shell *shells[LAIKA_MAX_SHELLS];
 };
 
 struct sLaika_bot *laikaB_newBot(void);

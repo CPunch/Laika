@@ -62,14 +62,14 @@ void handleRmvPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
 
 LAIKAPKT_SIZE panelC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
     [LAIKAPKT_HANDSHAKE_RES] = sizeof(uint8_t),
-    [LAIKAPKT_AUTHENTICATED_ADD_PEER] = crypto_kx_PUBLICKEYBYTES + sizeof(uint8_t) + LAIKA_HOSTNAME_LEN + LAIKA_IPV4_LEN, /* pubkey + peerType + host + ip */
-    [LAIKAPKT_AUTHENTICATED_RMV_PEER] = crypto_kx_PUBLICKEYBYTES + sizeof(uint8_t), /* pubkey + peerType */
+    [LAIKAPKT_AUTHENTICATED_ADD_PEER_RES] = crypto_kx_PUBLICKEYBYTES + sizeof(uint8_t) + LAIKA_HOSTNAME_LEN + LAIKA_IPV4_LEN, /* pubkey + peerType + host + ip */
+    [LAIKAPKT_AUTHENTICATED_RMV_PEER_RES] = crypto_kx_PUBLICKEYBYTES + sizeof(uint8_t), /* pubkey + peerType */
 };
 
 PeerPktHandler panelC_handlerTbl[LAIKAPKT_MAXNONE] = {
     [LAIKAPKT_HANDSHAKE_RES] = handleHandshakeResponse,
-    [LAIKAPKT_AUTHENTICATED_ADD_PEER] = handleAddPeer,
-    [LAIKAPKT_AUTHENTICATED_RMV_PEER] = handleRmvPeer,
+    [LAIKAPKT_AUTHENTICATED_ADD_PEER_RES] = handleAddPeer,
+    [LAIKAPKT_AUTHENTICATED_RMV_PEER_RES] = handleRmvPeer,
 };
 
 tPanel_client *panelC_newClient() {
