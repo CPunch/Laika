@@ -25,7 +25,8 @@
         "bit": "c",
         "limits": "c",
         "*.in": "cpp",
-        "lerror.h": "c"
+        "lerror.h": "c",
+        "stdbool.h": "c"
     },
     "cSpell.words": [
         "cnc's",

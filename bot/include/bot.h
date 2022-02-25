@@ -6,7 +6,7 @@
 #include "lsocket.h"
 #include "lpeer.h"
 #include "lpolllist.h"
-#include "lrsa.h"
+#include "lsodium.h"
 
 struct sLaika_shell;
 struct sLaika_bot {

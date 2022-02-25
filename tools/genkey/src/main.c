@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "lerror.h"
-#include "lrsa.h"
+#include "lsodium.h"
 
 int main(int argv, char **argc) {
     unsigned char priv[crypto_kx_SECRETKEYBYTES], pub[crypto_kx_PUBLICKEYBYTES];

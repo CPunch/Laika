@@ -9,22 +9,27 @@ Some notable features thus far:
     - [X] Setting keypairs (`-DLAIKA_PUBKEY=? -DLAIKA_PRIVKEY=?`)
     - [ ] Obfuscation modes
 
-## Why?
-
-It's a fun project :)
-
 ## Would this work in real world scenarios?
 
 My hope is that this becomes complete enough to be accurate to real botnet sources seen in the wild. However since Laika uses a binary protocol, the traffic the bot/CNC create would look very suspect and scream to sysadmins. This is why most botnets nowadays use an HTTP-based protocol, not only to 'blend in' with traffic, but it also scales well with large networks of bots where the CNC can be deployed across multiple servers and have a generic HTTP load balancer.
 
 I could add some padding to each packet to make it look pseudo-HTTP-like, however I haven't given much thought to this.
 
+## Directories explained
+
+- `/cmake-modules` holds helper functions for finding things like libSodium.
+- `/lib` is a shared static library between the client, peer & panel clients.
+- `/cnc` is the Command aNd Control server.
+- `/bot` is the bot client to be ran on the target machine.
+- `/shell` is the main shell to connect to the CNC server with to issue commands.
+- `/panel` is a very incomplete & broken ncurses client. ignore for now.
+- `/tools` holds tools for generating keypairs, etc.
+
 ## Configuration and compilation
 
 Make sure you have the following libraries and tools installed:
 - CMake (>=3.10)
 - LibSodium (static library)
-- NCurses
 
 First, compile the target normally
 

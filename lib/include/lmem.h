@@ -22,6 +22,14 @@
     count -= numElem; \
 }
 
+/* moves array elements above indx up by numElem, inserting numElem elements at indx */ 
+#define laikaM_insertarray(buf, count, indx, numElem) { \
+    int _i; \
+    for (_i = count; _i > indx; _i--) \
+        buf[_i] = buf[_i-1]; \
+    count += numElem; \
+}
+
 void *laikaM_realloc(void *buf, size_t sz);
 
 #endif

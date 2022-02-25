@@ -3,7 +3,7 @@
 #include "lerror.h"
 #include "lmem.h"
 #include "lpolllist.h"
-#include "lrsa.h"
+#include "lsodium.h"
 #include "lsocket.h"
 #include "lpacket.h"
 

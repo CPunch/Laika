@@ -3,7 +3,7 @@
 
 #include "laika.h"
 #include "lpeer.h"
-#include "lrsa.h"
+#include "lsodium.h"
 
 #include "panel.h"
 

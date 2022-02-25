@@ -33,6 +33,7 @@
 #else
 #define LAIKA_ERROR(...) do { \
     printf("[ERROR] : " __VA_ARGS__); \
+    getchar(); \
     if (LAIKA_ISPROTECTED) \
         longjmp(eLaika_errStack[eLaika_errIndx], 1); \
     else \

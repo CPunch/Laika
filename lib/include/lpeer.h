@@ -5,7 +5,7 @@
 #include "lsocket.h"
 #include "lpacket.h"
 #include "lpolllist.h"
-#include "lrsa.h"
+#include "lsodium.h"
 
 typedef enum {
     PEER_UNVERIFIED,

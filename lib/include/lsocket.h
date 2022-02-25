@@ -51,7 +51,7 @@
 #endif
 #include <fcntl.h>
 
-#include "lrsa.h"
+#include "lsodium.h"
 
 typedef enum {
     RAWSOCK_OK,
