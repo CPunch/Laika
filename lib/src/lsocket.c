@@ -26,7 +26,7 @@ void laikaS_init(void) {
     WSADATA wsaData;
 
     if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0)
-        LAIKA_ERROR("WSAStartup failed!\n")
+        LAIKA_ERROR("WSAStartup failed!\n");
 #endif
 }
 
@@ -118,7 +118,7 @@ void laikaS_bind(struct sLaika_socket *sock, uint16_t port) {
     struct sockaddr_in address;
 
     if (!SOCKETINVALID(sock->sock))
-        LAIKA_ERROR("socket already setup!\n")
+        LAIKA_ERROR("socket already setup!\n");
 
     /* open our socket */
     sock->sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -154,7 +154,7 @@ void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from) {
 
     sock->sock = accept(from->sock, &address, &addressSize);
     if (SOCKETINVALID(sock->sock))
-        LAIKA_ERROR("accept() failed!\n")
+        LAIKA_ERROR("accept() failed!\n");
 }
 
 bool laikaS_setNonBlock(struct sLaika_socket *sock) {
@@ -265,6 +265,10 @@ void laikaS_writeInt(struct sLaika_socket *sock, void *buf, size_t sz) {
 RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed) {
     RAWSOCKCODE errCode = RAWSOCK_OK;
     int rcvd, start = sock->inCount;
+
+    /* sanity check */
+    if (sz == 0)
+        return RAWSOCK_OK;
 
     /* make sure we have enough space to recv */
     laikaM_growarray(uint8_t, sock->inBuf, sz, sock->inCount, sock->inCap);

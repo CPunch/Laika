@@ -8,8 +8,6 @@
 /* number of pollFDs or epollFDs we expect to start with */
 #define POLLSTARTCAP 8
 
-typedef bool (*tLaika_pollIter)(struct sLaika_socket *sock, void *uData);
-
 struct sLaika_pollEvent {
     struct sLaika_socket *sock;
     bool pollIn;
@@ -44,7 +42,6 @@ void laikaP_addSock(struct sLaika_pollList *pList, struct sLaika_socket *sock);
 void laikaP_rmvSock(struct sLaika_pollList *pList, struct sLaika_socket *sock);
 void laikaP_addPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock);
 void laikaP_rmvPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock);
-void laikaP_iterList(struct sLaika_pollList *pList, tLaika_pollIter iter, void *uData);
 void laikaP_pushOutQueue(struct sLaika_pollList *pList, struct sLaika_peer *peer);
 void laikaP_resetOutQueue(struct sLaika_pollList *pList);
 

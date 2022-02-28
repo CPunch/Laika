@@ -69,7 +69,7 @@ void connectToCNC(void *uData) {
 }
 
 void quitLaika(void *uData) {
-    LAIKA_ERROR("quit!\n")
+    LAIKA_ERROR("quit!\n");
 }
 
 int main(int argv, char **argc) {

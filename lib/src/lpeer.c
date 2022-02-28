@@ -2,12 +2,11 @@
 #include "lmem.h"
 #include "lpeer.h"
 
-struct sLaika_peer *laikaS_newPeer(PeerPktHandler *handlers, LAIKAPKT_SIZE *pktSizeTable, struct sLaika_pollList *pList, void *uData) {
+struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *pktTbl, struct sLaika_pollList *pList, void *uData) {
     struct sLaika_peer *peer = laikaM_malloc(sizeof(struct sLaika_peer));
 
     laikaS_initSocket(&peer->sock);
-    peer->handlers = handlers;
-    peer->pktSizeTable = pktSizeTable;
+    peer->packetTbl = pktTbl;
     peer->pList = pList;
     peer->uData = uData;
     peer->pktSize = 0;
@@ -28,12 +27,21 @@ void laikaS_freePeer(struct sLaika_peer *peer) {
     laikaM_free(peer);
 }
 
+void laikaS_emptyOutPacket(struct sLaika_peer *peer, LAIKAPKT_ID id) {
+    struct sLaika_socket *sock = &peer->sock;
+
+    laikaS_writeByte(sock, id);
+
+    /* add to pollList's out queue */
+    laikaP_pushOutQueue(peer->pList, peer);
+}
+
 void laikaS_startOutPacket(struct sLaika_peer *peer, LAIKAPKT_ID id) {
     struct sLaika_socket *sock = &peer->sock;
 
-    if (peer->outStart != -1) { /* sanity check */
-        LAIKA_ERROR("unended OUT packet!\n")
-    }
+    if (peer->outStart != -1) /* sanity check */
+        LAIKA_ERROR("unended OUT packet!\n");
+
     laikaS_writeByte(sock, id);
 
     peer->outStart = sock->outCount;
@@ -58,7 +66,7 @@ int laikaS_endOutPacket(struct sLaika_peer *peer) {
         /* encrypt packet body in-place */
         if (crypto_secretbox_easy(body, body, (sock->outCount - peer->outStart) - crypto_secretbox_NONCEBYTES,
                 &sock->outBuf[peer->outStart], peer->outKey) != 0) {
-            LAIKA_ERROR("Failed to encrypt packet!\n")
+            LAIKA_ERROR("Failed to encrypt packet!\n");
         }
 
         sock->outCount += crypto_secretbox_MACBYTES;
@@ -67,6 +75,7 @@ int laikaS_endOutPacket(struct sLaika_peer *peer) {
     /* add to pollList's out queue */
     laikaP_pushOutQueue(peer->pList, peer);
 
+    /* return packet size and prepare for next outPacket */
     sz = sock->outCount - peer->outStart;
     peer->outStart = -1;
     return sz;
@@ -75,9 +84,8 @@ int laikaS_endOutPacket(struct sLaika_peer *peer) {
 void laikaS_startVarPacket(struct sLaika_peer *peer, LAIKAPKT_ID id) {
     struct sLaika_socket *sock = &peer->sock;
 
-    if (peer->outStart != -1) { /* sanity check */
-        LAIKA_ERROR("unended OUT packet!\n")
-    }
+    if (peer->outStart != -1) /* sanity check */
+        LAIKA_ERROR("unended OUT packet!\n");
 
     laikaS_writeByte(sock, LAIKAPKT_VARPKT);
     laikaS_zeroWrite(sock, sizeof(LAIKAPKT_SIZE)); /* allocate space for packet size to patch later */
@@ -97,12 +105,11 @@ int laikaS_endVarPacket(struct sLaika_peer *peer) {
 void laikaS_startInPacket(struct sLaika_peer *peer, bool variadic) {
     struct sLaika_socket *sock = &peer->sock;
 
-    if (peer->inStart != -1) { /* sanity check */
-        LAIKA_ERROR("unended IN packet!\n")
-    }
+    if (peer->inStart != -1) /* sanity check */
+        LAIKA_ERROR("unended IN packet!\n");
 
     /* if we're encrypting/decrypting all packets, make sure to make the packetsize reflect this */
-    if (peer->useSecure && !variadic)
+    if (peer->useSecure && !variadic && peer->pktSize != 0)
         peer->pktSize += crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES;
 
     peer->inStart = sock->inCount;
@@ -113,13 +120,13 @@ int laikaS_endInPacket(struct sLaika_peer *peer) {
     uint8_t *body;
     size_t sz = sock->inCount - peer->inStart;
 
-    if (peer->useSecure) {
+    if (peer->useSecure && sz > crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES) {
         body = &sock->inBuf[peer->inStart + crypto_secretbox_NONCEBYTES];
 
         /* decrypt packet body in-place */
         if (crypto_secretbox_open_easy(body, body, (sock->inCount - peer->inStart) - crypto_secretbox_NONCEBYTES,
                 &sock->inBuf[peer->inStart], peer->inKey) != 0) {
-            LAIKA_ERROR("Failed to decrypt packet!\n")
+            LAIKA_ERROR("Failed to decrypt packet!\n");
         }
 
         /* decrypted message is smaller now */
@@ -149,47 +156,52 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
             if (laikaS_rawRecv(&peer->sock, sizeof(uint8_t), &recvd) != RAWSOCK_OK)
                 return false;
 
-            /* read packet ID & mark start of packet */
+            /* read packet ID */
             peer->pktID = laikaS_readByte(&peer->sock);
 
             /* LAIKAPKT_VARPKT's body is unencrypted, and handled by this switch statement. LAIKAPKT_VARPKT is 
                 also likely not to be defined in our pktSizeTable. the LAIKAPKT_VARPKT case calls laikaS_startInPacket
                 for itself, so skip all of this */ 
             if (peer->pktID == LAIKAPKT_VARPKT)
-                break;
+                goto _HandlePacketVariadic;
 
-            /* sanity check pktID, pktSize && pktID's handler */
-            if (peer->pktID >= LAIKAPKT_MAXNONE || (peer->pktSize = peer->pktSizeTable[peer->pktID]) == 0 || peer->handlers[peer->pktID] == NULL)
-                LAIKA_ERROR("peer %lx doesn't support packet id [%d]!\n", peer, peer->pktID);
+            /* sanity check pktID, pktID's handler & make sure it's not marked as variadic */
+            if (peer->pktID >= LAIKAPKT_MAXNONE || peer->packetTbl[peer->pktID].handler == NULL || peer->packetTbl[peer->pktID].variadic)
+                LAIKA_ERROR("peer %p doesn't support packet id [%d]!\n", peer, peer->pktID);
+
+            peer->pktSize = peer->packetTbl[peer->pktID].size;
 
             /* if peer->useSecure is true, body is encrypted */
             laikaS_startInPacket(peer, false);
-            break;
+            goto _HandlePacketBody;
         case LAIKAPKT_VARPKT:
+        _HandlePacketVariadic:
             /* try grabbing pktID & size */
             if (laikaS_rawRecv(&peer->sock, sizeof(LAIKAPKT_ID) + sizeof(LAIKAPKT_SIZE), &recvd) != RAWSOCK_OK)
                 return false;
 
+            /* not worth queuing & setting pollIn for 3 bytes. if the connection is that slow, it was probably sent maliciously anyways */
             if (recvd != sizeof(LAIKAPKT_ID) + sizeof(LAIKAPKT_SIZE))
-                LAIKA_ERROR("couldn't read whole LAIKAPKT_VARPKT\n")
+                LAIKA_ERROR("couldn't read whole LAIKAPKT_VARPKT\n");
 
             /* read packet size */
             laikaS_readInt(&peer->sock, (void*)&peer->pktSize, sizeof(LAIKAPKT_SIZE));
 
             if (peer->pktSize > LAIKA_MAX_PKTSIZE)
-               LAIKA_ERROR("variable packet too large!\n")
+               LAIKA_ERROR("variable packet too large!\n");
 
             /* read pktID */
             peer->pktID = laikaS_readByte(&peer->sock);
 
-            /* sanity check pktID, check valid range, check it's variadic (marked by a size of 0 & a defined packet handler) */
-            if (peer->pktID >= LAIKAPKT_MAXNONE || peer->pktSizeTable[peer->pktID] != 0 || peer->handlers[peer->pktID] == NULL)
-                LAIKA_ERROR("requested packet id [%d] is not variadic!\n", peer->pktID)
+            /* sanity check pktID, check valid handler & make sure it's marked as variadic */
+            if (peer->pktID >= LAIKAPKT_MAXNONE || peer->packetTbl[peer->pktID].handler == NULL || !peer->packetTbl[peer->pktID].variadic)
+                LAIKA_ERROR("requested packet id [%d] is not variadic!\n", peer->pktID);
 
             /* if peer->useSecure is true, body is encrypted */
             laikaS_startInPacket(peer, true);
-            break;
+            goto _HandlePacketBody;
         default:
+        _HandlePacketBody:
             /* try grabbing the rest of the packet */
             if (laikaS_rawRecv(&peer->sock, peer->pktSize - peer->sock.inCount, &recvd) != RAWSOCK_OK)
                 return false;
@@ -199,7 +211,7 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
                 peer->pktSize = laikaS_endInPacket(peer);
 
                 /* dispatch to packet handler */
-                peer->handlers[peer->pktID](peer, peer->pktSize, peer->uData);
+                peer->packetTbl[peer->pktID].handler(peer, peer->pktSize, peer->uData);
 
                 /* reset */
                 peer->sock.inCount = 0;

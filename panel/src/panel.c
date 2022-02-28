@@ -32,7 +32,7 @@ void printLine(WINDOW *win, char *text, int width, int x, int y) {
 
 void panel_init() {
     if ((wmain = initscr()) == NULL)
-        LAIKA_ERROR("Failed to init ncurses!")
+        LAIKA_ERROR("Failed to init ncurses!");
 
     activeListSize = -1;
 

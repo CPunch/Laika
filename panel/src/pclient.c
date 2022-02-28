@@ -138,15 +138,15 @@ void panelC_connectToCNC(tPanel_client *client, char *ip, char *port) {
     laikaS_setSecure(client->peer, true);
 
     if (crypto_kx_client_session_keys(client->peer->inKey, client->peer->outKey, client->pub, client->priv, client->peer->peerPub) != 0)
-        LAIKA_ERROR("failed to gen session key!\n")
+        LAIKA_ERROR("failed to gen session key!\n");
 
     /* queue authenticated handshake request */
     laikaS_startOutPacket(client->peer, LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ);
-    laikaS_writeByte(sock, PEER_PANEL);
+    laikaS_writeByte(sock, PEER_AUTH);
     laikaS_endOutPacket(client->peer);
 
     if (!laikaS_handlePeerOut(client->peer))
-        LAIKA_ERROR("failed to send handshake request!\n")
+        LAIKA_ERROR("failed to send handshake request!\n");
 }
 
 bool panelC_poll(tPanel_client *client, int timeout) {

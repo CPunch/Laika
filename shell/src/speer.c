@@ -28,7 +28,7 @@ char *shellP_typeStr(tShell_peer *peer) {
     switch (peer->type) {
         case PEER_BOT: return "Bot";
         case PEER_CNC: return "CNC";
-        case PEER_PANEL: return "Auth";
+        case PEER_AUTH: return "Auth";
         default: return "err";
     }
 }

