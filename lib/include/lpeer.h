@@ -24,7 +24,7 @@ struct sLaika_peerPacketInfo {
 };
 
 
-#define LAIKA_CREATE_PACKET_INFO(ID, HANDLER, SIZE, ISVARIADIC) [ID] = {.handler = HANDLER, .size = SIZE, .handler = HANDLER}
+#define LAIKA_CREATE_PACKET_INFO(ID, HANDLER, SIZE, ISVARIADIC) [ID] = {.handler = HANDLER, .size = SIZE, .variadic = ISVARIADIC}
 
 struct sLaika_peer {
     struct sLaika_socket sock; /* DO NOT MOVE THIS. this member HAS TO BE FIRST so that typecasting sLaika_peer* to sLaika_sock* works as intended */

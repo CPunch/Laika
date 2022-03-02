@@ -77,11 +77,20 @@ bool shellT_waitForInput(int timeout) {
     return select(1, &fds, NULL, NULL, &tv) > 0;
 }
 
+int shellT_readRawInput(uint8_t *buf, size_t max) {
+    return read(STDIN_FILENO, buf, max);
+}
+
+void shellT_writeRawOutput(uint8_t *buf, size_t sz) {
+    write(STDOUT_FILENO, buf, sz);
+    fflush(stdout);
+}
+
 char shellT_getch(void) {
     int r;
     char in;
 
-    if ((r = read(STDIN_FILENO, &in, 1)) > 0) {
+    if ((r = shellT_readRawInput(&in, 1)) > 0) {
         return in;
     } else {
         return r;

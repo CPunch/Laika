@@ -26,7 +26,7 @@ struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
         0,
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_DATA,
-        laikaB_handleShellOpen,
+        laikaB_handleShellData,
         0,
     true),
 };
