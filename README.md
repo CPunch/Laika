@@ -1,6 +1,6 @@
 # Laika
 
-Laika is a simple Remote Access Toolkit stack for red teaming. It allows authenticated communication across a custom protocol with generated key pairs which are embedded into the executable (only the public key is embedded in the bot client ofc).
+Laika is a simple Remote Access Toolkit stack for red teaming. It allows authenticated communication across a custom protocol with generated key pairs which are embedded into the executable (only the public key is embedded in the bot client ofc). This project currently only targets Linux, however the socket API has already been ported to work under various OS including Windows, Linux & MacOS. Cross-platform support for the bot client will come eventually.
 
 Some notable features thus far:
 - [X] Lightweight, the bot alone is 270kb (22kb if not statically linked with LibSodium) and uses very little resources.
@@ -22,13 +22,13 @@ I could add some padding to each packet to make it look pseudo-HTTP-like, howeve
 - `/cnc` is the Command aNd Control server.
 - `/bot` is the bot client to be ran on the target machine.
 - `/shell` is the main shell to connect to the CNC server with to issue commands.
-- `/panel` is a very incomplete & broken ncurses client. ignore for now.
 - `/tools` holds tools for generating keypairs, etc.
 
 ## Configuration and compilation
 
 Make sure you have the following libraries and tools installed:
 - CMake (>=3.10)
+- Compiler with C11 support (GCC >= 4.7, Clang >= 3.1, etc.)
 - LibSodium (static library)
 
 First, compile the target normally
