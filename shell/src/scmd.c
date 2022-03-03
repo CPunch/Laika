@@ -63,7 +63,7 @@ void openShell(tShell_client *client, int args, char *argc[]) {
     shellC_openShell(client, peer);
 
     /* while client is alive, and our shell is open */
-    while (laikaS_isAlive((&client->peer->sock)) && client->openShell) {
+    while (laikaS_isAlive((&client->peer->sock)) && shellC_isShellOpen(client)) {
         /* poll for 50ms */
         if (!shellC_poll(client, 50)) {
             /* check if we have input! */
@@ -77,6 +77,8 @@ void openShell(tShell_client *client, int args, char *argc[]) {
             }
         }
     }
+
+    shellT_printf("\n\nShell closed\n\n");
 }
 
 /* =============================================[[ Command Table ]]============================================== */

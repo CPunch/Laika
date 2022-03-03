@@ -37,28 +37,11 @@ void shellT_resetTerm(void) {
 
 void shellT_printf(const char *format, ...) {
     va_list args;
-    va_list args2;
-    char *buf;
-    int sz, i;
 
-    /* TODO: this is pretty hacky & ugly. find another way without using the heap? */
     va_start(args, format);
-    va_copy(args2, args);
-    sz = vsnprintf(NULL, 0, format, args);
-    buf = laikaM_malloc(sz+1);
-    vsnprintf(buf, sz+1, format, args2);
+    vprintf(format, args);
     va_end(args);
-    va_end(args2);
-
-    /* convert output */
-    for (i = 0; i <= sz; i++) {
-        switch (buf[i]) {
-            case '\n': putchar('\n'); putchar('\r'); break;
-            default: putchar(buf[i]); break;
-        }
-    }
-
-    laikaM_free(buf);
+    
     fflush(stdout);
 }
 

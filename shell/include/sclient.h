@@ -18,6 +18,8 @@ typedef struct sShell_client {
     int peerTblCap;
 } tShell_client;
 
+#define shellC_isShellOpen(x) (x->openShell != NULL)
+
 void shellC_init(tShell_client *client);
 void shellC_cleanup(tShell_client *client);
 
