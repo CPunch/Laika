@@ -148,13 +148,22 @@ void laikaS_bind(struct sLaika_socket *sock, uint16_t port) {
         LAIKA_ERROR("listen() failed!\n");
 }
 
-void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from) {
+void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from, char *ipv4) {
     socklen_t addressSize;
-    struct sockaddr address;
+    struct sockaddr_in address;
 
-    sock->sock = accept(from->sock, &address, &addressSize);
+    sock->sock = accept(from->sock, (struct sockaddr*)&address, &addressSize);
     if (SOCKETINVALID(sock->sock))
         LAIKA_ERROR("accept() failed!\n");
+
+    /* read ipv4 */
+    if (ipv4 != NULL) {
+        if (inet_ntop(AF_INET, &address, ipv4, LAIKA_IPV4_LEN) == NULL)
+            LAIKA_ERROR("inet_ntop() failed!\n");
+
+        /* restore null terminator */
+        ipv4[LAIKA_INET_LEN-1] = '\0';
+    }
 }
 
 bool laikaS_setNonBlock(struct sLaika_socket *sock) {

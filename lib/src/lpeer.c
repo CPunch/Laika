@@ -17,7 +17,9 @@ struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *pktTbl, struct 
     peer->inStart = -1;
     peer->useSecure = false;
 
+    /* zero-out peer info */
     memset(peer->hostname, 0, LAIKA_HOSTNAME_LEN);
+    memset(peer->inet, 0, LAIKA_INET_LEN);
     memset(peer->ipv4, 0, LAIKA_IPV4_LEN);
     return peer;
 }

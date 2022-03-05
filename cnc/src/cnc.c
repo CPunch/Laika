@@ -91,6 +91,7 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
     char magicBuf[LAIKA_MAGICLEN];
     struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
     struct sLaika_cnc *cnc = pInfo->cnc;
+    char *tempIPBuf;
     uint8_t major, minor;
 
     laikaS_read(&peer->sock, (void*)magicBuf, LAIKA_MAGICLEN);
@@ -106,13 +107,13 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
     /* read peer's public key */
     laikaS_read(&peer->sock, peer->peerPub, sizeof(peer->peerPub));
 
-    /* read hostname & ipv4 */
+    /* read hostname & inet */
     laikaS_read(&peer->sock, peer->hostname, LAIKA_HOSTNAME_LEN);
-    laikaS_read(&peer->sock, peer->ipv4, LAIKA_IPV4_LEN);
+    laikaS_read(&peer->sock, peer->inet, LAIKA_INET_LEN);
 
     /* restore null-terminator */
-    peer->hostname[LAIKA_HOSTNAME_LEN-1] = 0;
-    peer->ipv4[LAIKA_IPV4_LEN-1] = 0;
+    peer->hostname[LAIKA_HOSTNAME_LEN-1] = '\0';
+    peer->inet[LAIKA_INET_LEN-1] = '\0';
 
     /* gen session keys */
     if (crypto_kx_server_session_keys(peer->inKey, peer->outKey, cnc->pub, cnc->priv, peer->peerPub) != 0)
@@ -137,7 +138,7 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
 #define DEFAULT_PKT_TBL \
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_REQ, \
         laikaC_handleHandshakeRequest, \
-        LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_IPV4_LEN, \
+        LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_INET_LEN, \
     false), \
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ, \
         laikaC_handleAuthenticatedHandshake, \
@@ -372,7 +373,7 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
             );
 
             /* setup and accept new peer */
-            laikaS_acceptFrom(&peer->sock, &cnc->sock);
+            laikaS_acceptFrom(&peer->sock, &cnc->sock, peer->ipv4);
             laikaS_setNonBlock(&peer->sock);
 
             /* add to our pollList */

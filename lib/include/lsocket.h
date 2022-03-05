@@ -61,9 +61,9 @@ typedef enum {
 } RAWSOCKCODE;
 
 struct sLaika_socket {
+    SOCKET sock; /* raw socket fd */
     uint8_t *outBuf; /* raw data to be sent() */
     uint8_t *inBuf; /* raw data we recv()'d */
-    SOCKET sock; /* raw socket fd */
     int outCount;
     int inCount;
     int outCap;
@@ -83,7 +83,7 @@ void laikaS_cleanSocket(struct sLaika_socket *sock);
 void laikaS_kill(struct sLaika_socket *sock); /* kills a socket */
 void laikaS_connect(struct sLaika_socket *sock, char *ip, char *port); /* connect to ip & port */
 void laikaS_bind(struct sLaika_socket *sock, uint16_t port); /* bind sock to port */
-void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from);
+void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from, char *ipv4);
 bool laikaS_setNonBlock(struct sLaika_socket *sock);
 
 void laikaS_consumeRead(struct sLaika_socket *sock, size_t sz); /* throws sz bytes away from the inBuf */
