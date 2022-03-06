@@ -12,6 +12,8 @@ void laikaB_handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, 
     LAIKA_DEBUG("handshake accepted by cnc! got endian flag : %s\n", (endianness ? "TRUE" : "FALSE"));
 }
 
+/* =============================================[[ Packet Tables ]]============================================== */
+
 struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_RES,
         laikaB_handleHandshakeResponse,
@@ -30,6 +32,8 @@ struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
         0,
     true),
 };
+
+/* ==================================================[[ Bot ]]=================================================== */
 
 struct sLaika_bot *laikaB_newBot(void) {
     struct sLaika_bot *bot = laikaM_malloc(sizeof(struct sLaika_bot));
