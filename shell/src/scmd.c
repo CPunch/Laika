@@ -49,7 +49,7 @@ void listPeers(tShell_client *client, int args, char *argc[]) {
 void openShell(tShell_client *client, int args, char *argc[]) {
     uint8_t buf[LAIKA_SHELL_DATA_MAX_LENGTH];
     tShell_peer *peer;
-    int id, sz;
+    int id, sz, cols, rows;
 
     if (args < 2)
         CMD_ERROR("Usage: shell [PEER_ID]\n");
@@ -60,7 +60,8 @@ void openShell(tShell_client *client, int args, char *argc[]) {
     shellT_printf("\n\nOpening shell on peer %04d...\n\n");
 
     /* open shell on peer */
-    shellC_openShell(client, peer);
+    shellT_getTermSize(&cols, &rows);
+    shellC_openShell(client, peer, cols, rows);
 
     /* while client is alive, and our shell is open */
     while (laikaS_isAlive((&client->peer->sock)) && shellC_isShellOpen(client)) {
@@ -77,6 +78,10 @@ void openShell(tShell_client *client, int args, char *argc[]) {
             }
         }
     }
+
+    /* fix terminal */
+    shellT_resetTerm();
+    shellT_conioTerm();
 
     shellT_printf("\n\nShell closed\n\n");
 }

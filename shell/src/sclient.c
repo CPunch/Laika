@@ -318,7 +318,7 @@ void shellC_rmvPeer(tShell_client *client, tShell_peer *oldPeer, int id) {
     shellP_freePeer(oldPeer);
 }
 
-void shellC_openShell(tShell_client *client, tShell_peer *peer) {
+void shellC_openShell(tShell_client *client, tShell_peer *peer, uint16_t col, uint16_t row) {
     /* check if we already have a shell open */
     if (client->openShell)
         return;
@@ -326,6 +326,8 @@ void shellC_openShell(tShell_client *client, tShell_peer *peer) {
     /* send SHELL_OPEN request */
     laikaS_startOutPacket(client->peer, LAIKAPKT_AUTHENTICATED_SHELL_OPEN_REQ);
     laikaS_write(&client->peer->sock, peer->pub, sizeof(peer->pub));
+    laikaS_writeInt(&client->peer->sock, &col, sizeof(uint16_t));
+    laikaS_writeInt(&client->peer->sock, &row, sizeof(uint16_t));
     laikaS_endOutPacket(client->peer);
     client->openShell = peer;
 }

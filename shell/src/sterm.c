@@ -69,6 +69,14 @@ void shellT_writeRawOutput(uint8_t *buf, size_t sz) {
     fflush(stdout);
 }
 
+void shellT_getTermSize(int *col, int *row) {
+    struct winsize ws;
+    ioctl(STDIN_FILENO, TIOCGWINSZ, &ws);
+
+    *col = ws.ws_col;
+    *row = ws.ws_row;
+}
+
 char shellT_getch(void) {
     int r;
     char in;

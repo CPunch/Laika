@@ -31,7 +31,7 @@ tShell_peer *shellC_getPeerByPub(tShell_client *client, uint8_t *pub, int *id);
 int shellC_addPeer(tShell_client *client, tShell_peer *peer); /* returns new peer id */
 void shellC_rmvPeer(tShell_client *client, tShell_peer *peer, int id);
 
-void shellC_openShell(tShell_client *client, tShell_peer *peer);
+void shellC_openShell(tShell_client *client, tShell_peer *peer, uint16_t col, uint16_t row);
 void shellC_closeShell(tShell_client *client);
 void shellC_sendDataShell(tShell_client *client, uint8_t *data, size_t sz);
 

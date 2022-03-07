@@ -161,7 +161,7 @@ struct sLaika_peerPacketInfo laikaC_authPktTbl[LAIKAPKT_MAXNONE] = {
     DEFAULT_PKT_TBL,
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_SHELL_OPEN_REQ,
         laikaC_handleAuthenticatedShellOpen,
-        crypto_kx_PUBLICKEYBYTES,
+        crypto_kx_PUBLICKEYBYTES + sizeof(uint16_t) + sizeof(uint16_t),
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_SHELL_CLOSE,
         laikaC_handleAuthenticatedShellClose,
