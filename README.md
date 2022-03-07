@@ -2,6 +2,8 @@
 
 Laika is a simple Remote Access Toolkit stack for red teaming. It allows authenticated communication across a custom protocol with generated key pairs which are embedded into the executable (only the public key is embedded in the bot client ofc). This project currently only targets Linux, however the socket API has already been ported to work under various OS including Windows, Linux & MacOS. Cross-platform support for the bot client will come eventually.
 
+![DEMO](img/demo.gif)
+
 Some notable features thus far:
 - [X] Lightweight, the bot alone is 270kb (22kb if not statically linked with LibSodium) and uses very little resources.
 - [ ] Uses obfuscation techniques also seen in the wild (string obfuscation, tiny VMs executing sensitive operations, etc.)
