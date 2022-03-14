@@ -31,6 +31,7 @@ add_subdirectory(libsodium)
 file(GLOB_RECURSE LIBSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c ${CMAKE_CURRENT_SOURCE_DIR}/vendor/**.c)
 file(GLOB_RECURSE LIBHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/**.h)
 add_library(LaikaLib STATIC ${LIBSOURCE} ${LIBHEADERS})
+set_property(TARGET LaikaLib PROPERTY C_STANDARD 11)
 target_link_libraries(LaikaLib PRIVATE sodium)
 
 # add the version definitions and the 'DEBUG' preprocessor definition if we're compiling as Debug
