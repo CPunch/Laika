@@ -5,6 +5,16 @@
 
 #define GROW_FACTOR 2
 
+/* microsoft strikes again with their lack of support for VLAs */
+#if _MSC_VER
+#define VLA(type, var, sz) type var = laikaM_malloc(sizeof(type)*sz);
+#define ENDVLA(var) laikaM_free(var); 
+#else
+#define VLA(type, var, sz) type var[sz];
+/* stubbed */
+#define ENDVLA(var)
+#endif
+
 #define laikaM_malloc(sz) laikaM_realloc(NULL, sz)
 #define laikaM_free(buf) laikaM_realloc(buf, 0)
 
