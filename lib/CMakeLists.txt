@@ -14,6 +14,7 @@ endif ()
 # version details
 set(LAIKA_VERSION_MAJOR 0)
 set(LAIKA_VERSION_MINOR 1)
+set(SODIUM_DISABLE_TESTS ON)
 
 project(LaikaLib VERSION ${LAIKA_VERSION_MAJOR}.${LAIKA_VERSION_MINOR})
 
@@ -23,13 +24,10 @@ configure_file(${LIB_INCLUDEDIR}/lconfig.h.in ${LIB_INCLUDEDIR}/lconfig.h)
 # Put CMake targets (ALL_BUILD/ZERO_CHECK) into a folder
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(sodium_USE_STATIC_LIBS ON)
-find_package(Sodium)
-
 # compile LaikaLib library
 file(GLOB_RECURSE LIBSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c ${CMAKE_CURRENT_SOURCE_DIR}/vendor/**.c)
 add_library(LaikaLib STATIC ${LIBSOURCE})
-target_link_libraries(LaikaLib PRIVATE ${sodium_LIBRARY_RELEASE})
+target_link_libraries(LaikaLib PRIVATE sodium)
 
 # add the version definitions and the 'DEBUG' preprocessor definition if we're compiling as Debug
 target_compile_definitions(LaikaLib PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
