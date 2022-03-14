@@ -32,7 +32,7 @@ file(GLOB_RECURSE LIBSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c ${CMAKE_CURRENT
 file(GLOB_RECURSE LIBHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/**.h)
 add_library(LaikaLib STATIC ${LIBSOURCE} ${LIBHEADERS})
 set_property(TARGET LaikaLib PROPERTY C_STANDARD 11)
-target_link_libraries(LaikaLib PRIVATE sodium)
+target_link_libraries(LaikaLib PUBLIC sodium)
 
 # add the version definitions and the 'DEBUG' preprocessor definition if we're compiling as Debug
 target_compile_definitions(LaikaLib PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
