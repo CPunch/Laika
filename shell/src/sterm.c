@@ -81,7 +81,7 @@ char shellT_getch(void) {
     int r;
     char in;
 
-    if ((r = shellT_readRawInput(&in, 1)) > 0) {
+    if ((r = shellT_readRawInput((uint8_t*)&in, 1)) > 0) {
         return in;
     } else {
         return r;

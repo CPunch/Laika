@@ -1,5 +1,3 @@
-#include <alloca.h>
-
 #include "lerror.h"
 #include "lmem.h"
 #include "lpolllist.h"

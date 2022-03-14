@@ -26,7 +26,8 @@
         "limits": "c",
         "*.in": "cpp",
         "lerror.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "alloca.h": "c"
     },
     "cSpell.words": [
         "cnc's",
