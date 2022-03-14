@@ -7,8 +7,8 @@
 
 /* microsoft strikes again with their lack of support for VLAs */
 #if _MSC_VER
-#define VLA(type, var, sz) type var = laikaM_malloc(sizeof(type)*sz);
-#define ENDVLA(var) laikaM_free(var); 
+#define VLA(type, var, sz) type *var = laikaM_malloc(sizeof(type)*sz);
+#define ENDVLA(var) laikaM_free(var);
 #else
 #define VLA(type, var, sz) type var[sz];
 /* stubbed */
