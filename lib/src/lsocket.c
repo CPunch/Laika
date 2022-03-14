@@ -246,7 +246,7 @@ void laikaS_readInt(struct sLaika_socket *sock, void *buf, size_t sz) {
 
         /* copy tmp buffer to user buffer, flipping endianness */
         for (k = 0; k < sz; k++)
-            *(uint8_t*)(buf + k) = tmp[sz - k - 1];
+            *((uint8_t*)buf + k) = tmp[sz - k - 1];
         
         ENDVLA(tmp);
     } else {
@@ -262,7 +262,7 @@ void laikaS_writeInt(struct sLaika_socket *sock, void *buf, size_t sz) {
 
         /* copy user buffer to tmp buffer, flipping endianness */
         for (k = 0; k < sz; k++)
-            tmp[k] = *(uint8_t*)(buf + (sz - k - 1));
+            tmp[k] = *((uint8_t*)buf + (sz - k - 1));
 
         laikaS_write(sock, (void*)tmp, sz);
         ENDVLA(tmp);
