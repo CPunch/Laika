@@ -43,7 +43,9 @@ add_subdirectory(tools)
 
 # these subprojects don't support windows (sorry)
 if(NOT WIN32)
-  add_subdirectory(bot) # windows support Soon:tm:
   add_subdirectory(cnc)
   add_subdirectory(shell)
+  if(NOT APPLE)
+    add_subdirectory(bot) # windows support Soon:tm:
+  endif()
 endif()

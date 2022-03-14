@@ -74,6 +74,7 @@ struct sLaika_task *laikaT_newTask(struct sLaika_taskService *service, int delta
     task->next = NULL;
 
     scheduleTask(service, task);
+    return task;
 }
 
 void laikaT_delTask(struct sLaika_taskService *service, struct sLaika_task *task) {
