@@ -11,7 +11,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 file(GLOB_RECURSE BOTSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c)
 file(GLOB_RECURSE BOTHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/**.h)
 add_executable(LaikaBot ${BOTSOURCE} ${BOTHEADERS})
-target_link_libraries(LaikaBot PUBLIC LaikaLib)
+target_link_libraries(LaikaBot PUBLIC LaikaLib util)
 
 # add the 'DEBUG' preprocessor definition if we're compiling as Debug
 target_compile_definitions(LaikaBot PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
