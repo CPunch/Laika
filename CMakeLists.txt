@@ -36,7 +36,6 @@ endif ()
 set(SODIUM_DISABLE_TESTS ON)
 set(SODIUM_MINIMAL ON)
 set(SODIUM_STATIC ON)
-add_subdirectory(cmake-modules/libsodium)
 
 # compile laikalib, tools, cnc & bot
 add_subdirectory(lib)

@@ -24,16 +24,20 @@ configure_file(${LIB_INCLUDEDIR}/lconfig.h.in ${LIB_INCLUDEDIR}/lconfig.h)
 # Put CMake targets (ALL_BUILD/ZERO_CHECK) into a folder
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# include libsodium
+add_subdirectory(libsodium)
+
 # compile LaikaLib library
 file(GLOB_RECURSE LIBSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c ${CMAKE_CURRENT_SOURCE_DIR}/vendor/**.c)
-add_library(LaikaLib STATIC ${LIBSOURCE})
+file(GLOB_RECURSE LIBHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/**.h)
+add_library(LaikaLib STATIC ${LIBSOURCE} ${LIBHEADERS})
 target_link_libraries(LaikaLib PRIVATE sodium)
 
 # add the version definitions and the 'DEBUG' preprocessor definition if we're compiling as Debug
 target_compile_definitions(LaikaLib PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
 
 # add include directory
-target_include_directories(LaikaLib PUBLIC ${LIB_INCLUDEDIR} ${sodium_INCLUDE_DIR})
+target_include_directories(LaikaLib PUBLIC ${LIB_INCLUDEDIR} ${CMAKE_CURRENT_SOURCE_DIR}/libsodium/libsodium/src/libsodium/include)
 
 # set library name
 set_target_properties(LaikaLib PROPERTIES OUTPUT_NAME laika-${LAIKA_VERSION_MAJOR}.${LAIKA_VERSION_MINOR})

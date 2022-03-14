@@ -9,7 +9,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # compile LaikaShell
 file(GLOB_RECURSE SHELLSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c)
-add_executable(LaikaShell ${SHELLSOURCE})
+file(GLOB_RECURSE SHELLHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/**.h)
+add_executable(LaikaShell ${SHELLSOURCE} ${SHELLHEADERS})
 target_link_libraries(LaikaShell PUBLIC LaikaLib)
 
 # add the 'DEBUG' preprocessor definition if we're compiling as Debug
