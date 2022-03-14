@@ -96,7 +96,6 @@ void laikaP_rmvSock(struct sLaika_pollList *pList, struct sLaika_socket *sock) {
         LAIKA_WARN("epoll_ctl [DEL] failed\n");
     }
 #else
-    int i;
 
     /* search fds for socket, remove it and shrink array */
     for (i = 0; i < pList->fdCount; i++) {
