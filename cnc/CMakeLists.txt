@@ -11,7 +11,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 file(GLOB_RECURSE CNCSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c)
 file(GLOB_RECURSE CNCHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/**.h)
 add_executable(LaikaCNC ${CNCSOURCE} ${CNCHEADERS})
-set_property(TARGET LaikaCNC PROPERTY C_STANDARD 11)
 target_link_libraries(LaikaCNC PUBLIC LaikaLib)
 
 # add the 'DEBUG' preprocessor definition if we're compiling as Debug

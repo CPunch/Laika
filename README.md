@@ -26,6 +26,16 @@ I could add some padding to each packet to make it look pseudo-HTTP-like, howeve
 - `/shell` is the main shell to connect to the CNC server with to issue commands.
 - `/tools` holds tools for generating keypairs, etc.
 
+## CMake Definitions
+
+| Definition        | Description                           | Example                                                                           |
+| ----------------- | ------------------------------------- | --------------------------------------------------------------------------------- |
+| LAIKA_PUBKEY      | Sets CNC's public key                 | -DLAIKA_PUBKEY=997d026d1c65deb6c30468525132be4ea44116d6f194c142347b67ee73d18814   |
+| LAIKA_PRIVKEY     | Sets CNC's private key                | -DLAIKA_PRIVKEY=1dbd33962f1e170d1e745c6d3e19175049b5616822fac2fa3535d7477957a841  |
+| LAIKA_CNC_IP      | Sets CNC's public ip                  | -DLAIKA_CNC_IP=127.0.0.1                                                          |
+| LAIKA_CNC_PORT    | Sets CNC's bind()'d port              | -DLAIKA_CNC_PORT=13337                                                            |
+> examples are passed to `cmake -B <dir>`
+
 ## Configuration and compilation
 
 Make sure you have the following libraries and tools installed:

@@ -11,6 +11,14 @@ if(NOT LAIKA_PRIVKEY)
     set(LAIKA_PRIVKEY "90305aa77023d1c1e03265c3b6af046eb58d6ec8ba650b0dffed01379feab8cc")
 endif ()
 
+if(NOT LAIKA_CNC_IP)
+    set(LAIKA_CNC_IP "127.0.0.1")
+endif ()
+
+if(NOT LAIKA_CNC_PORT)
+    set(LAIKA_CNC_PORT "13337")
+endif ()
+
 # version details
 set(LAIKA_VERSION_MAJOR 0)
 set(LAIKA_VERSION_MINOR 1)
@@ -31,7 +39,6 @@ add_subdirectory(libsodium)
 file(GLOB_RECURSE LIBSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c ${CMAKE_CURRENT_SOURCE_DIR}/vendor/**.c)
 file(GLOB_RECURSE LIBHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/**.h)
 add_library(LaikaLib STATIC ${LIBSOURCE} ${LIBHEADERS})
-set_property(TARGET LaikaLib PROPERTY C_STANDARD 11)
 target_link_libraries(LaikaLib PUBLIC sodium)
 
 # add the version definitions and the 'DEBUG' preprocessor definition if we're compiling as Debug
