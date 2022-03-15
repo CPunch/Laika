@@ -17,8 +17,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 #find_package(Sanitizers)
 
 if(NOT CMAKE_BUILD_TYPE)
-set(CMAKE_BUILD_TYPE Release)
-endif()
+  set(CMAKE_BUILD_TYPE Release)
+endif ()
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} RAWCMAKEBUILDTYPE)
 message(STATUS "CMAKE_BUILD_TYPE: " ${RAWCMAKEBUILDTYPE})
@@ -46,4 +46,4 @@ if(NOT WIN32 AND (UNIX AND NOT APPLE))
   add_subdirectory(bot) # windows support Soon:tm:
   add_subdirectory(cnc)
   add_subdirectory(shell)
-endif()
+endif ()

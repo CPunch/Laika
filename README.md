@@ -41,7 +41,6 @@ I could add some padding to each packet to make it look pseudo-HTTP-like, howeve
 Make sure you have the following libraries and tools installed:
 - CMake (>=3.10)
 - Compiler with C11 support (GCC >= 4.7, Clang >= 3.1, etc.)
-- LibSodium (static library)
 
 First, compile the target normally
 
