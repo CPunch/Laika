@@ -46,19 +46,3 @@ jobs:
         with:
           name: laika-demo-binaries-windows
           path: bin
-
-  macOS-build:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-      - name: Create CMake build files
-        run: cmake -B build
-      - name: Check compilation
-        run: cmake --build build
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: laika-demo-binaries-macos
-          path: bin
