@@ -27,7 +27,8 @@
         "*.in": "cpp",
         "lerror.h": "c",
         "stdbool.h": "c",
-        "alloca.h": "c"
+        "alloca.h": "c",
+        "bot.h": "c"
     },
     "cSpell.words": [
         "cnc's",
