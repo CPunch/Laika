@@ -35,6 +35,4 @@ void shellC_openShell(tShell_client *client, tShell_peer *peer, uint16_t col, ui
 void shellC_closeShell(tShell_client *client);
 void shellC_sendDataShell(tShell_client *client, uint8_t *data, size_t sz);
 
-void shellC_printInfo(tShell_peer *peer);
-
 #endif

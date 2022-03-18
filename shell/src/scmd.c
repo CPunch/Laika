@@ -40,7 +40,7 @@ void listPeers(tShell_client *client, int args, char *argc[]) {
     for (i = 0; i < client->peerTblCount; i++) {
         if (client->peerTbl[i]) {
             shellT_printf("\n%04d ", i);
-            shellC_printInfo(client->peerTbl[i]);
+            shellP_printInfo(client->peerTbl[i]);
         }
     }
     shellT_printf("\n");

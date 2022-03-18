@@ -34,7 +34,7 @@
     #include <sys/epoll.h>
 /* max events for epoll() */
     #define MAX_EPOLL_EVENTS 128
-    #define LAIKA_USE_EPOLL 
+    #define LAIKA_USE_EPOLL
 #endif
     #include <unistd.h>
     #include <errno.h>
