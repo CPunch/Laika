@@ -1,5 +1,10 @@
 # Laika
 
+<p align="center">
+    <a href="https://github.com/CPunch/Laika/actions/workflows/check-build.yaml"><img src="https://github.com/CPunch/Laika/actions/workflows/check-build.yaml/badge.svg" alt="Workflow"></a>
+    <a href="https://github.com/CPunch/Laika/blob/main/LICENSE.md"><img src="https://img.shields.io/github/license/CPunch/Laika" alt="License"></a>
+</p>
+
 Laika is a simple Remote Access Toolkit stack for red teaming. It allows authenticated communication across a custom protocol with generated key pairs which are embedded into the executable (only the public key is embedded in the bot client ofc). This project currently only targets Linux, however the socket API has already been ported to work under various OS including Windows, Linux & MacOS. Cross-platform support for the bot client will come eventually.
 
 ![DEMO](img/demo.gif)
