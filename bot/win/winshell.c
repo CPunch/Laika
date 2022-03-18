@@ -13,11 +13,6 @@ struct sLaika_shell {
     PROCESS_INFORMATION procInfo;
     STARTUPINFOEX startupInfo;
     HPCON pseudoCon;
-    /* HANDLE watcherMutex;
-    char *outBuf;
-    int outCount, outCap;
-    char *inBuf;
-    int inCount, inCap; */
 };
 
 /* edited from https://github.com/microsoft/terminal/blob/main/samples/ConPTY/EchoCon/EchoCon/EchoCon.cpp */
