@@ -35,6 +35,27 @@ void shellT_resetTerm(void) {
     tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
 }
 
+const char *shellT_getForeColor(TERM_COLOR col) {
+    switch (col) {
+        case TERM_BLACK: return "\033[30m"; break;
+        case TERM_RED: return "\033[31m"; break;
+        case TERM_GREEN: return "\033[32m"; break;
+        case TERM_YELLOW: return "\033[33m"; break;
+        case TERM_BLUE: return "\033[34m"; break;
+        case TERM_MAGENTA: return "\033[35m"; break;
+        case TERM_CYAN: return "\033[36m"; break;
+        case TERM_WHITE: return "\033[37m"; break;
+        case TERM_BRIGHT_BLACK: return "\033[90m"; break;
+        case TERM_BRIGHT_RED: return "\033[91m"; break;
+        case TERM_BRIGHT_GREEN: return "\033[92m"; break;
+        case TERM_BRIGHT_YELLOW: return "\033[93m"; break;
+        case TERM_BRIGHT_BLUE: return "\033[94m"; break;
+        case TERM_BRIGHT_MAGENTA: return "\033[95m"; break;
+        case TERM_BRIGHT_CYAN: return "\033[96m"; break;
+        case TERM_BRIGHT_WHITE: default: return "\033[97m"; break;
+    }
+}
+
 void shellT_printf(const char *format, ...) {
     va_list args;
 

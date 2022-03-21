@@ -15,25 +15,25 @@
 #define LAIKA_VM_STACKSIZE 64
 #define LAIKA_VM_CONSTSIZE 32
 
-struct sLaika_vm_val {
+struct sLaikaV_vm_val {
     union {
         uint8_t i;
         void *ptr;
     };
 };
 
-struct sLaika_vm {
-    struct sLaika_vm_val stack[LAIKA_VM_STACKSIZE];
-    struct sLaika_vm_val constList[LAIKA_VM_CONSTSIZE];
+struct sLaikaV_vm {
+    struct sLaikaV_vm_val stack[LAIKA_VM_STACKSIZE];
+    struct sLaikaV_vm_val constList[LAIKA_VM_CONSTSIZE];
     uint8_t code[LAIKA_VM_CODESIZE];
     int pc;
 };
 
-#define LAIKA_MAKE_VM(consts, code) (struct sLaika_vm)({.constList = consts, .code = code, .pc = 0})
+#define LAIKA_MAKE_VM(consts, code) (struct sLaikaV_vm)({.constList = consts, .code = code, .pc = 0})
 
 /* constants */
-#define LAIKA_MAKE_VM_INT(i) (struct sLaika_vm_val)({.i = i})
-#define LAIKA_MAKE_VM_PTR(ptr) (struct sLaika_vm_val)({.ptr = ptr})
+#define LAIKA_MAKE_VM_INT(i) (struct sLaikaV_vm_val)({.i = i})
+#define LAIKA_MAKE_VM_PTR(ptr) (struct sLaikaV_vm_val)({.ptr = ptr})
 /* instructions */
 #define LAIKA_MAKE_VM_IA(opcode, a) opcode, a
 #define LAIKA_MAKE_VM_IAB(opcode, a, b) opcode, a, b
@@ -58,7 +58,7 @@ enum {
     OP_TESTJMP, /* if stk_indx[uint8_t] != 0, pc += [uint8_t] */
 };
 
-inline void laikaV_execute(struct sLaika_vm *vm) {
+inline void laikaV_execute(struct sLaikaV_vm *vm) {
 
 #define READBYTE (vm->code[vm->pc++])
 #define BINOP(x) { \

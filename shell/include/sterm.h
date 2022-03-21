@@ -12,8 +12,34 @@
 
 #include "sclient.h"
 
+typedef enum {
+    TERM_BLACK,
+    TERM_RED,
+    TERM_GREEN,
+    TERM_YELLOW,
+    TERM_BLUE,
+    TERM_MAGENTA,
+    TERM_CYAN,
+    TERM_WHITE,
+    TERM_BRIGHT_BLACK,
+    TERM_BRIGHT_RED,
+    TERM_BRIGHT_GREEN,
+    TERM_BRIGHT_YELLOW,
+    TERM_BRIGHT_BLUE,
+    TERM_BRIGHT_MAGENTA,
+    TERM_BRIGHT_CYAN,
+    TERM_BRIGHT_WHITE
+} TERM_COLOR;
+
+#define PRINTINFO(...) shellT_printf("\r%s[~]%s ", shellT_getForeColor(TERM_BRIGHT_YELLOW), shellT_getForeColor(TERM_BRIGHT_WHITE)); \
+    shellT_printf(__VA_ARGS__);
+
+#define PRINTSUCC(...) shellT_printf("\r%s[~]%s ", shellT_getForeColor(TERM_BRIGHT_GREEN), shellT_getForeColor(TERM_BRIGHT_WHITE)); \
+    shellT_printf(__VA_ARGS__);
+
 void shellT_conioTerm(void);
 void shellT_resetTerm(void);
+const char *shellT_getForeColor(TERM_COLOR);
 void shellT_printf(const char *format, ...);
 
 /* waits for input for timeout (in ms). returns true if input is ready to be read, false if no events */
