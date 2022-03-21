@@ -56,13 +56,13 @@ struct sLaika_bot *laikaB_newBot(void) {
         LAIKA_ERROR("LibSodium failed to initialize!\n");
     }
 
-    if (crypto_kx_keypair(bot->pub, bot->priv) != 0) {
+    if (!laikaK_genKeys(bot->pub, bot->priv)) {
         laikaB_freeBot(bot);
         LAIKA_ERROR("Failed to gen keypair!\n");
     }
 
     /* read cnc's public key into peerPub */
-    if (sodium_hex2bin(bot->peer->peerPub, crypto_kx_PUBLICKEYBYTES, LAIKA_PUBKEY, strlen(LAIKA_PUBKEY), NULL, &_unused, NULL) != 0) {
+    if (!laikaK_loadKeys(bot->peer->peerPub, NULL, LAIKA_PUBKEY, NULL)) {
         laikaB_freeBot(bot);
         LAIKA_ERROR("Failed to init cnc public key!\n");
     }

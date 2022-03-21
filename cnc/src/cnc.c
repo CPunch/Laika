@@ -180,7 +180,6 @@ struct sLaika_peerPacketInfo laikaC_authPktTbl[LAIKAPKT_MAXNONE] = {
 
 struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
     struct sLaika_cnc *cnc = laikaM_malloc(sizeof(struct sLaika_cnc));
-    size_t _unused;
 
     /* init peer hashmap & panel list */
     cnc->peers = hashmap_new(sizeof(tCNC_PeerHashElem), 8, 0, 0, cnc_PeerElemHash, cnc_PeerElemCompare, NULL, NULL);
@@ -205,14 +204,9 @@ struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
 
     /* load keys */
     LAIKA_DEBUG("using pubkey: %s\n", LAIKA_PUBKEY);
-    if (sodium_hex2bin(cnc->pub, crypto_kx_PUBLICKEYBYTES, LAIKA_PUBKEY, strlen(LAIKA_PUBKEY), NULL, &_unused, NULL) != 0) {
+    if (!laikaK_loadKeys(cnc->pub, cnc->priv, LAIKA_PUBKEY, LAIKA_PRIVKEY)) {
         laikaC_freeCNC(cnc);
-        LAIKA_ERROR("Failed to init cnc public key!\n");
-    }
-
-    if (sodium_hex2bin(cnc->priv, crypto_kx_SECRETKEYBYTES, LAIKA_PRIVKEY, strlen(LAIKA_PRIVKEY), NULL, &_unused, NULL) != 0) {
-        laikaC_freeCNC(cnc);
-        LAIKA_ERROR("Failed to init cnc private key!\n");
+        LAIKA_ERROR("Failed to init cnc keypairs!\n");
     }
 
     return cnc;

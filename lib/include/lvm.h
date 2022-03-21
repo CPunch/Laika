@@ -29,10 +29,12 @@ struct sLaika_vm {
     int pc;
 };
 
-#define LAIKA_MAKE_VM_INT(i) (struct sLaika_vm_val)({.i = i})
-#define LAIKA_MAKE_VM_PTR(ptr) (struct sLaika_vm_val)({.ptr = ptr})
 #define LAIKA_MAKE_VM(consts, code) (struct sLaika_vm)({.constList = consts, .code = code, .pc = 0})
 
+/* constants */
+#define LAIKA_MAKE_VM_INT(i) (struct sLaika_vm_val)({.i = i})
+#define LAIKA_MAKE_VM_PTR(ptr) (struct sLaika_vm_val)({.ptr = ptr})
+/* instructions */
 #define LAIKA_MAKE_VM_IA(opcode, a) opcode, a
 #define LAIKA_MAKE_VM_IAB(opcode, a, b) opcode, a, b
 #define LAIKA_MAKE_VM_IABC(opcode, a, b, c) opcode, a, b, c
@@ -63,7 +65,7 @@ inline void laikaV_execute(struct sLaika_vm *vm) {
     uint8_t a = READBYTE; \
     uint8_t b = READBYTE; \
     uint8_t c = READBYTE; \
-    vm->stack[a] = vm->stack[b].i x vm->stack[c].i; \
+    vm->stack[a].i = vm->stack[b].i x vm->stack[c].i; \
     break; \
 }
 

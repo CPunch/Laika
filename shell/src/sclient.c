@@ -136,8 +136,6 @@ struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
 /* ===============================================[[ Client API ]]=============================================== */
 
 void shellC_init(tShell_client *client) {
-    size_t _unused;
-
     laikaP_initPList(&client->pList);
     client->peer = laikaS_newPeer(
         shellC_pktTbl,
@@ -157,18 +155,13 @@ void shellC_init(tShell_client *client) {
         LAIKA_ERROR("LibSodium failed to initialize!\n");
     }
 
-    if (sodium_hex2bin(client->pub, crypto_kx_PUBLICKEYBYTES, LAIKA_PUBKEY, strlen(LAIKA_PUBKEY), NULL, &_unused, NULL) != 0) {
+    if (!laikaK_loadKeys(client->pub, client->priv, LAIKA_PUBKEY, LAIKA_PRIVKEY)) {
         shellC_cleanup(client);
-        LAIKA_ERROR("Failed to init public key!\n");
-    }
-
-    if (sodium_hex2bin(client->priv, crypto_kx_SECRETKEYBYTES, LAIKA_PRIVKEY, strlen(LAIKA_PRIVKEY), NULL, &_unused, NULL) != 0) {
-        shellC_cleanup(client);
-        LAIKA_ERROR("Failed to init private key!\n");
+        LAIKA_ERROR("Failed to init keypair!\n");
     }
 
     /* read cnc's public key into peerPub */
-    if (sodium_hex2bin(client->peer->peerPub, crypto_kx_PUBLICKEYBYTES, LAIKA_PUBKEY, strlen(LAIKA_PUBKEY), NULL, &_unused, NULL) != 0) {
+    if (!laikaK_loadKeys(client->peer->peerPub, NULL, LAIKA_PUBKEY, NULL)) {
         shellC_cleanup(client);
         LAIKA_ERROR("Failed to init cnc public key!\n");
     }

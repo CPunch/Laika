@@ -136,7 +136,7 @@ void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_
 
     /* sanity check, make sure shell is open */
     if ((peer = aInfo->shellBot) == NULL)
-        LAIKA_ERROR("laikaC_handleAuthenticatedShellData: Not shell open!\n");
+        LAIKA_ERROR("laikaC_handleAuthenticatedShellData: Shell not open!\n");
 
     if (sz > LAIKA_SHELL_DATA_MAX_LENGTH)
         LAIKA_ERROR("laikaC_handleAuthenticatedShellData: Data too big!\n");
