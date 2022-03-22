@@ -31,11 +31,15 @@ typedef enum {
     TERM_BRIGHT_WHITE
 } TERM_COLOR;
 
-#define PRINTINFO(...) shellT_printf("\r%s[~]%s ", shellT_getForeColor(TERM_BRIGHT_YELLOW), shellT_getForeColor(TERM_BRIGHT_WHITE)); \
-    shellT_printf(__VA_ARGS__);
+#define PRINTINFO(...) do { \
+    shellT_printf("\r%s[~]%s ", shellT_getForeColor(TERM_BRIGHT_YELLOW), shellT_getForeColor(TERM_BRIGHT_WHITE)); \
+    shellT_printf(__VA_ARGS__); \
+} while(0);
 
-#define PRINTSUCC(...) shellT_printf("\r%s[~]%s ", shellT_getForeColor(TERM_BRIGHT_GREEN), shellT_getForeColor(TERM_BRIGHT_WHITE)); \
-    shellT_printf(__VA_ARGS__);
+#define PRINTSUCC(...) do { \
+    shellT_printf("\r%s[~]%s ", shellT_getForeColor(TERM_BRIGHT_GREEN), shellT_getForeColor(TERM_BRIGHT_WHITE)); \
+    shellT_printf(__VA_ARGS__); \
+} while(0);
 
 void shellT_conioTerm(void);
 void shellT_resetTerm(void);

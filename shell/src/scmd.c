@@ -8,7 +8,8 @@
 #include "lerror.h"
 
 #define CMD_ERROR(...) do { \
-    shellT_printf("[ERROR] : " __VA_ARGS__); \
+    shellT_printf("\r%s[~]%s ", shellT_getForeColor(TERM_BRIGHT_RED), shellT_getForeColor(TERM_BRIGHT_WHITE)); \
+    shellT_printf(__VA_ARGS__); \
     longjmp(cmdE_err, 1); \
 } while(0);
 
@@ -19,9 +20,9 @@ jmp_buf cmdE_err;
 tShell_cmdDef *shellS_findCmd(char *cmd);
 
 tShell_peer *shellS_getPeer(tShell_client *client, int id) {
-    if (id >= client->peerTblCount)
+    if (id >= client->peerTblCount || client->peerTbl[id] == NULL)
         CMD_ERROR("Not a valid peer ID! [%d]\n", id);
-    
+
     return client->peerTbl[id];
 }
 
@@ -57,7 +58,7 @@ void openShell(tShell_client *client, int args, char *argc[]) {
     id = shellS_readInt(argc[1]);
     peer = shellS_getPeer(client, id);
 
-    shellT_printf("\n\nOpening shell on peer %04d...\n\n");
+    PRINTINFO("Opening shell on peer %04d...\n");
 
     /* open shell on peer */
     shellT_getTermSize(&cols, &rows);
@@ -83,7 +84,7 @@ void openShell(tShell_client *client, int args, char *argc[]) {
     shellT_resetTerm();
     shellT_conioTerm();
 
-    shellT_printf("\n\nShell closed\n\n");
+    PRINTSUCC("Shell closed!\n\n");
 }
 
 /* =============================================[[ Command Table ]]============================================== */

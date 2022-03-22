@@ -6,14 +6,14 @@
 #define STRING(x) #x
 #define MACROLITSTR(x) STRING(x)
 
-const char *LOGO = "\n██╗      █████╗ ██╗██╗  ██╗ █████╗\n██║     ██╔══██╗██║██║ ██╔╝██╔══██╗\n██║     ███████║██║█████╔╝ ███████║\n██║     ██╔══██║██║██╔═██╗ ██╔══██║\n███████╗██║  ██║██║██║  ██╗██║  ██║\n╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝  ╚═╝";
+const char *LOGO = "\n\t██╗      █████╗ ██╗██╗  ██╗ █████╗\n\t██║     ██╔══██╗██║██║ ██╔╝██╔══██╗\n\t██║     ███████║██║█████╔╝ ███████║\n\t██║     ██╔══██║██║██╔═██╗ ██╔══██║\n\t███████╗██║  ██║██║██║  ██╗██║  ██║\n\t╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝  ╚═╝";
 
 int main(int argv, char *argc[]) {
     tShell_client client;
     bool printPrompt = false;
 
     shellT_printf("%s%s\n%s", shellT_getForeColor(TERM_BRIGHT_RED), LOGO, shellT_getForeColor(TERM_BRIGHT_WHITE));
-    shellT_printf("\t\t%s\n\n", " v"MACROLITSTR(LAIKA_VERSION_MAJOR) "." MACROLITSTR(LAIKA_VERSION_MINOR));
+    shellT_printf("\t\t\t%s\n\n", " v" MACROLITSTR(LAIKA_VERSION_MAJOR) "." MACROLITSTR(LAIKA_VERSION_MINOR));
 
     shellC_init(&client);
     shellC_connectToCNC(&client, "127.0.0.1", "13337");
