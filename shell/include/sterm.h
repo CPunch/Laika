@@ -31,13 +31,20 @@ typedef enum {
     TERM_BRIGHT_WHITE
 } TERM_COLOR;
 
+#define PRINTTAG(color) shellT_printf("\r%s[~]%s ", shellT_getForeColor(color), shellT_getForeColor(TERM_BRIGHT_WHITE))
+
 #define PRINTINFO(...) do { \
-    shellT_printf("\r%s[~]%s ", shellT_getForeColor(TERM_BRIGHT_YELLOW), shellT_getForeColor(TERM_BRIGHT_WHITE)); \
+    PRINTTAG(TERM_BRIGHT_YELLOW); \
     shellT_printf(__VA_ARGS__); \
 } while(0);
 
 #define PRINTSUCC(...) do { \
-    shellT_printf("\r%s[~]%s ", shellT_getForeColor(TERM_BRIGHT_GREEN), shellT_getForeColor(TERM_BRIGHT_WHITE)); \
+    PRINTTAG(TERM_BRIGHT_GREEN); \
+    shellT_printf(__VA_ARGS__); \
+} while(0);
+
+#define PRINTERROR(...) do { \
+    PRINTTAG(TERM_BRIGHT_RED); \
     shellT_printf(__VA_ARGS__); \
 } while(0);
 

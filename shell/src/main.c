@@ -38,5 +38,6 @@ int main(int argv, char *argc[]) {
     }
 
     shellC_cleanup(&client);
+    PRINTERROR("Connection closed\n");
     return 0;
 }

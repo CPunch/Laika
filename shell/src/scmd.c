@@ -34,14 +34,20 @@ int shellS_readInt(char *str) {
 
 void helpCMD(tShell_client *client, int args, char *argc[]);
 
+void quitCMD(tShell_client *client, int args, char *argc[]) {
+    PRINTINFO("Killing socket...\n");
+    laikaS_kill(&client->peer->sock);
+}
+
 void listPeers(tShell_client *client, int args, char *argc[]) {
     int i;
 
     shellT_printf("\n");
     for (i = 0; i < client->peerTblCount; i++) {
         if (client->peerTbl[i]) {
-            shellT_printf("\n%04d ", i);
+            shellT_printf("%04d ", i);
             shellP_printInfo(client->peerTbl[i]);
+            shellT_printf("\n");
         }
     }
     shellT_printf("\n");
@@ -84,7 +90,7 @@ void openShell(tShell_client *client, int args, char *argc[]) {
     shellT_resetTerm();
     shellT_conioTerm();
 
-    PRINTSUCC("Shell closed!\n\n");
+    PRINTSUCC("Shell closed!\n");
 }
 
 /* =============================================[[ Command Table ]]============================================== */
@@ -93,6 +99,7 @@ void openShell(tShell_client *client, int args, char *argc[]) {
 
 tShell_cmdDef shellS_cmds[] = {
     CREATECMD("help", "Lists avaliable commands", helpCMD),
+    CREATECMD("quit", "Disconnects from CNC, closing panel", quitCMD),
     CREATECMD("list", "Lists all connected peers to CNC", listPeers),
     CREATECMD("shell", "Opens a shell on peer", openShell),
 };
@@ -163,6 +170,7 @@ void shellS_runCmd(tShell_client *client, char *cmd) {
     }
 
     /* run command */
+    shellT_printf("\n");
     if (setjmp(cmdE_err) == 0) {
         cmdDef->callback(client, args, argc);
     }
