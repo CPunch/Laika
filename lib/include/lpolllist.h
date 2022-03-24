@@ -1,6 +1,8 @@
 #ifndef LAIKA_POLLLIST_H
 #define LAIKA_POLLLIST_H
 
+#include <stdbool.h>
+
 #include "laika.h"
 #include "lsocket.h"
 #include "hashmap.h"
@@ -14,11 +16,9 @@ struct sLaika_pollEvent {
     bool pollOut;
 };
 
-struct sLaika_peer;
-
 struct sLaika_pollList {
     struct hashmap *sockets;
-    struct sLaika_peer **outQueue; /* holds peers which have data needed to be sent */
+    struct sLaika_socket **outQueue; /* holds sockets which have data needed to be sent */
     struct sLaika_pollEvent *revents;
 #ifdef LAIKA_USE_EPOLL
     /* epoll */
@@ -42,9 +42,11 @@ void laikaP_addSock(struct sLaika_pollList *pList, struct sLaika_socket *sock);
 void laikaP_rmvSock(struct sLaika_pollList *pList, struct sLaika_socket *sock);
 void laikaP_addPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock);
 void laikaP_rmvPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock);
-void laikaP_pushOutQueue(struct sLaika_pollList *pList, struct sLaika_peer *peer);
+void laikaP_pushOutQueue(struct sLaika_pollList *pList, struct sLaika_socket *sock);
 void laikaP_resetOutQueue(struct sLaika_pollList *pList);
+void laikaP_flushOutQueue(struct sLaika_pollList *pList);
 
 struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout, int *nevents);
+bool laikaP_handleEvent(struct sLaika_pollEvent *evnt);
 
 #endif

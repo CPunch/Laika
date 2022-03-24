@@ -150,21 +150,35 @@ void laikaP_rmvPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock
 #endif
 }
 
-void laikaP_pushOutQueue(struct sLaika_pollList *pList, struct sLaika_peer *peer) {
+void laikaP_pushOutQueue(struct sLaika_pollList *pList, struct sLaika_socket *sock) {
     int i;
 
     /* first, check that we don't have this peer in the queue already */
     for (i = 0; i < pList->outCount; i++) {
-        if (pList->outQueue[i] == peer)
+        if (pList->outQueue[i] == sock)
             return; /* found it :) */
     }
 
-    laikaM_growarray(struct sLaika_peer*, pList->outQueue, 1, pList->outCount, pList->outCap);
-    pList->outQueue[pList->outCount++] = peer;
+    laikaM_growarray(struct sLaika_socket*, pList->outQueue, 1, pList->outCount, pList->outCap);
+    pList->outQueue[pList->outCount++] = sock;
 }
 
 void laikaP_resetOutQueue(struct sLaika_pollList *pList) {
     pList->outCount = 0; /* ez lol */
+}
+
+void laikaP_flushOutQueue(struct sLaika_pollList *pList) {
+    struct sLaika_socket *sock;
+    int i;
+
+    /* flush pList's outQueue */
+    for (i = 0; i < pList->outCount; i++) {
+        sock = pList->outQueue[i];
+        LAIKA_DEBUG("sending OUT to %p\n", sock);
+        if (sock->onPollOut && !sock->onPollOut(sock) && sock->onPollFail)
+            sock->onPollFail(sock, sock->uData);
+    }
+    laikaP_resetOutQueue(pList);
 }
 
 struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout, int *_nevents) {
@@ -219,4 +233,31 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
 
     /* return revents array */
     return pList->revents;
+}
+
+bool laikaP_handleEvent(struct sLaika_pollEvent *evnt) {
+    bool result = true;
+
+    /* sanity check */
+    if (evnt->sock->onPollIn == NULL || evnt->sock->onPollOut == NULL)
+        return result;
+
+    LAIKA_TRY
+        if (evnt->pollIn && !evnt->sock->onPollIn(evnt->sock))
+            goto _PHNDLEEVNTFAIL;
+
+        if (evnt->pollOut && !evnt->sock->onPollIn(evnt->sock))
+            goto _PHNDLEEVNTFAIL;
+
+        if (!evnt->pollIn && !evnt->pollOut)
+            goto _PHNDLEEVNTFAIL;
+    LAIKA_CATCH
+    _PHNDLEEVNTFAIL:
+        /* call onFail event */
+        if (evnt->sock->onPollFail)
+            evnt->sock->onPollFail(evnt->sock, evnt->sock->uData);
+        result = false;
+    LAIKA_TRYEND
+
+    return result;
 }

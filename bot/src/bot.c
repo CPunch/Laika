@@ -47,6 +47,8 @@ struct sLaika_bot *laikaB_newBot(void) {
     bot->peer = laikaS_newPeer(
         laikaB_pktTbl,
         &bot->pList,
+        NULL,
+        NULL,
         (void*)bot
     );
 
@@ -129,7 +131,7 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
 void laikaB_flushQueue(struct sLaika_bot *bot) {
     /* flush pList's outQueue */
     if (bot->pList.outCount > 0) {
-        if (!laikaS_handlePeerOut(bot->peer))
+        if (!laikaS_handlePeerOut(&bot->peer->sock))
             laikaS_kill(&bot->peer->sock);
 
         laikaP_resetOutQueue(&bot->pList);
@@ -147,19 +149,8 @@ bool laikaB_poll(struct sLaika_bot *bot, int timeout) {
     if (numEvents == 0) /* no events? timeout was reached */
         return false;
 
-LAIKA_TRY
-    if (evnt->pollIn && !laikaS_handlePeerIn(bot->peer))
-        goto _BOTKILL;
-
-    if (evnt->pollOut && !laikaS_handlePeerOut(bot->peer))
-        goto _BOTKILL;
-
-    if (!evnt->pollIn && !evnt->pollOut)
-        goto _BOTKILL;
-LAIKA_CATCH
-_BOTKILL:
-    laikaS_kill(&bot->peer->sock);
-LAIKA_TRYEND
+    if (!laikaP_handleEvent(evnt))
+        laikaS_kill(&bot->peer->sock);
 
     /* flush any events after (eg. made by a packet handler) */
     laikaB_flushQueue(bot);

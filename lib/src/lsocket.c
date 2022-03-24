@@ -37,8 +37,12 @@ void laikaS_cleanUp(void) {
 #endif
 }
 
-void laikaS_initSocket(struct sLaika_socket *sock) {
+void laikaS_initSocket(struct sLaika_socket *sock, pollEvent onPollIn, pollEvent onPollOut, pollFailEvent onPollFail, void *uData) {
     sock->sock = INVALID_SOCKET;
+    sock->onPollFail = onPollFail;
+    sock->onPollIn = onPollIn;
+    sock->onPollOut = onPollOut;
+    sock->uData = uData;
     sock->inBuf = NULL;
     sock->inCap = ARRAY_START;
     sock->inCount = 0;

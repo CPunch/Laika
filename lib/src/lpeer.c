@@ -2,10 +2,10 @@
 #include "lmem.h"
 #include "lpeer.h"
 
-struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *pktTbl, struct sLaika_pollList *pList, void *uData) {
+struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *pktTbl, struct sLaika_pollList *pList, pollFailEvent onPollFail, void *onPollFailUData, void *uData) {
     struct sLaika_peer *peer = laikaM_malloc(sizeof(struct sLaika_peer));
 
-    laikaS_initSocket(&peer->sock);
+    laikaS_initSocket(&peer->sock, laikaS_handlePeerIn, laikaS_handlePeerOut, onPollFail, onPollFailUData);
     peer->packetTbl = pktTbl;
     peer->pList = pList;
     peer->uData = uData;
@@ -36,7 +36,7 @@ void laikaS_emptyOutPacket(struct sLaika_peer *peer, LAIKAPKT_ID id) {
     laikaS_writeByte(sock, id);
 
     /* add to pollList's out queue */
-    laikaP_pushOutQueue(peer->pList, peer);
+    laikaP_pushOutQueue(peer->pList, &peer->sock);
 }
 
 void laikaS_startOutPacket(struct sLaika_peer *peer, LAIKAPKT_ID id) {
@@ -76,7 +76,7 @@ int laikaS_endOutPacket(struct sLaika_peer *peer) {
     }
 
     /* add to pollList's out queue */
-    laikaP_pushOutQueue(peer->pList, peer);
+    laikaP_pushOutQueue(peer->pList, &peer->sock);
 
     /* return packet size and prepare for next outPacket */
     sz = sock->outCount - peer->outStart;
@@ -149,7 +149,8 @@ void laikaS_setSecure(struct sLaika_peer *peer, bool flag) {
     peer->useSecure = flag;
 }
 
-bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
+bool laikaS_handlePeerIn(struct sLaika_socket *sock) {
+    struct sLaika_peer *peer = (struct sLaika_peer*)sock;
     RAWSOCKCODE err;
     int recvd;
 
@@ -227,7 +228,8 @@ bool laikaS_handlePeerIn(struct sLaika_peer *peer) {
     return laikaS_isAlive((&peer->sock));
 }
 
-bool laikaS_handlePeerOut(struct sLaika_peer *peer) {
+bool laikaS_handlePeerOut(struct sLaika_socket *sock) {
+    struct sLaika_peer *peer = (struct sLaika_peer*)sock;
     RAWSOCKCODE err;
     int sent;
 

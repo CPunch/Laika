@@ -1,7 +1,6 @@
 #ifndef LAIKA_SOCKET_H
 #define LAIKA_SOCKET_H
 
-
 /* socket/winsock headers */
 #ifdef _WIN32
 /* windows */
@@ -50,6 +49,7 @@
     #define SOCKETERROR(x) (x == -1)
 #endif
 #include <fcntl.h>
+#include <stdbool.h>
 
 #include "lsodium.h"
 
@@ -60,8 +60,16 @@ typedef enum {
     RAWSOCK_POLL
 } RAWSOCKCODE;
 
+struct sLaika_socket;
+typedef bool (*pollEvent)(struct sLaika_socket *sock);
+typedef void (*pollFailEvent)(struct sLaika_socket *sock, void *uData);
+
 struct sLaika_socket {
     SOCKET sock; /* raw socket fd */
+    pollFailEvent onPollFail;
+    pollEvent onPollIn;
+    pollEvent onPollOut;
+    void *uData; /* passed to onPollFail */
     uint8_t *outBuf; /* raw data to be sent() */
     uint8_t *inBuf; /* raw data we recv()'d */
     int outCount;
@@ -78,7 +86,7 @@ bool laikaS_isBigEndian(void);
 void laikaS_init(void);
 void laikaS_cleanUp(void);
 
-void laikaS_initSocket(struct sLaika_socket *sock);
+void laikaS_initSocket(struct sLaika_socket *sock, pollEvent onPollIn, pollEvent onPollOut, pollFailEvent onPollFail, void *uData);
 void laikaS_cleanSocket(struct sLaika_socket *sock);
 void laikaS_kill(struct sLaika_socket *sock); /* kills a socket */
 void laikaS_connect(struct sLaika_socket *sock, char *ip, char *port); /* connect to ip & port */
