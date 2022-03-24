@@ -170,10 +170,11 @@ void shellS_runCmd(tShell_client *client, char *cmd) {
     }
 
     /* run command */
-    shellT_printf("\n");
+    shellT_printf("\n\n");
     if (setjmp(cmdE_err) == 0) {
         cmdDef->callback(client, args, argc);
     }
+    shellT_printf("\n");
 
     /* free our argument buffer */
     laikaM_free(argc);

