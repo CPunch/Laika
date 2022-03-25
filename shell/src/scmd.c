@@ -170,7 +170,7 @@ void shellS_runCmd(tShell_client *client, char *cmd) {
     }
 
     /* run command */
-    shellT_printf("\n\n");
+    shellT_printf("\n");
     if (setjmp(cmdE_err) == 0) {
         cmdDef->callback(client, args, argc);
     }
