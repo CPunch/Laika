@@ -13,7 +13,7 @@ int main(int argv, char *argc[]) {
     bool printPrompt = false;
 
     shellT_printf("%s%s\n%s", shellT_getForeColor(TERM_BRIGHT_RED), LOGO, shellT_getForeColor(TERM_BRIGHT_WHITE));
-    shellT_printf("\t   made with %s<3%s by CPunch - %s\n\n", shellT_getForeColor(TERM_BRIGHT_RED), shellT_getForeColor(TERM_BRIGHT_WHITE), "v" MACROLITSTR(LAIKA_VERSION_MAJOR) "." MACROLITSTR(LAIKA_VERSION_MINOR));
+    shellT_printf("\t   made with %s<3%s by CPunch - %s\n\nType 'help' for a list of commands\n\n", shellT_getForeColor(TERM_BRIGHT_RED), shellT_getForeColor(TERM_BRIGHT_WHITE), "v" MACROLITSTR(LAIKA_VERSION_MAJOR) "." MACROLITSTR(LAIKA_VERSION_MINOR));
 
     shellC_init(&client);
     shellC_connectToCNC(&client, "127.0.0.1", "13337");

