@@ -77,6 +77,7 @@ struct sLaika_socket {
     int outCap;
     int inCap;
     bool flipEndian;
+    bool setPollOut; /* is EPOLLOUT/POLLOUT is set on sock's pollfd ? */
 };
 
 #define laikaS_isAlive(arg) (arg->sock != INVALID_SOCKET)

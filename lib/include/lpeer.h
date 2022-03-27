@@ -56,7 +56,6 @@ struct sLaika_peer {
     OSTYPE osType;
     int outStart; /* index of pktID for out packet */
     int inStart; /* index of pktID for in packet */
-    bool setPollOut; /* is EPOLLOUT/POLLOUT is set on sock's pollfd ? */
     bool useSecure; /* if true, peer will transmit/receive encrypted data using inKey & outKey */
 };
 

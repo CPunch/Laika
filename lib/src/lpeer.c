@@ -13,7 +13,6 @@ struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *pktTbl, struct 
     peer->type = PEER_UNKNWN;
     peer->osType = OS_UNKNWN;
     peer->pktID = LAIKAPKT_MAXNONE;
-    peer->setPollOut = false;
     peer->outStart = -1;
     peer->inStart = -1;
     peer->useSecure = false;
@@ -238,16 +237,14 @@ bool laikaS_handlePeerOut(struct sLaika_socket *sock) {
 
     switch (laikaS_rawSend(&peer->sock, peer->sock.outCount, &sent)) {
         case RAWSOCK_OK: /* we're ok! */
-            if (peer->setPollOut) { /* if POLLOUT was set, unset it */
-                laikaP_rmvPollOut(peer->pList, &peer->sock);
-                peer->setPollOut = false;
-            }
+            /* if POLLOUT was set, unset it */
+            laikaP_rmvPollOut(peer->pList, &peer->sock);
+
             return true;
         case RAWSOCK_POLL: /* we've been asked to set the POLLOUT flag */
-            if (!peer->setPollOut) { /* if POLLOUT wasn't set, set it so we'll be notified whenever the kernel has room :) */
-                laikaP_addPollOut(peer->pList, &peer->sock);
-                peer->setPollOut = true;
-            }
+            /* if POLLOUT wasn't set, set it so we'll be notified whenever the kernel has room :) */
+            laikaP_addPollOut(peer->pList, &peer->sock);
+
             return true;
         default: /* panic! */
         case RAWSOCK_CLOSED:

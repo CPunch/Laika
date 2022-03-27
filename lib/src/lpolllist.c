@@ -109,6 +109,9 @@ void laikaP_rmvSock(struct sLaika_pollList *pList, struct sLaika_socket *sock) {
 }
 
 void laikaP_addPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock) {
+    if (sock->setPollOut)
+        return;
+
 #ifdef LAIKA_USE_EPOLL
     pList->ev.events = EPOLLIN | EPOLLOUT;
     pList->ev.data.ptr = (void*)sock;
@@ -127,9 +130,14 @@ void laikaP_addPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock
         }
     }
 #endif
+
+    sock->setPollOut = true;
 }
 
 void laikaP_rmvPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock) {
+    if (!sock->setPollOut)
+        return;
+
 #ifdef LAIKA_USE_EPOLL
     pList->ev.events = EPOLLIN;
     pList->ev.data.ptr = (void*)sock;
@@ -148,6 +156,8 @@ void laikaP_rmvPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock
         }
     }
 #endif
+
+    sock->setPollOut = false;
 }
 
 void laikaP_pushOutQueue(struct sLaika_pollList *pList, struct sLaika_socket *sock) {

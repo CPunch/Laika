@@ -50,6 +50,7 @@ void laikaS_initSocket(struct sLaika_socket *sock, pollEvent onPollIn, pollEvent
     sock->outCap = ARRAY_START;
     sock->outCount = 0;
     sock->flipEndian = false;
+    sock->setPollOut = false;
 
     laikaS_init();
 }
