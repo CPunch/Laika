@@ -28,7 +28,8 @@
         "lerror.h": "c",
         "stdbool.h": "c",
         "alloca.h": "c",
-        "bot.h": "c"
+        "bot.h": "c",
+        "string_view": "c"
     },
     "cSpell.words": [
         "cnc's",

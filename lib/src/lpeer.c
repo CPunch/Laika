@@ -5,7 +5,13 @@
 struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *pktTbl, struct sLaika_pollList *pList, pollFailEvent onPollFail, void *onPollFailUData, void *uData) {
     struct sLaika_peer *peer = laikaM_malloc(sizeof(struct sLaika_peer));
 
-    laikaS_initSocket(&peer->sock, laikaS_handlePeerIn, laikaS_handlePeerOut, onPollFail, onPollFailUData);
+    laikaS_initSocket(&peer->sock,
+        laikaS_handlePeerIn,
+        laikaS_handlePeerOut,
+        onPollFail,
+        onPollFailUData
+    );
+
     peer->packetTbl = pktTbl;
     peer->pList = pList;
     peer->uData = uData;
@@ -150,7 +156,6 @@ void laikaS_setSecure(struct sLaika_peer *peer, bool flag) {
 
 bool laikaS_handlePeerIn(struct sLaika_socket *sock) {
     struct sLaika_peer *peer = (struct sLaika_peer*)sock;
-    RAWSOCKCODE err;
     int recvd;
 
     switch (peer->pktID) {
@@ -229,7 +234,6 @@ bool laikaS_handlePeerIn(struct sLaika_socket *sock) {
 
 bool laikaS_handlePeerOut(struct sLaika_socket *sock) {
     struct sLaika_peer *peer = (struct sLaika_peer*)sock;
-    RAWSOCKCODE err;
     int sent;
 
     if (peer->sock.outCount == 0) /* sanity check */

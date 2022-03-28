@@ -30,7 +30,7 @@ void laikaS_init(void) {
 
 void laikaS_cleanUp(void) {
     if (--_LNSetup > 0)
-        return; /* WSA still needs to be up, a FoxNet peer is still using it */
+        return; /* WSA still needs to be up, a socket is still running */
 
 #ifdef _WIN32
     WSACleanup();
@@ -119,6 +119,7 @@ void laikaS_connect(struct sLaika_socket *sock, char *ip, char *port) {
 void laikaS_bind(struct sLaika_socket *sock, uint16_t port) {
     socklen_t addressSize;
     struct sockaddr_in address;
+    int opt = 1;
 
     if (!SOCKETINVALID(sock->sock))
         LAIKA_ERROR("socket already setup!\n");
@@ -129,7 +130,6 @@ void laikaS_bind(struct sLaika_socket *sock, uint16_t port) {
         LAIKA_ERROR("socket() failed!\n");
 
     /* attach socket to the port */
-    int opt = 1;
 #ifdef _WIN32
     if (setsockopt(sock->sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(int)) != 0)
 #else
@@ -279,7 +279,7 @@ void laikaS_writeInt(struct sLaika_socket *sock, void *buf, size_t sz) {
 
 RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed) {
     RAWSOCKCODE errCode = RAWSOCK_OK;
-    int rcvd, start = sock->inCount;
+    int i, rcvd, start = sock->inCount;
 
     /* sanity check */
     if (sz == 0)
@@ -302,7 +302,6 @@ RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed
     } else if (rcvd > 0) {
 #ifdef DEBUG
         /* for debugging */
-        int i;
         printf("---recv'd %d bytes---\n", rcvd);
         for (i = 1; i <= rcvd; i++) {
             printf("%.2x ", sock->inBuf[sock->inCount + (i-1)]);

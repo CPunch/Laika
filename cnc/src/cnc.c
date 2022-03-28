@@ -188,7 +188,7 @@ struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
     cnc->authPeersCount = 0;
 
     /* init socket & pollList */
-    laikaS_initSocket(&cnc->sock, NULL, NULL, NULL, NULL);
+    laikaS_initSocket(&cnc->sock, NULL, NULL, NULL, NULL); /* we just need it for the raw socket fd and abstracted API :) */
     laikaP_initPList(&cnc->pList);
 
     /* bind sock to port */
