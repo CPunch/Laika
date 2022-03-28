@@ -5,15 +5,18 @@
     <a href="https://github.com/CPunch/Laika/blob/main/LICENSE.md"><img src="https://img.shields.io/github/license/CPunch/Laika" alt="License"></a>
 </p>
 
-Laika is a simple Remote Access Toolkit stack for red teaming. It allows authenticated communication across a custom protocol with generated key pairs which are embedded into the executable (only the public key is embedded in the bot client ofc). This project currently only targets Linux, however the socket API has already been ported to work under various OS including Windows, Linux & MacOS. Cross-platform support for the bot client will come eventually.
+Laika is a simple Remote Access Toolkit stack for educational purposes. It allows authenticated communication across a custom protocol with generated key pairs which are embedded into the executable (only the public key is embedded in the bot client ofc). The bot client supports both Windows & Linux environments, while the shell & CNC server specifically target Linux environments.
 
 ![DEMO](img/demo.gif)
 
 Some notable features thus far:
-- [X] Lightweight, the bot alone is 270kb (22kb if not statically linked with LibSodium) and uses very little resources.
+- [X] Lightweight, the bot alone is 270kb (22kb if not statically linked with LibSodium) and uses very little resources minimizing Laika's footprint.
+- [X] Authentication & packet encryption using LibSodium and a predetermined public CNC key.
+- [X] Ability to open shells remotely on the victim's machine.
+- [ ] Ability to relay socket connections to/from the victim's machine.
 - [ ] Uses obfuscation techniques also seen in the wild (string obfuscation, tiny VMs executing sensitive operations, etc.)
 - [ ] Simple configuration using CMake
-    - [X] Setting keypairs (`-DLAIKA_PUBKEY=? -DLAIKA_PRIVKEY=?`)
+    - [X] Setting keypairs (`-DLAIKA_PUBKEY=? -DLAIKA_PRIVKEY=?`, etc.)
     - [ ] Obfuscation modes
 
 ## Would this work in real world scenarios?
@@ -24,11 +27,11 @@ I could add some padding to each packet to make it look pseudo-HTTP-like, howeve
 
 ## Directories explained
 
-- `/cmake-modules` holds helper functions for finding things like libSodium.
-- `/lib` is a shared static library between the client, peer & panel clients.
-- `/cnc` is the Command aNd Control server.
-- `/bot` is the bot client to be ran on the target machine.
-- `/shell` is the main shell to connect to the CNC server with to issue commands.
+- `/cmake-modules` holds helper functions for CMake.
+- `/lib` is a shared static library between the bot, shell & CNC. LibSodium is also vendor'd here.
+- `/cnc` is the Command aNd Control server. (Currently only targets Linux)
+- `/bot` is the bot client to be ran on the target machine. (Targets both Linux and Windows)
+- `/shell` is the main shell to connect to the CNC server with to issue commands. (Currently only targets Linux)
 - `/tools` holds tools for generating keypairs, etc.
 
 ## CMake Definitions
@@ -46,6 +49,8 @@ I could add some padding to each packet to make it look pseudo-HTTP-like, howeve
 Make sure you have the following libraries and tools installed:
 - CMake (>=3.10)
 - Compiler with C11 support (GCC >= 4.7, Clang >= 3.1, etc.)
+
+The only dependency (LibSodium) is vender'd and statically compiled against the `/lib`. This should be kept up-to-date against stable and security related updates to LibSodium.
 
 First, compile the target normally
 
