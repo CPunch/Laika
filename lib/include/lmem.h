@@ -11,8 +11,7 @@
 #define ENDVLA(var) laikaM_free(var);
 #else
 #define VLA(type, var, sz) type var[sz];
-/* stubbed */
-#define ENDVLA(var)
+#define ENDVLA(var) ((void)0) /* no op */
 #endif
 
 #define laikaM_malloc(sz) laikaM_realloc(NULL, sz)
@@ -25,20 +24,20 @@
     }
 
 /* moves array elements above indx down by numElem, removing numElem elements at indx */ 
-#define laikaM_rmvarray(buf, count, indx, numElem) { \
+#define laikaM_rmvarray(buf, count, indx, numElem) do { \
     int _i, _sz = ((count-indx)-numElem); \
     for (_i = 0; _i < _sz; _i++) \
         buf[indx+_i] = buf[indx+numElem+_i]; \
     count -= numElem; \
-}
+} while(0);
 
 /* moves array elements above indx up by numElem, inserting numElem elements at indx */ 
-#define laikaM_insertarray(buf, count, indx, numElem) { \
+#define laikaM_insertarray(buf, count, indx, numElem) do { \
     int _i; \
     for (_i = count; _i > indx; _i--) \
         buf[_i] = buf[_i-1]; \
     count += numElem; \
-}
+} while(0);
 
 void *laikaM_realloc(void *buf, size_t sz);
 

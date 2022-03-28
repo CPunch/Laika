@@ -15,7 +15,7 @@
 #ifdef DEBUG
 #define LAIKA_DEBUG(...) printf("[~] " __VA_ARGS__); fflush(stdout);
 #else
-#define LAIKA_DEBUG(...)
+#define LAIKA_DEBUG(...) ((void)0) /* no op */
 #endif
 
 #endif

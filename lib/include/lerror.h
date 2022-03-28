@@ -29,7 +29,7 @@
     else \
         exit(1); \
 } while(0);
-#define LAIKA_WARN(...)
+#define LAIKA_WARN(...) ((void)0) /* no op */
 #else
 #define LAIKA_ERROR(...) do { \
     printf("[ERROR] : " __VA_ARGS__); \
