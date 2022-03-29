@@ -115,14 +115,6 @@ enum {
     *   uint16_t cols;
     *   uint16_t rows;
     */
-    LAIKAPKT_AUTHENTICATED_SHELL_CLOSE, /* peer requesting close their currently opened shell (accepted by both cnc & panel) */
-    /* layout of LAIKAPKT_AUTHENTICATED_SHELL_CLOSE_REQ:
-    *   NULL (empty packet)
-    */
-    LAIKAPKT_AUTHENTICATED_SHELL_DATA, /* if sent to cnc, writes data to stdin of shell. if sent to panel, writes to 'stdout' of shell */
-    /* layout of LAIKAPKT_SHELL_DATA
-    *   char buf[VAR_PACKET_LENGTH];
-    */
     LAIKAPKT_MAXNONE
 };
 

