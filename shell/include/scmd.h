@@ -10,6 +10,7 @@ typedef void (*shellCmdCallback)(tShell_client *client, int args, char *argc[]);
 typedef struct sShell_cmdDef {
     const char *cmd;
     const char *help;
+    const char *syntax;
     shellCmdCallback callback;
 } tShell_cmdDef;
 

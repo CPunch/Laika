@@ -166,6 +166,7 @@ bool laikaS_handlePeerIn(struct sLaika_socket *sock) {
 
             /* read packet ID */
             peer->pktID = laikaS_readByte(&peer->sock);
+            LAIKA_DEBUG("%s", laikaD_getPacketName(peer->pktID));
 
             /* LAIKAPKT_VARPKT's body is unencrypted, and handled by this switch statement. LAIKAPKT_VARPKT is 
                 also likely not to be defined in our pktSizeTable. the LAIKAPKT_VARPKT case calls laikaS_startInPacket

@@ -340,7 +340,7 @@ void laikaC_onPollFail(struct sLaika_socket *sock, void *uData) {
 
 bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
     struct sLaika_peer *peer;
-    struct sLaika_pollEvent *evnts;
+    struct sLaika_pollEvent *evnts, *evnt;
     int numEvents, i;
 
     laikaP_flushOutQueue(&cnc->pList);
@@ -353,7 +353,8 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
 
     /* walk through and handle each event */
     for (i = 0; i < numEvents; i++) {
-        if (evnts[i].sock == &cnc->sock) { /* event on listener? */
+        evnt = &evnts[i];
+        if (evnt->sock == &cnc->sock) { /* event on listener? */
             peer = laikaS_newPeer(
                 laikaC_botPktTbl,
                 &cnc->pList,
@@ -379,9 +380,7 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
             continue;
         }
 
-        peer = (struct sLaika_peer*)evnts[i].sock;
-
-        laikaP_handleEvent(&evnts[i]);
+        laikaP_handleEvent(evnt);
     }
 
     laikaP_flushOutQueue(&cnc->pList);

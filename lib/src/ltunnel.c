@@ -105,6 +105,8 @@ struct sLaika_tunnelConnection *laikaT_newConnection(struct sLaika_tunnel *tunne
         NULL
     );
 
+    laikaS_setNonBlock(&con->sock);
+
     con->tunnel = tunnel;
     con->next = NULL;
     con->id = id;
@@ -135,7 +137,7 @@ void laikaT_freeConnection(struct sLaika_tunnelConnection *connection) {
         /* unlink from list */
         last->next = connection->next;
     } else { /* connectionHead was NULL, or connection *was* the connectionHead. */
-        tunnel->connectionHead = NULL;
+        tunnel->connectionHead = connection->next;
     }
 
     /* tell peer connection is removed */

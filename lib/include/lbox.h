@@ -25,7 +25,7 @@ enum {
 struct sLaikaB_box {
     uint8_t *data;
     uint8_t *unlockedData;
-    sLaikaV_vm vm;
+    struct sLaikaV_vm vm;
 };
 
 inline void laikaB_unlock() {

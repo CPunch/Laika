@@ -121,4 +121,8 @@ enum {
 typedef uint8_t LAIKAPKT_ID;
 typedef uint16_t LAIKAPKT_SIZE;
 
+#ifdef DEBUG
+const char* laikaD_getPacketName(LAIKAPKT_ID);
+#endif
+
 #endif

