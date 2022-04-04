@@ -16,24 +16,18 @@
     dumping.
 */
 
-enum {
-    BOX_IP,
-    BOX_PUBKEY,
-    BOX_MAX
-};
-
 struct sLaikaB_box {
     uint8_t *data;
     uint8_t *unlockedData;
     struct sLaikaV_vm vm;
 };
 
-inline void laikaB_unlock() {
+inline void laikaB_unlock(struct sLaikaB_box *box) {
 
 }
 
 /* safely free's allocated buffer using libsodium's api for clearing sensitive data from memory */
-inline void laikaB_lock() {
+inline void laikaB_lock(struct sLaikaB_box *box) {
 
 }
 
