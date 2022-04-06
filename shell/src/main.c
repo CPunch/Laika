@@ -52,7 +52,7 @@ int main(int argv, char *argc[]) {
     shellC_init(&client);
 
     /* load config file */
-    if (argv > 2)
+    if (argv >= 2)
         configFile = argc[1]; 
 
     if (!loadConfig(&client, configFile))

