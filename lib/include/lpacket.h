@@ -12,7 +12,7 @@
 #define LAIKA_IPV4_LEN 22
 #define LAIKA_INET_LEN 22
 
-#define LAIKA_SHELL_DATA_MAX_LENGTH 256
+#define LAIKA_SHELL_DATA_MAX_LENGTH 2048
 
 /* first handshake between peer & cnc works as so:
     - peer connects to cnc and sends a LAIKAPKT_HANDSHAKE_REQ with the peer's pubkey, hostname & inet ip
