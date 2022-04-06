@@ -15,7 +15,7 @@ void shellTask(struct sLaika_taskService *service, struct sLaika_task *task, clo
         laikaB_readShell(bot, bot->shell);
 }
 
-int main(int argv, char **argc) {
+int main(int argv, char *argc[]) {
     struct sLaika_bot *bot = laikaB_newBot();
 
     /* init task service */

@@ -26,6 +26,7 @@ void shellC_cleanup(tShell_client *client);
 void shellC_connectToCNC(tShell_client *client, char *ip, char *port);
 bool shellC_poll(tShell_client *client, int timeout);
 
+void shellC_loadKeys(tShell_client *client, const char *pub, const char *priv);
 tShell_peer *shellC_getPeerByPub(tShell_client *client, uint8_t *pub, int *id);
 
 int shellC_addPeer(tShell_client *client, tShell_peer *peer); /* returns new peer id */

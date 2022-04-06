@@ -152,8 +152,8 @@ void laikaS_bind(struct sLaika_socket *sock, uint16_t port) {
 }
 
 void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from, char *ipv4) {
-    socklen_t addressSize;
     struct sockaddr_in address;
+    socklen_t addressSize = sizeof(struct sockaddr_in);
 
     sock->sock = accept(from->sock, (struct sockaddr*)&address, &addressSize);
     if (SOCKETINVALID(sock->sock))
