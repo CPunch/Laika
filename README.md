@@ -12,6 +12,7 @@ Laika is a simple Remote Access Toolkit stack for educational purposes. It allow
 Some notable features thus far:
 - [X] Lightweight, the bot alone is 270kb (22kb if not statically linked with LibSodium) and uses very little resources minimizing Laika's footprint.
 - [X] Authentication & packet encryption using LibSodium and a predetermined public CNC key.
+- [X] Server and Shell configuration through `.ini` files. 
 - [X] Ability to open shells remotely on the victim's machine.
 - [ ] Ability to relay socket connections to/from the victim's machine.
 - [ ] Uses obfuscation techniques also seen in the wild (string obfuscation, tiny VMs executing sensitive operations, etc.)
