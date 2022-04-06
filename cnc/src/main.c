@@ -1,8 +1,12 @@
 #include <stdio.h>
 
 #include "ltask.h"
+#include "lconfig.h"
 #include "cnc.h"
 #include "ini.h"
+
+#define STRING(x) #x
+#define MACROLITSTR(x) STRING(x)
 
 struct sLaika_taskService tService;
 
@@ -38,8 +42,11 @@ bool loadConfig(struct sLaika_cnc *cnc, char *config) {
 }
 
 int main(int argv, char *argc[]) {
-    struct sLaika_cnc *cnc = laikaC_newCNC(atoi(LAIKA_CNC_PORT));
+    struct sLaika_cnc *cnc;
 
+    printf("Laika v" MACROLITSTR(LAIKA_VERSION_MAJOR) "." MACROLITSTR(LAIKA_VERSION_MINOR) "-" LAIKA_VERSION_COMMIT "\n");
+
+    cnc = laikaC_newCNC(atoi(LAIKA_CNC_PORT));
     /* load config file */
     if (argv >= 2 && !loadConfig(cnc, argc[1]))
         return 1;

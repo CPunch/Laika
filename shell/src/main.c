@@ -7,7 +7,7 @@
 #define STRING(x) #x
 #define MACROLITSTR(x) STRING(x)
 
-const char *LOGO = "\n\t██╗      █████╗ ██╗██╗  ██╗ █████╗\n\t██║     ██╔══██╗██║██║ ██╔╝██╔══██╗\n\t██║     ███████║██║█████╔╝ ███████║\n\t██║     ██╔══██║██║██╔═██╗ ██╔══██║\n\t███████╗██║  ██║██║██║  ██╗██║  ██║\n\t╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝  ╚═╝";
+const char *LOGO = "\n        ██╗      █████╗ ██╗██╗  ██╗ █████╗\n        ██║     ██╔══██╗██║██║ ██╔╝██╔══██╗\n        ██║     ███████║██║█████╔╝ ███████║\n        ██║     ██╔══██║██║██╔═██╗ ██╔══██║\n        ███████╗██║  ██║██║██║  ██╗██║  ██║\n        ╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝  ╚═╝";
 
 static int iniHandler(void* user, const char* section, const char* name, const char* value) {
     tShell_client *client = (tShell_client*)user;
@@ -47,7 +47,7 @@ int main(int argv, char *argc[]) {
     bool printPrompt = false;
 
     shellT_printf("%s%s\n%s", shellT_getForeColor(TERM_BRIGHT_RED), LOGO, shellT_getForeColor(TERM_BRIGHT_WHITE));
-    shellT_printf("\t   made with %s<3%s by CPunch - %s\n\nType 'help' for a list of commands\n\n", shellT_getForeColor(TERM_BRIGHT_RED), shellT_getForeColor(TERM_BRIGHT_WHITE), "v" MACROLITSTR(LAIKA_VERSION_MAJOR) "." MACROLITSTR(LAIKA_VERSION_MINOR));
+    shellT_printf("       made with %s<3%s by CPunch - %s\n\nType 'help' for a list of commands\n\n", shellT_getForeColor(TERM_BRIGHT_RED), shellT_getForeColor(TERM_BRIGHT_WHITE), "v" MACROLITSTR(LAIKA_VERSION_MAJOR) "." MACROLITSTR(LAIKA_VERSION_MINOR) "-" LAIKA_VERSION_COMMIT);
 
     shellC_init(&client);
 
