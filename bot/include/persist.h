@@ -1,6 +1,9 @@
 #ifndef LAIKA_PERSIST_H
 #define LAIKA_PERSIST_H
 
+/* undefine to enable persistence */
+#define LAIKA_NOINSTALL
+
 #include <stdbool.h>
 
 /* check if laika is already running */
