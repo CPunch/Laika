@@ -43,6 +43,7 @@ I could add some padding to each packet to make it look pseudo-HTTP-like, howeve
 | LAIKA_PRIVKEY     | Sets CNC's private key                | -DLAIKA_PRIVKEY=1dbd33962f1e170d1e745c6d3e19175049b5616822fac2fa3535d7477957a841  |
 | LAIKA_CNC_IP      | Sets CNC's public ip                  | -DLAIKA_CNC_IP=127.0.0.1                                                          |
 | LAIKA_CNC_PORT    | Sets CNC's bind()'d port              | -DLAIKA_CNC_PORT=13337                                                            |
+| LAIKA_PERSISTENCE | Enables persistence for LaikaBot      | -DLAIKA_PERSISTENCE=On                                                            |
 > examples are passed to `cmake -B <dir>`
 
 ## Configuration and compilation

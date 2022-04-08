@@ -1,8 +1,11 @@
 #ifndef LAIKA_PERSIST_H
 #define LAIKA_PERSIST_H
 
-/* undefine to enable persistence */
+#include "lconfig.h"
+
+#ifndef LAIKA_PERSISTENCE
 #define LAIKA_NOINSTALL
+#endif
 
 #include <stdbool.h>
 
