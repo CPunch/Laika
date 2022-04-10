@@ -9,12 +9,6 @@
 
 #include <stdbool.h>
 
-/* check if laika is already running */
-bool laikaB_checkRunning(void);
-
-/* check if laika is already installed on current machine */
-bool laikaB_checkPersist(void);
-
 /* check if laika is running as super-user */
 bool laikaB_checkRoot(void);
 

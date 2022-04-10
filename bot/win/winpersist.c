@@ -2,16 +2,6 @@
 
 #include "persist.h"
 
-/* check if laika is already running */
-bool laikaB_checkRunning() {
-    return true; /* stubbed for now */
-}
-
-/* check if laika is already installed on current machine */
-bool laikaB_checkPersist() {
-    return true; /* stubbed for now */
-}
-
 /* check if laika is running as super-user */
 bool laikaB_checkRoot() {
     return true; /* stubbed for now */
