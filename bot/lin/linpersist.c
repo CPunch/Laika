@@ -128,7 +128,7 @@ void laikaB_tryPersist() {
         if (!checkPersistCron(installPath))
             tryPersistCron(installPath);
     LAIKA_CATCH
-        LAIKA_DEBUG("crontab not installed or not accessible!")
+        LAIKA_DEBUG("crontab not installed or not accessible!");
     LAIKA_TRYEND
 #endif
 }
