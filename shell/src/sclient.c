@@ -198,7 +198,7 @@ void shellC_cleanup(tShell_client *client) {
 void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
     struct sLaika_socket *sock = &client->peer->sock;
 
-    PRINTINFO("Connecting to CNC...\n");
+    PRINTINFO("Connecting to %s:%s...\n", ip, port);
 
     /* create encryption keys */
     if (crypto_kx_client_session_keys(client->peer->inKey, client->peer->outKey, client->pub, client->priv, client->peer->peerPub) != 0)
