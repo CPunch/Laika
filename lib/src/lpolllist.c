@@ -250,7 +250,7 @@ bool laikaP_handleEvent(struct sLaika_pollEvent *evnt) {
 
     /* sanity check */
     if (evnt->sock->onPollIn == NULL || evnt->sock->onPollOut == NULL)
-        return result;
+        return true;
 
     LAIKA_TRY
         if (evnt->pollIn && !evnt->sock->onPollIn(evnt->sock))

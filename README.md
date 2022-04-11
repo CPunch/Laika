@@ -75,3 +75,7 @@ $ rm -rf build &&\
 ```
 
 Output binaries are put in the `./bin` folder
+
+# Ansible-Playbook
+
+To setup a test VPS for a Laika CNC, check out [this ansible playbook](https://github.com/CPunch/Laika-Playbook).
