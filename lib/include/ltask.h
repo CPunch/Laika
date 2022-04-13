@@ -30,4 +30,6 @@ void laikaT_pollTasks(struct sLaika_taskService *service);
 /* will return the delta time in ms till the next event. -1 for no tasks scheduled */
 int laikaT_timeTillTask(struct sLaika_taskService *service);
 
+long laikaT_getTime(void);
+
 #endif

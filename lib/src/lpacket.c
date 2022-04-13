@@ -6,6 +6,7 @@ const char* laikaD_getPacketName(LAIKAPKT_ID id) {
         "LAIKAPKT_VARPKT",
         "LAIKAPKT_HANDSHAKE_REQ",
         "LAIKAPKT_HANDSHAKE_RES",
+        "LAIKAPKT_PINGPONG",
         "LAIKAPKT_TUNNEL_OPEN",
         "LAIKAPKT_TUNNEL_CLOSE",
         "LAIKAPKT_TUNNEL_CONNECTION_ADD",

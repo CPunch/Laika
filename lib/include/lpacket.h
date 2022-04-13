@@ -53,6 +53,10 @@ enum {
     /* layout of LAIKAPKT_HANDSHAKE_RES:
     *   uint8_t cncEndian;
     */
+    LAIKAPKT_PINGPONG,
+    /* layout of LAIKAPKT_PINGPONG:
+    *   NULL (empty packet)
+    */
     LAIKAPKT_TUNNEL_OPEN, /* if sent to bot, opens a tunnel to localhost's port. if sent to cnc, signifies you opened the tunnel */
     /* layout of LAIKAPKT_TUNNEL_OPEN:
     *   uint16_t port;

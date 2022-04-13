@@ -12,12 +12,21 @@ void laikaB_handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, 
     LAIKA_DEBUG("handshake accepted by cnc! got endian flag : %s\n", (endianness ? "TRUE" : "FALSE"));
 }
 
+void laikaB_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+    LAIKA_DEBUG("got ping from cnc!\n");
+    /* stubbed */
+}
+
 /* =============================================[[ Packet Tables ]]============================================== */
 
 struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_RES,
         laikaB_handleHandshakeResponse,
         sizeof(uint8_t),
+    false),
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_PINGPONG,
+        laikaB_handlePing,
+        0,
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_OPEN,
         laikaB_handleShellOpen,
@@ -152,4 +161,10 @@ bool laikaB_poll(struct sLaika_bot *bot, int timeout) {
     /* flush any events after (eg. made by a packet handler) */
     laikaP_flushOutQueue(&bot->pList);
     return true;
+}
+
+void laikaB_pingTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData) {
+    struct sLaika_bot *bot = (struct sLaika_bot*)uData;
+
+    laikaS_emptyOutPacket(bot->peer, LAIKAPKT_PINGPONG);
 }

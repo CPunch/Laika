@@ -5,6 +5,7 @@
 #include "lpacket.h"
 #include "lsocket.h"
 #include "lpeer.h"
+#include "ltask.h"
 #include "lpolllist.h"
 #include "lsodium.h"
 
@@ -21,5 +22,7 @@ void laikaB_freeBot(struct sLaika_bot *bot);
 
 void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port); /* can throw a LAIKA_ERROR */
 bool laikaB_poll(struct sLaika_bot *bot, int timeout);
+
+void laikaB_pingTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData);
 
 #endif
