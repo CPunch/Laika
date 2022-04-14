@@ -5,18 +5,21 @@
     <a href="https://github.com/CPunch/Laika/blob/main/LICENSE.md"><img src="https://img.shields.io/github/license/CPunch/Laika" alt="License"></a>
 </p>
 
-Laika is a simple Remote Access Toolkit stack for educational purposes. It allows authenticated communication across a custom protocol with generated key pairs which are embedded into the executable (only the public key is embedded in the bot client ofc). The bot client supports both Windows & Linux environments, while the shell & CNC server specifically target Linux environments.
+[![asciicast](https://asciinema.org/a/487180.svg)](https://asciinema.org/a/487180)
 
-![DEMO](img/demo.gif)
+Laika is a simple cross-platform Remote Access Toolkit stack for educational purposes. It allows encrypted communication across a custom binary protocol. The bot client supports both Windows & Linux environments, while the shell & CNC server specifically target Linux environments. Laika is meant to be small and discreet, Laika believes in hiding in plain sight.
 
 Some notable features thus far:
-- [X] Lightweight, the bot alone is 270kb (22kb if not statically linked with LibSodium) and uses very little resources minimizing Laika's footprint.
-- [X] Authentication & packet encryption using LibSodium and a predetermined public CNC key.
+- [X] Lightweight, the bot alone is 183kb (`MinSizeRel`) and uses very little resources minimizing Laika's footprint.
+- [X] Authentication & packet encryption using LibSodium and a predetermined public CNC key. (generated with `bin/genKey`)
 - [X] Server and Shell configuration through `.ini` files.
 - [X] Ability to open shells remotely on the victim's machine.
+- [ ] Persistence across reboot: (toggled with `-DLAIKA_PERSISTENCE=On`)
+    - [X] Persistence via Cron on Linux-based systems.
+    - [ ] Persistence via Windows Registry.
 - [ ] Ability to relay socket connections to/from the victim's machine.
 - [ ] Uses obfuscation techniques also seen in the wild (string obfuscation, tiny VMs executing sensitive operations, etc.)
-- [ ] Simple configuration using CMake
+- [ ] Simple configuration using CMake:
     - [X] Setting keypairs (`-DLAIKA_PUBKEY=? -DLAIKA_PRIVKEY=?`, etc.)
     - [ ] Obfuscation modes
 
@@ -69,7 +72,7 @@ $ ./bin/genKey
 Next, rerun cmake, but passing your public and private keypairs
 
 ```sh
-$ rm -rf build &&\
+$ rm -rf bin build &&\
     cmake -B build -DLAIKA_PUBKEY=997d026d1c65deb6c30468525132be4ea44116d6f194c142347b67ee73d18814 -DLAIKA_PRIVKEY=1dbd33962f1e170d1e745c6d3e19175049b5616822fac2fa3535d7477957a841 -DCMAKE_BUILD_TYPE=MinSizeRel &&\
     cmake --build build
 ```
