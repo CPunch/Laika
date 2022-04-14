@@ -50,3 +50,9 @@ void laikaB_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     /* write to shell */
     laikaB_writeShell(bot, shell, buf, sz);
 }
+
+void laikaB_shellTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData) {
+    struct sLaika_bot *bot = (struct sLaika_bot*)uData;
+
+    laikaB_readShell(bot, bot->shell);
+}

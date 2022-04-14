@@ -125,6 +125,9 @@ struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows)
         return NULL;
     }
 
+    /* start shell task */
+    bot->shellTask = laikaT_newTask(&bot->tService, LAIKA_SHELL_TASK_DELTA, laikaB_shellTask, (void*)bot);
+
     return shell;
 }
 
@@ -146,6 +149,10 @@ void laikaB_freeShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
     /* free shell struct */
     laikaM_free(shell);
     bot->shell = NULL;
+
+    /* stop shell task */
+    laikaT_delTask(&bot->tService, bot->shellTask);
+    bot->shellTask = NULL;
 }
 
 bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {

