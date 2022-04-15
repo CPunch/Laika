@@ -5,7 +5,7 @@
     <a href="https://github.com/CPunch/Laika/blob/main/LICENSE.md"><img src="https://img.shields.io/github/license/CPunch/Laika" alt="License"></a>
 </p>
 
-[![asciicast](https://asciinema.org/a/487180.svg)](https://asciinema.org/a/487180)
+[![asciicast](https://asciinema.org/a/487686.svg)](https://asciinema.org/a/487686)
 
 Laika is a simple cross-platform Remote Access Toolkit stack for educational purposes. It allows encrypted communication across a custom binary protocol. The bot client supports both Windows & Linux environments, while the shell & CNC server specifically target Linux environments. Laika is meant to be small and discreet, Laika believes in hiding in plain sight.
 
