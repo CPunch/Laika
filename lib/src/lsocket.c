@@ -160,8 +160,8 @@ void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from, c
         LAIKA_ERROR("accept() failed!\n");
 
     /* read ipv4 */
-    if (ipv4 != NULL) {
-        if (inet_ntop(AF_INET, &address, ipv4, LAIKA_IPV4_LEN) == NULL)
+    if (ipv4) {
+        if (inet_ntop(AF_INET, &address.sin_addr, ipv4, LAIKA_IPV4_LEN) == NULL)
             LAIKA_ERROR("inet_ntop() failed!\n");
 
         /* restore null terminator */
