@@ -49,5 +49,5 @@ void shellP_printInfo(tShell_peer *peer) {
     char buf[128]; /* i don't expect bin2hex to write outside this, but it's only user-info and doesn't break anything (ie doesn't write outside the buffer) */
 
     sodium_bin2hex(buf, sizeof(buf), peer->pub, crypto_kx_PUBLICKEYBYTES);
-    shellT_printf("\t%s@%s\n\tTYPE: %s\n\tOS: %s\n\tPUBKEY: %s\n\tINET: %s\n", peer->hostname, peer->ipv4, shellP_typeStr(peer), shellP_osTypeStr(peer), buf, peer->inet);
+    shellT_printf("\t%s-%s\n\tOS: %s\n\tINET: %s\n\tPUBKEY: %s\n", peer->ipv4, peer->hostname, shellP_osTypeStr(peer), peer->inet, buf);
 }

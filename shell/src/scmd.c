@@ -77,6 +77,7 @@ void openShellCMD(tShell_client *client, int args, char *argc[]) {
     peer = shellS_getPeer(client, id);
 
     PRINTINFO("Opening shell on peer %04d...\n");
+    PRINTINFO("Use CTRL+A to kill the shell\n");
 
     /* open shell on peer */
     shellT_getTermSize(&cols, &rows);
@@ -93,7 +94,11 @@ void openShellCMD(tShell_client *client, int args, char *argc[]) {
                 if (sz <= 0) /* sanity check */
                     break;
 
-                shellC_sendDataShell(client, buf, sz);
+                /* ctrl + a; kill shell */
+                if (buf[0] == '\01')
+                    shellC_closeShell(client);
+                else
+                    shellC_sendDataShell(client, buf, sz);
             }
         }
     }
