@@ -153,6 +153,10 @@ void shellT_setPrompt(char *_prompt) {
     prompt = _prompt;
 }
 
+bool isAscii(int c) {
+    return c >= ' ' && c <= '~'; /* covers every non-controller related ascii characters (ignoring the extended character range) */
+}
+
 void shellT_addChar(tShell_client *client, int c) {
     int i;
 
@@ -189,6 +193,10 @@ void shellT_addChar(tShell_client *client, int c) {
             break;
         case KEY_UP: case KEY_DOWN: break; /* ignore these */
         default:
+            /* we only want to accept valid input, just ignore non-ascii characters */
+            if (!isAscii(c))
+                return;
+
             laikaM_growarray(char, cmd, 1, cmdCount, cmdCap);
             laikaM_insertarray(cmd, cmdCount, cmdCursor, 1);
             cmd[cmdCursor++] = c;
