@@ -29,15 +29,6 @@ My hope is that this becomes complete enough to be accurate to real RAT sources 
 
 I could add some padding to each packet to make it look pseudo-HTTP-like, however I haven't given much thought to this.
 
-## Directories explained
-
-- `/cmake-modules` holds helper functions for CMake.
-- `/lib` is a shared static library between the bot, shell & CNC. LibSodium is also vendor'd here.
-- `/cnc` is the Command aNd Control server. (Currently only targets Linux)
-- `/bot` is the bot client to be ran on the target machine. (Targets both Linux and Windows)
-- `/shell` is the main shell to connect to the CNC server with to issue commands. (Currently only targets Linux)
-- `/tools` holds tools for generating keypairs, etc.
-
 ## CMake Definitions
 
 | Definition        | Description                           | Example                                                                           |
@@ -78,6 +69,10 @@ $ rm -rf bin build &&\
 ```
 
 Output binaries are put in the `./bin` folder
+
+## Looking to contribute?
+
+Read `CONTRIBUTING.md`
 
 # Ansible-Playbook
 
