@@ -32,7 +32,11 @@ int main(int argv, char *argc[]) {
         /* bot was killed or it threw an error */
         laikaB_freeBot(bot);
 #ifdef LAIKA_PERSISTENCE
+#ifdef _WIN32
+        Sleep(5000);
+#else
         sleep(5);
+#endif
     } while (1);
 
     laikaB_unmarkRunning();

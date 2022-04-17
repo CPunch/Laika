@@ -29,7 +29,8 @@
         "stdbool.h": "c",
         "alloca.h": "c",
         "bot.h": "c",
-        "string_view": "c"
+        "string_view": "c",
+        "lconfig.h": "c"
     },
     "cSpell.words": [
         "cnc's",

