@@ -114,14 +114,13 @@ struct sLaika_bot *laikaB_newBot(void) {
 void laikaB_freeBot(struct sLaika_bot *bot) {
     int i;
 
-    laikaP_cleanPList(&bot->pList);
-    laikaS_freePeer(bot->peer);
-    laikaT_cleanTaskService(&bot->tService);
-
     /* clear shell */
     if (bot->shell)
         laikaB_freeShell(bot, bot->shell);
 
+    laikaP_cleanPList(&bot->pList);
+    laikaS_freePeer(bot->peer);
+    laikaT_cleanTaskService(&bot->tService);
     laikaM_free(bot);
 }
 

