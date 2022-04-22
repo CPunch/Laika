@@ -14,9 +14,9 @@ Some notable features thus far:
 - [X] Authentication & packet encryption using LibSodium and a predetermined public CNC key. (generated with `bin/genKey`)
 - [X] Server and Shell configuration through `.ini` files.
 - [X] Ability to open shells remotely on the victim's machine.
-- [ ] Persistence across reboot: (toggled with `-DLAIKA_PERSISTENCE=On`)
+- [X] Persistence across reboot: (toggled with `-DLAIKA_PERSISTENCE=On`)
     - [X] Persistence via Cron on Linux-based systems.
-    - [ ] Persistence via Windows Registry.
+    - [X] Persistence via Windows Registry.
 - [ ] Ability to relay socket connections to/from the victim's machine.
 - [ ] Uses obfuscation techniques also seen in the wild (string obfuscation, tiny VMs executing sensitive operations, etc.)
 - [ ] Simple configuration using CMake:

@@ -12,7 +12,6 @@ HEAD: https://github.com/CPunch/Laika/tree/main
 ## Tasks and TODOs
 Looking for some simple tasks that need to get done for that sweet 'contributor' cred? Check here!
 
-- Implement `lib/win/winpersist.c`
 - Change `lib/lin/linshell.c` to use openpty() instead of forkpty() for BSD support
 - Fix address sanitizer for CMake DEBUG builds
 - Change laikaT_getTime in `lib/src/ltask.c` to not use C11 features.
