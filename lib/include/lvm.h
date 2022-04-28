@@ -30,7 +30,7 @@ struct sLaikaV_vm {
     int pc;
 };
 
-#define LAIKA_MAKE_VM(consts, code) (struct sLaikaV_vm)({.constList = consts, .code = code, .pc = 0})
+#define LAIKA_MAKE_VM(consts, code) (struct sLaikaV_vm)({.constList = consts, .code = code, .pc = 0, .stack = {}})
 
 /* constants */
 #define LAIKA_MAKE_VM_INT(i) (struct sLaikaV_vm_val)({.i = i})
@@ -56,7 +56,12 @@ enum {
     OP_XOR, /* stk_indx[uint8_t] = stk_indx[uint8_t] ^ stk_indx[uint8_t] */
 
     /* control-flow */
-    OP_TESTJMP, /* if stk_indx[uint8_t] != 0, pc += [uint8_t] */
+    OP_TESTJMP, /* if stk_indx[uint8_t] != 0, pc += [int8_t] */
+
+    /* misc. */
+#ifdef DEBUG
+    OP_DEBUG
+#endif
 };
 
 LAIKA_FORCEINLINE void laikaV_execute(struct sLaikaV_vm *vm) {
@@ -97,8 +102,29 @@ LAIKA_FORCEINLINE void laikaV_execute(struct sLaikaV_vm *vm) {
             case OP_AND: BINOP(&);
             case OP_OR: BINOP(|);
             case OP_XOR: BINOP(^);
+            case OP_TESTJMP: {
+                uint8_t indx = READBYTE;
+                int8_t jmp = READBYTE;
+
+                /* if stack indx is true, jump by jmp (signed 8-bit int) */
+                if (vm->stack[indx].i)
+                    vm->pc += jmp;
+
+                break;
+            }
+#ifdef DEBUG
+            case OP_DEBUG: {
+                int i;
+
+                /* print stack info */
+                for (i = 0; i < LAIKA_VM_STACKSIZE; i++)
+                    printf("[%03d] - 0x%02x\n", i, vm->stack[i].i);
+
+                break;
+            }
+#endif
             default:
-                LAIKA_ERROR("laikaV_execute: unknown opcode [%d]!", vm->code[vm->pc])
+                LAIKA_ERROR("laikaV_execute: unknown opcode [0x%02x]! pc: %d\n", vm->code[vm->pc], vm->pc);
         }
     }
 
