@@ -18,7 +18,7 @@
 # define LAIKA_DEBUG(...) ((void)0) /* no op */
 #endif
 
-#ifndef _WIN32
+#ifndef _MSC_VER
 # define LAIKA_FORCEINLINE __attribute__((always_inline)) inline
 #else
 # define LAIKA_FORCEINLINE __forceinline

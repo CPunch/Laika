@@ -4,7 +4,11 @@
 #include <inttypes.h>
 
 #include "laika.h"
+#include "lmem.h"
 #include "lvm.h"
+#include "lsodium.h"
+
+#define LAIKA_BOX_HEAPSIZE 256
 
 /* Laika Box: 
         Laika Boxes are obfuscated storage mediums where data is only in memory for a very short amount of time.
@@ -18,18 +22,25 @@
 */
 
 struct sLaikaB_box {
-    uint8_t *data;
-    uint8_t *unlockedData;
-    struct sLaikaV_vm vm;
+    uint8_t unlockedData[LAIKA_BOX_HEAPSIZE];
+    uint8_t code[LAIKA_VM_CODESIZE];
 };
 
-LAIKA_FORCEINLINE void laikaB_unlock(struct sLaikaB_box *box) {
+LAIKA_FORCEINLINE void* laikaB_unlock(struct sLaikaB_box *box, void *data) {
+    struct sLaikaV_vm vm = {.pc = 0};
+    memcpy(vm.code, box->code, LAIKA_VM_CODESIZE);
 
+    /* boxes have 2 reserved constants, 0 for the output, 1 for the input */
+    vm.constList[0].ptr = box->unlockedData;
+    vm.constList[1].ptr = data;
+
+    laikaV_execute(&vm);
+    return (void*)box->unlockedData;
 }
 
-/* safely free's allocated buffer using libsodium's api for clearing sensitive data from memory */
-LAIKA_FORCEINLINE void laikaB_lock(struct sLaikaB_box *box) {
-
+/* safely zeros the unlockedData using libsodium's api for clearing sensitive data from memory */
+LAIKA_FORCEINLINE void* laikaB_lock(struct sLaikaB_box *box) {
+    sodium_memzero(box->unlockedData, LAIKA_BOX_HEAPSIZE);
 }
 
 #endif

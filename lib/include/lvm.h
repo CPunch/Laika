@@ -30,11 +30,11 @@ struct sLaikaV_vm {
     int pc;
 };
 
-#define LAIKA_MAKE_VM(consts, code) (struct sLaikaV_vm)({.constList = consts, .code = code, .pc = 0, .stack = {}})
+#define LAIKA_MAKE_VM(_consts, _code) (struct sLaikaV_vm)({.constList = _consts, .code = _code, .pc = 0, .stack = {}})
 
 /* constants */
-#define LAIKA_MAKE_VM_INT(i) (struct sLaikaV_vm_val)({.i = i})
-#define LAIKA_MAKE_VM_PTR(ptr) (struct sLaikaV_vm_val)({.ptr = ptr})
+#define LAIKA_MAKE_VM_INT(_i) (struct sLaikaV_vm_val)({.i = _i})
+#define LAIKA_MAKE_VM_PTR(_ptr) (struct sLaikaV_vm_val)({.ptr = _ptr})
 /* instructions */
 #define LAIKA_MAKE_VM_IA(opcode, a) opcode, a
 #define LAIKA_MAKE_VM_IAB(opcode, a, b) opcode, a, b
@@ -43,6 +43,7 @@ struct sLaikaV_vm {
 enum {
     OP_EXIT,
     OP_LOADCONST, /* stk_indx[uint8_t] = const_indx[uint8_t] */
+    OP_PUSHLIT, /* stk_indx[uint8_t].i = uint8_t */
     OP_READ, /* stk_indx[uint8_t] = *(int8_t*)stk_indx[uint8_t] */
     OP_WRITE, /* *(uint8_t*)stk_indx[uint8_t] = stk_indx[uint8_t] */
 
@@ -82,6 +83,12 @@ LAIKA_FORCEINLINE void laikaV_execute(struct sLaikaV_vm *vm) {
                 uint8_t constIndx = READBYTE;
                 vm->stack[indx] = vm->constList[constIndx];
                 break; 
+            }
+            case OP_PUSHLIT: {
+                uint8_t indx = READBYTE;
+                uint8_t lit = READBYTE;
+                vm->stack[indx].i = lit;
+                break;
             }
             case OP_READ: {
                 uint8_t indx = READBYTE;
