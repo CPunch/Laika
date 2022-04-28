@@ -13,9 +13,15 @@
 #define ARRAY_START 4
 
 #ifdef DEBUG
-#define LAIKA_DEBUG(...) printf("[~] " __VA_ARGS__); fflush(stdout);
+# define LAIKA_DEBUG(...) printf("[~] " __VA_ARGS__); fflush(stdout);
 #else
-#define LAIKA_DEBUG(...) ((void)0) /* no op */
+# define LAIKA_DEBUG(...) ((void)0) /* no op */
+#endif
+
+#ifndef _WIN32
+# define LAIKA_FORCEINLINE __attribute__((always_inline)) inline
+#else
+# define LAIKA_FORCEINLINE __forceinline
 #endif
 
 #endif

@@ -9,6 +9,7 @@
 
 #include <inttypes.h>
 
+#include "laika.h"
 #include "lerror.h"
 
 #define LAIKA_VM_CODESIZE 512
@@ -58,7 +59,7 @@ enum {
     OP_TESTJMP, /* if stk_indx[uint8_t] != 0, pc += [uint8_t] */
 };
 
-inline void laikaV_execute(struct sLaikaV_vm *vm) {
+LAIKA_FORCEINLINE void laikaV_execute(struct sLaikaV_vm *vm) {
 
 #define READBYTE (vm->code[vm->pc++])
 #define BINOP(x) { \

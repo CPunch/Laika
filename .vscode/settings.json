@@ -30,7 +30,10 @@
         "alloca.h": "c",
         "bot.h": "c",
         "string_view": "c",
-        "lconfig.h": "c"
+        "lconfig.h": "c",
+        "inttypes.h": "c",
+        "time.h": "c",
+        "features.h": "c"
     },
     "cSpell.words": [
         "cnc's",

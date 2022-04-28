@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 
+#include "laika.h"
 #include "lvm.h"
 
 /* Laika Box: 
@@ -22,12 +23,12 @@ struct sLaikaB_box {
     struct sLaikaV_vm vm;
 };
 
-inline void laikaB_unlock(struct sLaikaB_box *box) {
+LAIKA_FORCEINLINE void laikaB_unlock(struct sLaikaB_box *box) {
 
 }
 
 /* safely free's allocated buffer using libsodium's api for clearing sensitive data from memory */
-inline void laikaB_lock(struct sLaikaB_box *box) {
+LAIKA_FORCEINLINE void laikaB_lock(struct sLaikaB_box *box) {
 
 }
 
