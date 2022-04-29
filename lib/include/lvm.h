@@ -4,7 +4,9 @@
 /* Laika VM:
         This is an obfuscation technique where vital code can be executed in a
     stack-based VM, inlined into the function. The VM instruction-set is fairly
-    simple, see the OP_* for avaliable opcodes and their expected arguments.
+    simple, see the OP_* enum for avaliable opcodes and their expected arguments.
+    The VM is turing-complete, however the instruction-set has been curated to 
+    fit this specific use case.
 */
 
 #include <inttypes.h>
@@ -44,8 +46,9 @@ enum {
     OP_EXIT,
     OP_LOADCONST, /* stk_indx[uint8_t] = const_indx[uint8_t] */
     OP_PUSHLIT, /* stk_indx[uint8_t].i = uint8_t */
-    OP_READ, /* stk_indx[uint8_t] = *(int8_t*)stk_indx[uint8_t] */
-    OP_WRITE, /* *(uint8_t*)stk_indx[uint8_t] = stk_indx[uint8_t] */
+    OP_READ, /* stk_indx[uint8_t].i = *(int8_t*)stk_indx[uint8_t] */
+    OP_WRITE, /* *(uint8_t*)stk_indx[uint8_t].ptr = stk_indx[uint8_t].i */
+    OP_INCPTR, /* stk_indx[uint8_t].ptr++ */
 
     /* arithmetic */
     OP_ADD, /* stk_indx[uint8_t] = stk_indx[uint8_t] + stk_indx[uint8_t] */
@@ -100,6 +103,11 @@ LAIKA_FORCEINLINE void laikaV_execute(struct sLaikaV_vm *vm) {
                 uint8_t ptr = READBYTE;
                 uint8_t indx = READBYTE;
                 *(uint8_t*)vm->stack[ptr].ptr = vm->stack[indx].i;
+                break;
+            }
+            case OP_INCPTR: {
+                uint8_t ptr = READBYTE;
+                vm->stack[ptr].ptr++;
                 break;
             }
             case OP_ADD: BINOP(+);
