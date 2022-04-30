@@ -18,13 +18,13 @@ int main(int argv, char **argc) {
     };
 
     struct sLaikaB_box box = {
-        {0}, /* reserved */
-        { /* stack layout:
+        .unlockedData = {0}, /* reserved */
+        .code = { /* stack layout:
                 [0] - unlockedData (ptr)
                 [1] - data (ptr)
                 [2] - key (uint8_t)
                 [3] - working data (uint8_t)
-         */
+            */
             LAIKA_MAKE_VM_IAB(OP_LOADCONST, 0, 0),
             LAIKA_MAKE_VM_IAB(OP_LOADCONST, 1, 1),
             LAIKA_MAKE_VM_IAB(OP_PUSHLIT, 2, 0xDE),

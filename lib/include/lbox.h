@@ -27,13 +27,18 @@ struct sLaikaB_box {
 };
 
 LAIKA_FORCEINLINE void* laikaB_unlock(struct sLaikaB_box *box, void *data) {
-    struct sLaikaV_vm vm = {.pc = 0};
+    struct sLaikaV_vm vm = {
+        /* boxes have 2 reserved constants, [0] for the output, [1] for the input */
+        .constList = {
+            LAIKA_MAKE_VM_PTR(box->unlockedData),
+            LAIKA_MAKE_VM_PTR(data),
+        },
+        .code = {0},
+        .stack = {0},
+        .pc = 0
+    };
+
     memcpy(vm.code, box->code, LAIKA_VM_CODESIZE);
-
-    /* boxes have 2 reserved constants, 0 for the output, 1 for the input */
-    vm.constList[0].ptr = box->unlockedData;
-    vm.constList[1].ptr = data;
-
     laikaV_execute(&vm);
     return (void*)box->unlockedData;
 }
