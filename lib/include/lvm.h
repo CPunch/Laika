@@ -21,7 +21,7 @@
 struct sLaikaV_vm_val {
     union {
         uint8_t i;
-        void *ptr;
+        uint8_t *ptr;
     };
 };
 
@@ -96,13 +96,13 @@ LAIKA_FORCEINLINE void laikaV_execute(struct sLaikaV_vm *vm) {
             case OP_READ: {
                 uint8_t indx = READBYTE;
                 uint8_t ptr = READBYTE;
-                vm->stack[indx].i = *(uint8_t*)vm->stack[ptr].ptr;
+                vm->stack[indx].i = *vm->stack[ptr].ptr;
                 break;
             }
             case OP_WRITE: {
                 uint8_t ptr = READBYTE;
                 uint8_t indx = READBYTE;
-                *(uint8_t*)vm->stack[ptr].ptr = vm->stack[indx].i;
+                *vm->stack[ptr].ptr = vm->stack[indx].i;
                 break;
             }
             case OP_INCPTR: {
