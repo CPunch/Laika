@@ -15,6 +15,7 @@ Looking for some simple tasks that need to get done for that sweet 'contributor'
 - Change `lib/lin/linshell.c` to use openpty() instead of forkpty() for BSD support
 - Fix address sanitizer for CMake DEBUG builds
 - Change laikaT_getTime in `lib/src/ltask.c` to not use C11 features.
+- Implement more LAIKA_BOX_* VMs in `lib/include/lbox.h`
 
 ## Lib: Error Handling
 Error handling in Laika is done via the 'lerror.h' header library. It's a small and simple error handling solution written for laika, however can be stripped and used as a simple error handling library. Error handling in Laika is used similarly to other languages, implementing a try & catch block and is achieved using setjmp(). The LAIKA_ERROR(...) is used to throw errors.
@@ -43,6 +44,9 @@ Laika has a simple binary protocol & a small backend (see `lib/src/lpeer.c`) to 
 
 ## Lib: Task Service
 Tasks can be scheduled on a delta-period (call X function every approximate N seconds). laikaT_pollTasks() is used to check & run any currently queued tasks. This is useful for sending keep-alive packets, polling shell pipes, or other repeatably scheduled tasks. Most laikaT_pollTasks() calls are done in the peerHandler for each client/server.
+
+## Lib: VM Boxes
+Laika has a tiny VM for decrypting sensitive information (currently unused, but functional). For details on the ISA read `lib/include/lvm.h`, for information on how to use them read `lib/include/lbox.h`. Feel free to write your own boxes and contribute them :D
 
 ## Bot: Platform-specific backends
 

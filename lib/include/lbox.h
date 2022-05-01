@@ -18,13 +18,36 @@
         2 main APIs are exposed here, laikaB_unlock() & laikaB_lock(). Both of which are inlined to make it more painful
     for the reverse engineer to quickly dump boxes from memory, forcing them to set breakpoints across the executable.
     Each box has its own VM, with it's own deobfuscation routine. This makes static analysis a painful route for string
-    dumping.
+    dumping. Some predefined boxes are made for you to use.
 */
 
 struct sLaikaB_box {
     uint8_t unlockedData[LAIKA_BOX_HEAPSIZE];
     uint8_t code[LAIKA_VM_CODESIZE];
 };
+
+/* BOX_SKID decodes null-terminated strings using a provided xor _key. aptly named lol [SEE tools/vmtest/src/main.c] */
+#define LAIKA_BOX_SKID(_key) { \
+    .unlockedData = {0}, /* reserved */ \
+    .code = { /* stack layout: \
+            [0] - unlockedData (ptr) \
+            [1] - data (ptr) \
+            [2] - key (uint8_t) \
+            [3] - working data (uint8_t) \
+        */ \
+        LAIKA_MAKE_VM_IAB(OP_LOADCONST, 0, 0), \
+        LAIKA_MAKE_VM_IAB(OP_LOADCONST, 1, 1), \
+        LAIKA_MAKE_VM_IAB(OP_PUSHLIT, 2, _key), \
+        /* LOOP_START */ \
+        LAIKA_MAKE_VM_IAB(OP_READ, 3, 1), /* load data into working data */ \
+        LAIKA_MAKE_VM_IABC(OP_XOR, 3, 3, 2), /* xor data with key */ \
+        LAIKA_MAKE_VM_IAB(OP_WRITE, 0, 3), /* write data to unlockedData */ \
+        LAIKA_MAKE_VM_IA(OP_INCPTR, 0), \
+        LAIKA_MAKE_VM_IA(OP_INCPTR, 1), \
+        LAIKA_MAKE_VM_IAB(OP_TESTJMP, 3, -17), /* exit loop on null terminator */ \
+        OP_EXIT \
+    } \
+}
 
 LAIKA_FORCEINLINE void* laikaB_unlock(struct sLaikaB_box *box, void *data) {
     struct sLaikaV_vm vm = {
