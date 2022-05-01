@@ -23,6 +23,10 @@ Some notable features thus far:
     - [X] Setting keypairs (`-DLAIKA_PUBKEY=? -DLAIKA_PRIVKEY=?`, etc.)
     - [ ] Obfuscation modes
 
+## Why?
+
+Most public malware sources in the wild are nerf'd or poorly made. Laika is written in modern C, and strives to adhere to best practices while keeping a maintainable and readable code base. The reader is encouraged to compile a `MinSizeRel` build of Laika and open it up in their favorite disassembler. Take a look at how certain functions or subroutines look compared to its plaintext source. See if you can dump strings during runtime with a debugger, try to break Laika. Play both sides by breaking Laika, and improving it to make reversing and analysis harder. Most malware depend on the time that it takes to analyze a sample, this gives their malware time to do whatever before eventually being shutdown. Playing both sides will help give you insight into the methods and bitterness that is this cat and mouse game.
+
 ## Would this work in real world scenarios?
 
 My hope is that this becomes complete enough to be accurate to real RAT sources seen in the wild. However since Laika uses a binary protocol, the traffic the bot/CNC create would look very suspect and scream to sysadmins. This is why most RATs/botnets nowadays use an HTTP-based protocol, not only to 'blend in' with traffic, but it also scales well with large networks of bots where the CNC can be deployed across multiple servers and have a generic HTTP load balancer.
