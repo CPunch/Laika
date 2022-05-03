@@ -10,8 +10,6 @@
 
 #include "lconfig.h"
 
-#define ARRAY_START 4
-
 #ifdef DEBUG
 # define LAIKA_DEBUG(...) printf("[~] " __VA_ARGS__); fflush(stdout);
 #else

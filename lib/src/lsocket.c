@@ -44,10 +44,10 @@ void laikaS_initSocket(struct sLaika_socket *sock, pollEvent onPollIn, pollEvent
     sock->onPollOut = onPollOut;
     sock->uData = uData;
     sock->inBuf = NULL;
-    sock->inCap = ARRAY_START;
+    sock->inCap = 8;
     sock->inCount = 0;
     sock->outBuf = NULL;
-    sock->outCap = ARRAY_START;
+    sock->outCap = 8;
     sock->outCount = 0;
     sock->flipEndian = false;
     sock->setPollOut = false;
