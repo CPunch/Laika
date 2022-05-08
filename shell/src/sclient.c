@@ -90,10 +90,8 @@ void shellC_handleRmvPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uDat
     type = laikaS_readByte(&peer->sock);
 
     /* ignore panel clients */
-    if (type == PEER_AUTH) {
-        LAIKA_DEBUG("got auth!\n");
+    if (type == PEER_AUTH)
         return;
-    }
 
     if ((bot = shellC_getPeerByPub(client, pubKey, &id)) == NULL)
         LAIKA_ERROR("LAIKAPKT_AUTHENTICATED_RMV_PEER_RES: Unknown peer!\n");

