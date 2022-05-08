@@ -14,25 +14,6 @@
 
 typedef bool (*tLaika_peerIter)(struct sLaika_peer *peer, void *uData);
 
-struct sLaika_peerInfo {
-    struct sLaika_cnc *cnc;
-    long lastPing;
-};
-
-#define BASE_PEERINFO struct sLaika_peerInfo info;
-
-struct sLaika_botInfo {
-    BASE_PEERINFO
-    struct sLaika_peer *shellAuth; /* currently connected shell */
-};
-
-struct sLaika_authInfo {
-    BASE_PEERINFO
-    struct sLaika_peer *shellBot; /* currently connected shell */
-};
-
-#undef BASE_PEERINFO
-
 struct sLaika_cnc {
     uint8_t priv[crypto_kx_SECRETKEYBYTES], pub[crypto_kx_PUBLICKEYBYTES];
     struct sLaika_socket sock;

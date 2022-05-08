@@ -12,11 +12,12 @@
 struct sLaika_shell;
 struct sLaika_bot {
     uint8_t priv[crypto_kx_SECRETKEYBYTES], pub[crypto_kx_PUBLICKEYBYTES];
+    struct sLaika_shell *shells[LAIKA_MAX_SHELLS];
     struct sLaika_pollList pList;
     struct sLaika_taskService tService;
     struct sLaika_peer *peer;
-    struct sLaika_shell *shell;
     struct sLaika_task *shellTask;
+    int activeShells;
 };
 
 struct sLaika_bot *laikaB_newBot(void);

