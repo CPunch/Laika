@@ -9,6 +9,8 @@
 #include "lsodium.h"
 
 #define LAIKA_BOX_HEAPSIZE 256
+#define LAIKA_BOX_UNLOCKED_INDX 0
+#define LAIKA_BOX_DATA_INDX 1
 
 /* Laika Box: 
         Laika Boxes are obfuscated storage mediums where data is only in memory for a very short amount of time.
@@ -35,8 +37,8 @@ struct sLaikaB_box {
             [2] - key (uint8_t) \
             [3] - working data (uint8_t) \
         */ \
-        LAIKA_MAKE_VM_IAB(OP_LOADCONST, 0, 0), \
-        LAIKA_MAKE_VM_IAB(OP_LOADCONST, 1, 1), \
+        LAIKA_MAKE_VM_IAB(OP_LOADCONST, 0, LAIKA_BOX_UNLOCKED_INDX), \
+        LAIKA_MAKE_VM_IAB(OP_LOADCONST, 1, LAIKA_BOX_DATA_INDX), \
         LAIKA_MAKE_VM_IAB(OP_PUSHLIT, 2, _key), \
         /* LOOP_START */ \
         LAIKA_MAKE_VM_IAB(OP_READ, 3, 1), /* load data into working data */ \
@@ -53,8 +55,8 @@ LAIKA_FORCEINLINE void* laikaB_unlock(struct sLaikaB_box *box, void *data) {
     struct sLaikaV_vm vm = {
         /* boxes have 2 reserved constants, [0] for the output, [1] for the input */
         .constList = {
-            LAIKA_MAKE_VM_PTR(box->unlockedData),
-            LAIKA_MAKE_VM_PTR(data),
+            [LAIKA_BOX_UNLOCKED_INDX] = LAIKA_MAKE_VM_PTR(box->unlockedData),
+            [LAIKA_BOX_DATA_INDX] = LAIKA_MAKE_VM_PTR(data),
         },
         .code = {0},
         .stack = {0},
