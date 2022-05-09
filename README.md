@@ -18,7 +18,7 @@ Some notable features thus far:
     - [X] Persistence via Cron on Linux-based systems.
     - [X] Persistence via Windows Registry.
 - [ ] Ability to relay socket connections to/from the victim's machine.
-- [ ] Uses obfuscation techniques also seen in the wild (string obfuscation, tiny VMs executing sensitive operations, etc.)
+- [X] Uses obfuscation techniques also seen in the wild (string obfuscation, tiny VMs executing sensitive operations, etc.)
 - [ ] Simple configuration using CMake:
     - [X] Setting keypairs (`-DLAIKA_PUBKEY=? -DLAIKA_PRIVKEY=?`, etc.)
     - [ ] Obfuscation modes

@@ -45,7 +45,7 @@ void addPadding(uint8_t *data, int start) {
     }
 }
 
-uint8_t *makeSKIDdata(char *data, int sz, uint8_t *buff, int key) {
+void makeSKIDdata(char *data, int sz, uint8_t *buff, int key) {
     int i;
 
     for (i = 0; i < sz; i++)
@@ -53,7 +53,6 @@ uint8_t *makeSKIDdata(char *data, int sz, uint8_t *buff, int key) {
 
     buff[i++] = key; /* add the null terminator */
     addPadding(buff, i);
-    return buff;
 }
 
 #define MAKESKIDDATA(macro) \
