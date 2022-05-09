@@ -13,6 +13,8 @@
 #include "bot.h"
 #include "shell.h"
 
+#define LAIKA_LINSHELL_PATH "/bin/sh"
+
 struct sLaika_RAWshell {
     struct sLaika_shell _shell;
     int pid;
@@ -30,7 +32,7 @@ struct sLaika_shell *laikaB_newRAWShell(struct sLaika_bot *bot, int cols, int ro
 
     if (shell->pid == 0) {
         /* child process, clone & run shell */
-        execlp("/bin/sh", "sh", (char*) NULL);
+        execlp(LAIKA_LINSHELL_PATH, "sh", (char*) NULL);
         exit(0);
     }
 

