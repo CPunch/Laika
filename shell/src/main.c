@@ -78,6 +78,7 @@ int main(int argv, char *argc[]) {
             printPrompt = false;
         }
     }
+    shellT_resetTerm();
 
     shellC_cleanup(&client);
     PRINTERROR("Connection closed\n");

@@ -24,6 +24,9 @@ set(LAIKA_VERSION_MAJOR 0)
 set(LAIKA_VERSION_MINOR 2)
 set(SODIUM_DISABLE_TESTS ON)
 
+# vmbox config location
+set(LAIKA_VMBOXCONFIG ${LIB_INCLUDEDIR}/lboxconfig.h PARENT_SCOPE)
+
 project(LaikaLib VERSION ${LAIKA_VERSION_MAJOR}.${LAIKA_VERSION_MINOR})
 
 message(STATUS "Building config file...")

@@ -5,3 +5,4 @@ bin
 lconfig.h
 lcontent.c
 lcontent.h
+lboxconfig.h
