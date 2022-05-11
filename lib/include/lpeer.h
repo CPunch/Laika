@@ -21,13 +21,13 @@ typedef enum {
 } OSTYPE;
 
 #ifdef _WIN32
-#define LAIKA_OSTYPE OS_WIN
+# define LAIKA_OSTYPE OS_WIN
 #else
-#ifdef __linux__
-#define LAIKA_OSTYPE OS_LIN
-#else
-#define LAIKA_OSTYPE OS_UNKNWN
-#endif
+# ifdef __linux__
+#  define LAIKA_OSTYPE OS_LIN
+# else
+#  define LAIKA_OSTYPE OS_UNKNWN
+# endif
 #endif
 
 struct sLaika_peer;
@@ -38,7 +38,6 @@ struct sLaika_peerPacketInfo {
     LAIKAPKT_SIZE size;
     bool variadic;
 };
-
 
 #define LAIKA_CREATE_PACKET_INFO(ID, HANDLER, SIZE, ISVARIADIC) [ID] = {.handler = HANDLER, .size = SIZE, .variadic = ISVARIADIC}
 

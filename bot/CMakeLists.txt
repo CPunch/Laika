@@ -30,7 +30,7 @@ target_compile_definitions(LaikaBot PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
 # add include directory
 target_include_directories(LaikaBot PUBLIC ${BOT_INCLUDEDIR})
 
-# strip symbols for POSIX-like binaries
+# strip symbols for UNIX binaries
 if((UNIX AND NOT APPLE) AND NOT RAWCMAKEBUILDTYPE STREQUAL "debug")
     message(STATUS "Stripping LaikaBot symbols...")
     target_link_options(LaikaBot PRIVATE -s)

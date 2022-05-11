@@ -4,49 +4,49 @@
 /* socket/winsock headers */
 #ifdef _WIN32
 /* windows */
-    #ifndef NOMINMAX
-    #define NOMINMAX
-    #endif
-    #define _WINSOCK_DEPRECATED_NO_WARNINGS
-    #include <winsock2.h>
-    #include <windows.h>
-    #include <ws2tcpip.h>
-    #pragma comment(lib, "Ws2_32.lib")
+# ifndef NOMINMAX
+#  define NOMINMAX
+# endif
+# define _WINSOCK_DEPRECATED_NO_WARNINGS
+# include <winsock2.h>
+# include <windows.h>
+# include <ws2tcpip.h>
+# pragma comment(lib, "Ws2_32.lib")
 
-    typedef char buffer_t;
-    #define PollFD WSAPOLLFD
-    #define poll WSAPoll
-    #define LN_ERRNO WSAGetLastError()
-    #define LN_EWOULD WSAEWOULDBLOCK
-    #define LN_MSG_NOSIGNAL 0
-    #define SOCKETINVALID(x) (x == INVALID_SOCKET)
-    #define SOCKETERROR(x) (x == SOCKET_ERROR)
+ typedef char buffer_t;
+# define PollFD WSAPOLLFD
+# define poll WSAPoll
+# define LN_ERRNO WSAGetLastError()
+# define LN_EWOULD WSAEWOULDBLOCK
+# define LN_MSG_NOSIGNAL 0
+# define SOCKETINVALID(x) (x == INVALID_SOCKET)
+# define SOCKETERROR(x) (x == SOCKET_ERROR)
 #else
 /* posix platform */
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netdb.h>
-    #include <netinet/in.h>
-    #include <arpa/inet.h>
-    #include <poll.h>
-#ifdef __linux__
-    #include <sys/epoll.h>
-/* max events for epoll() */
-    #define MAX_EPOLL_EVENTS 128
-    #define LAIKA_USE_EPOLL
-#endif
-    #include <unistd.h>
-    #include <errno.h>
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <netdb.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
+# include <poll.h>
+# ifdef __linux__
+#  include <sys/epoll.h>
+  /* max events for epoll() */
+#  define MAX_EPOLL_EVENTS 128
+#  define LAIKA_USE_EPOLL
+# endif
+# include <unistd.h>
+# include <errno.h>
 
-    typedef int SOCKET;
-    typedef void buffer_t;
-    #define PollFD struct pollfd
-    #define LN_ERRNO errno
-    #define LN_EWOULD EWOULDBLOCK
-    #define LN_MSG_NOSIGNAL MSG_NOSIGNAL
-    #define INVALID_SOCKET -1
-    #define SOCKETINVALID(x) (x < 0)
-    #define SOCKETERROR(x) (x == -1)
+ typedef int SOCKET;
+ typedef void buffer_t;
+# define PollFD struct pollfd
+# define LN_ERRNO errno
+# define LN_EWOULD EWOULDBLOCK
+# define LN_MSG_NOSIGNAL MSG_NOSIGNAL
+# define INVALID_SOCKET -1
+# define SOCKETINVALID(x) (x < 0)
+# define SOCKETERROR(x) (x == -1)
 #endif
 #include <fcntl.h>
 #include <stdbool.h>
