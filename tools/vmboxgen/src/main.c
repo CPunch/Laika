@@ -8,8 +8,6 @@
 #include "lbox.h"
 #include "lsodium.h"
 
-#include "boxstrings.h"
-
 #define ERR(...) do { printf(__VA_ARGS__); exit(EXIT_FAILURE); } while(0);
 #define RANDBYTE (rand() % UINT8_MAX)
 
@@ -58,8 +56,8 @@ void makeSKIDdata(char *data, int sz, uint8_t *buff, int key) {
 #define MAKESKIDDATA(macro) \
     key = RANDBYTE; \
     makeSKIDdata(macro, strlen(macro), tmpBuff, key); \
-    writeDefineVal(out, #macro "_KEY", key); \
-    writeDefineArray(out, #macro "_DATA", tmpBuff);
+    writeDefineVal(out, "KEY_" #macro, key); \
+    writeDefineArray(out, "DATA_" #macro, tmpBuff);
 
 int main(int argv, char **argc) {
     uint8_t tmpBuff[LAIKA_VM_CODESIZE];

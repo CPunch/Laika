@@ -37,20 +37,30 @@ struct sLaikaB_box {
     uint8_t code[LAIKA_VM_CODESIZE];
 };
 
-#define LAIKA_BOX_STARTVAR(type, ident, box, datamacro) \
-    uint8_t __data##ident[LAIKA_VM_CODESIZE] = datamacro; \
+/* ==============================================[[ Box Var API ]]=============================================== */
+
+#define LAIKA_BOX_STARTVAR(type, ident, box, data) \
+    uint8_t __data##ident[LAIKA_VM_CODESIZE] = data; \
     type ident; \
     struct sLaikaB_box __box##ident = box; \
     laikaB_unlock(&__box##ident, __data##ident); \
     ident = (type)__box##ident.unlockedData;
 
 #define LAIKA_BOX_ENDVAR(ident) \
-    laikaB_lock(&__box##ident); 
+    laikaB_lock(&__box##ident);
 
-#define LAIKA_BOX_NOOP { \
-    .unlockedData = {0}, \
-    .code = {0} \
-}
+#ifdef LAIKA_OBFUSCATE
+# define LAIKA_BOX_SKID_START(type, ident, strmacro) \
+    LAIKA_BOX_STARTVAR(type, ident, LAIKA_BOX_SKID(KEY_##strmacro), DATA_##strmacro)
+# define LAIKA_BOX_SKID_END(ident) \
+    LAIKA_BOX_ENDVAR(ident)
+#else /* disable obfuscations */
+# define LAIKA_BOX_SKID_START(type, ident, strmacro) \
+    type ident = strmacro;
+# define LAIKA_BOX_SKID_END(ident) ((void)0) /* no-op */
+#endif
+
+/* ==============================================[[ Laika Boxes ]]=============================================== */
 
 /* BOX_SKID decodes null-terminated strings using a provided xor _key. aptly named lol [SEE tools/vmtest/src/main.c] */
 #define LAIKA_BOX_SKID(_key) { \
@@ -75,6 +85,8 @@ struct sLaikaB_box {
     } \
 }
 
+/* ==============================================[[ Raw Box API ]]=============================================== */
+
 LAIKA_FORCEINLINE void* laikaB_unlock(struct sLaikaB_box *box, void *data) {
     struct sLaikaV_vm vm = {
         /* boxes have 2 reserved constants, [0] for the output, [1] for the input */
@@ -98,5 +110,7 @@ LAIKA_FORCEINLINE void* laikaB_lock(struct sLaikaB_box *box) {
     sodium_memzero(box->unlockedData, LAIKA_BOX_HEAPSIZE);
     sodium_memzero(box->scratch, LAIKA_BOX_SCRATCH_SIZE);
 }
+
+#include "lboxconfig.h"
 
 #endif
