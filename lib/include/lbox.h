@@ -107,10 +107,11 @@ LAIKA_FORCEINLINE void* laikaB_unlock(struct sLaikaB_box *box, void *data) {
 }
 
 /* safely zeros the unlockedData using libsodium's api for clearing sensitive data from memory */
-LAIKA_FORCEINLINE void* laikaB_lock(struct sLaikaB_box *box) {
+LAIKA_FORCEINLINE void laikaB_lock(struct sLaikaB_box *box) {
     sodium_memzero(box->unlockedData, LAIKA_BOX_HEAPSIZE);
     sodium_memzero(box->scratch, LAIKA_BOX_SCRATCH_SIZE);
 }
+
 /* include KEY_* & DATA_* macros for each obfuscated string */
 #include "lboxconfig.h"
 

