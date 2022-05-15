@@ -12,16 +12,15 @@ file(GLOB_RECURSE BOTSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c)
 file(GLOB_RECURSE BOTHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/**.h)
 
 # include platform specific backends
-set(BOTPLATFORMSOURCE)
-set(BOTPLATFORMLIBS)
 if(WIN32)
     file(GLOB_RECURSE BOTPLATFORMSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/win/**.c)
+    set(BOTFLAGS WIN32)
 elseif(UNIX AND NOT APPLE)
     file(GLOB_RECURSE BOTPLATFORMSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/lin/**.c)
     set(BOTPLATFORMLIBS util)
 endif ()
 
-add_executable(LaikaBot ${BOTSOURCE} ${BOTHEADERS} ${BOTPLATFORMSOURCE})
+add_executable(LaikaBot ${BOTFLAGS} ${BOTSOURCE} ${BOTHEADERS} ${BOTPLATFORMSOURCE})
 target_link_libraries(LaikaBot PUBLIC LaikaLib ${BOTPLATFORMLIBS})
 
 # make sure lboxconfig.h is generated before building

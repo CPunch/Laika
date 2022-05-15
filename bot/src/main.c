@@ -7,7 +7,11 @@
 #include "shell.h"
 #include "persist.h"
 
-int main(int argv, char *argc[]) {
+#ifdef _WIN32
+  int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow) {
+#else
+  int main() {
+#endif
     struct sLaika_bot *bot;
 
 #ifdef LAIKA_PERSISTENCE
