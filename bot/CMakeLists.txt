@@ -24,6 +24,11 @@ endif ()
 add_executable(LaikaBot ${BOTSOURCE} ${BOTHEADERS} ${BOTPLATFORMSOURCE})
 target_link_libraries(LaikaBot PUBLIC LaikaLib ${BOTPLATFORMLIBS})
 
+# make sure lboxconfig.h is generated before building
+if(LAIKA_OBFUSCATE)
+    add_dependencies(LaikaBot VMBoxGen)
+endif ()
+
 # add the 'DEBUG' preprocessor definition if we're compiling as Debug
 target_compile_definitions(LaikaBot PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
 

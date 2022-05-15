@@ -20,4 +20,4 @@ if(LAIKA_OBFUSCATE)
         COMMAND VMBoxGen ${LAIKA_VMBOXCONFIG}
         COMMENT "Generating VMBox data & keys..."
     )
-endif()
+endif ()
