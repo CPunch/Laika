@@ -3,5 +3,3 @@ debug
 bin
 .vscode
 lconfig.h
-lcontent.c
-lcontent.h
