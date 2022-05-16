@@ -33,7 +33,8 @@
         "lconfig.h": "c",
         "inttypes.h": "c",
         "time.h": "c",
-        "features.h": "c"
+        "features.h": "c",
+        "lboxconfig.h": "c"
     },
     "cSpell.words": [
         "cnc's",

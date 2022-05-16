@@ -13,17 +13,6 @@
 #include "lvm.h"
 #include "lbox.h"
 
-/*      we want a semi-random mutex that is stable between similar builds,
-*   so we use the GIT_VERSION as our mutex :D */
-#define LAIKA_MUTEX LAIKA_VERSION_COMMIT ".0"
-
-/* looks official enough */
-#define LAIKA_INSTALL_DIR "Microsoft"
-#define LAIKA_INSTALL_FILE "UserServiceController.exe"
-
-#define LAIKA_REG_KEY "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
-#define LAIKA_REG_VAL "UserServiceController"
-
 HANDLE laikaB_mutex;
 
 /* check if laika is running as super-user */
