@@ -3,8 +3,8 @@
 
 #include <time.h>
 
-struct sLaika_task;
-struct sLaika_taskService;
+#include "laika.h"
+
 typedef void (*taskCallback)(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData);
 
 struct sLaika_task {

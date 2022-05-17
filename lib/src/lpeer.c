@@ -27,10 +27,14 @@ struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *pktTbl, struct 
     memset(peer->hostname, 0, LAIKA_HOSTNAME_LEN);
     memset(peer->inet, 0, LAIKA_INET_LEN);
     memset(peer->ipv4, 0, LAIKA_IPV4_LEN);
+
+    /* init content context */
+    laikaF_initContext(&peer->context);
     return peer;
 }
 
 void laikaS_freePeer(struct sLaika_peer *peer) {
+    laikaF_cleanContext(&peer->context);
     laikaS_cleanSocket(&peer->sock);
     laikaM_free(peer);
 }

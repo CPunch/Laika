@@ -51,6 +51,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 
+#include "laika.h"
 #include "lsodium.h"
 
 typedef enum {
@@ -60,7 +61,6 @@ typedef enum {
     RAWSOCK_POLL
 } RAWSOCKCODE;
 
-struct sLaika_socket;
 typedef bool (*pollEvent)(struct sLaika_socket *sock);
 typedef void (*pollFailEvent)(struct sLaika_socket *sock, void *uData);
 

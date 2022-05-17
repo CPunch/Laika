@@ -22,4 +22,20 @@
 # define LAIKA_FORCEINLINE __forceinline
 #endif
 
+#define MIN(a, b) \
+    ({  __typeof__ (a) _a = (a); \
+        __typeof__ (b) _b = (b); \
+        _a < _b ? _a : _b; })
+
+#define MAX(a, b) \
+    ({  __typeof__ (a) _a = (a); \
+        __typeof__ (b) _b = (b); \
+        _a > _b ? _a : _b; })
+
+struct sLaika_peer;
+struct sLaika_socket;
+struct sLaika_pollList;
+struct sLaika_task;
+struct sLaika_taskService;
+
 #endif
