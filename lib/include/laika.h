@@ -22,15 +22,13 @@
 # define LAIKA_FORCEINLINE __forceinline
 #endif
 
-#define MIN(a, b) \
-    ({  __typeof__ (a) _a = (a); \
-        __typeof__ (b) _b = (b); \
-        _a < _b ? _a : _b; })
+LAIKA_FORCEINLINE int MIN(int a, int b) {
+    return a < b ? a : b;
+}
 
-#define MAX(a, b) \
-    ({  __typeof__ (a) _a = (a); \
-        __typeof__ (b) _b = (b); \
-        _a > _b ? _a : _b; })
+LAIKA_FORCEINLINE int MAX(int a, int b) {
+    return a > b ? a : b;
+}
 
 struct sLaika_peer;
 struct sLaika_socket;
