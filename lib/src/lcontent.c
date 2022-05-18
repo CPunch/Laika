@@ -196,7 +196,7 @@ void laikaF_handleContentError(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void 
     errCode = laikaS_readByte(&peer->sock);
 
     if ((content = getContentByID(context, contentID)) == NULL)
-        LAIKA_ERROR("Received error for non-existant id %d!\n", coitentID);
+        LAIKA_ERROR("Received error for non-existant id %d!\n", contentID);
 
     LAIKA_DEBUG("We received an errcode for id %d, err: %d\n", contentID, errCode);
     if (context->onError) /* check if event exists! */
