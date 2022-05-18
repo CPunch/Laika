@@ -2,6 +2,8 @@
 #include "lmem.h"
 #include "lpolllist.h"
 
+/* ===========================================[[ Helper Functions ]]============================================= */
+
 typedef struct sLaika_hashMapElem {
     SOCKET fd;
     struct sLaika_socket *sock;
@@ -18,6 +20,8 @@ uint64_t elem_hash(const void *item, uint64_t seed0, uint64_t seed1) {
     const tLaika_hashMapElem *u = item;
     return (uint64_t)(u->fd);
 }
+
+/* ==============================================[[ PollList API ]]============================================== */
 
 void laikaP_initPList(struct sLaika_pollList *pList) {
     laikaS_init();

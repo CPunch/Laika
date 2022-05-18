@@ -39,6 +39,8 @@ void laikaS_freePeer(struct sLaika_peer *peer) {
     laikaM_free(peer);
 }
 
+/* ===========================================[[ Start/End Packets ]]============================================ */
+
 void laikaS_emptyOutPacket(struct sLaika_peer *peer, LAIKAPKT_ID id) {
     struct sLaika_socket *sock = &peer->sock;
 
@@ -157,6 +159,8 @@ int laikaS_endInPacket(struct sLaika_peer *peer) {
 void laikaS_setSecure(struct sLaika_peer *peer, bool flag) {
     peer->useSecure = flag;
 }
+
+/* ===========================================[[ Handle Poll Events ]]=========================================== */
 
 bool laikaS_handlePeerIn(struct sLaika_socket *sock) {
     struct sLaika_peer *peer = (struct sLaika_peer*)sock;

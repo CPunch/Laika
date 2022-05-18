@@ -37,5 +37,7 @@ struct sLaika_socket;
 struct sLaika_pollList;
 struct sLaika_task;
 struct sLaika_taskService;
+struct sLaika_content;
+struct sLaika_contentContext;
 
 #endif
