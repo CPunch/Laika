@@ -14,22 +14,49 @@ on:
 
 jobs:
   ubuntu-build:
-    runs-on: ubuntu-latest
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-20.04
+
+    env:
+      CTEST_OUTPUT_ON_FAILURE: ON
+      CTEST_PARALLEL_LEVEL: 2
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Default
+            cmake-args: ""
+          - name: Debug
+            cmake-args: "-DCMAKE_BUILD_TYPE=Debug"
+          - name: Debug-Persistence-Obfuscate
+            cmake-args: "-DCMAKE_BUILD_TYPE=Debug -DLAIKA_PERSISTENCE=On -DLAIKA_OBFUSCATE=On"
+          - name: Release
+            cmake-args: "-DCMAKE_BUILD_TYPE=MinSizeRel"
+          - name: Release-Persistence-Obfuscate
+            cmake-args: "-DCMAKE_BUILD_TYPE=MinSizeRel -DLAIKA_PERSISTENCE=On -DLAIKA_OBFUSCATE=On"
+
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Install dependencies
-        run: sudo apt install clang cmake -y
-      - name: Create CMake build files
-        run: cmake -B build
-      - name: Check compilation
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+      - name: Install
+        run: pip install cmake==3.21.4 --upgrade
+      - name: CMake
+        run: cmake -S . -B build ${{ matrix.cmake-args }}
+      - name: Build
         run: cmake --build build
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
         with:
-          name: laika-demo-binaries-ubuntu
+          name: Laika-Ubuntu-${{ matrix.name }}
           path: bin
+      - name: Cleanup
+        run: rm -rf bin build
+
 
   windows-build:
     runs-on: windows-latest
@@ -44,5 +71,5 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
         with:
-          name: laika-demo-binaries-windows
+          name: Laika-Windows
           path: winbin
