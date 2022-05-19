@@ -14,8 +14,9 @@ Looking for some simple tasks that need to get done for that sweet 'contributor'
 
 - Change `lib/lin/linshell.c` to use openpty() instead of forkpty() for BSD support
 - Fix address sanitizer for CMake DEBUG builds
-- Change laikaT_getTime in `lib/src/ltask.c` to not use C11 features.
+- Change laikaT_getTime in `lib/src/ltask.c` to not use C11 features
 - Implement more LAIKA_BOX_* VMs in `lib/include/lbox.h`
+- Follow GNU GPL license guidelines (read 'How to Apply These Terms to Your New Programs')
 
 ## Lib: Error Handling
 Error handling in Laika is done via the 'lerror.h' header library. It's a small and simple error handling solution written for laika, however can be stripped and used as a simple error handling library. Error handling in Laika is used similarly to other languages, implementing a try & catch block and is achieved using setjmp(). The LAIKA_ERROR(...) is used to throw errors.
