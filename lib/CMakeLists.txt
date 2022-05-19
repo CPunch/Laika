@@ -13,6 +13,9 @@ file(GLOB_RECURSE LIBHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/**.h)
 add_library(LaikaLib STATIC ${LIBSOURCE} ${LIBHEADERS})
 target_link_libraries(LaikaLib PUBLIC sodium)
 
+# make sure we're compiled *AFTER* lboxconfig.h has been generated
+add_dependencies(LaikaLib VMBoxGen)
+
 # add the version definitions and the 'DEBUG' preprocessor definition if we're compiling as Debug
 target_compile_definitions(LaikaLib PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
 
