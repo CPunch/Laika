@@ -14,7 +14,6 @@
 #include "laika.h"
 #include "lerror.h"
 
-#define LAIKA_VM_CODESIZE 512
 #define LAIKA_VM_STACKSIZE 64
 #define LAIKA_VM_CONSTSIZE 32
 

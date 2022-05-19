@@ -54,6 +54,40 @@ endif ()
 set(SODIUM_DISABLE_TESTS ON)
 set(SODIUM_MINIMAL ON)
 set(SODIUM_STATIC ON)
+add_subdirectory(libsodium)
+
+# ========================================== [[ CONFIG DEFAULTS ]] ==========================================
+
+set(LAIKA_VMBOXCONFIG ${CMAKE_SOURCE_DIR}/lib/include/lboxconfig.h)
+
+# DO NOT USE THESE KEYS, TESTING ONLY (TODO: make vmboxgen auto gen these)
+if(NOT LAIKA_PUBKEY)
+    set(LAIKA_PUBKEY "40d5534aca77d1f5ec2bbe79dd9d0f52a78148918f95814404cefe97c34c5c27")
+endif ()
+
+if(NOT LAIKA_PRIVKEY)
+    set(LAIKA_PRIVKEY "90305aa77023d1c1e03265c3b6af046eb58d6ec8ba650b0dffed01379feab8cc")
+endif ()
+
+if(NOT LAIKA_CNC_IP)
+    set(LAIKA_CNC_IP "127.0.0.1")
+endif ()
+
+if(NOT LAIKA_CNC_PORT)
+    set(LAIKA_CNC_PORT "13337")
+endif ()
+
+# version details
+set(LAIKA_VERSION_MAJOR 0)
+set(LAIKA_VERSION_MINOR 3)
+
+message(STATUS "Building config file...")
+configure_file(${CMAKE_SOURCE_DIR}/lib/include/lconfig.h.in ${CMAKE_SOURCE_DIR}/lib/include/lconfig.h)
+
+# config vm boxes
+add_subdirectory(tools/vmboxgen)
+
+# =========================================== [[ BUILD TOOLING ]] ===========================================
 
 # compile laikalib, tools, cnc & bot
 add_subdirectory(lib)

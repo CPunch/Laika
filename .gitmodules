@@ -1,3 +1,3 @@
 [submodule "cmake-modules/libsodium"]
-	path = lib/libsodium
+	path = libsodium
 	url = https://github.com/robinlinden/libsodium-cmake.git

