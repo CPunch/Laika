@@ -65,11 +65,11 @@ jobs:
         with:
           submodules: recursive
       - name: Create CMake build files
-        run: cmake -B build
+        run: cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DLAIKA_PERSISTENCE=On -DLAIKA_OBFUSCATE=On
       - name: Check compilation
-        run: cmake --build build
+        run: cmake --build build --config MinSizeRel
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
         with:
-          name: Laika-Windows
+          name: Laika-Windows-Release-Persistence-Obfuscate
           path: winbin
