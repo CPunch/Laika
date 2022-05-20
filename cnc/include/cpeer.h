@@ -8,34 +8,44 @@
 #include "lpeer.h"
 
 struct sLaika_peerInfo {
+    struct sLaika_shellInfo *shells[LAIKA_MAX_SHELLS]; /* currently connected shells */
     struct sLaika_cnc *cnc;
     long lastPing;
     bool completeHandshake;
 };
 
+struct sLaika_shellInfo {
+    struct sLaika_peer *bot;
+    struct sLaika_peer *auth;
+    uint32_t botShellID, authShellID;
+    uint16_t cols, rows;
+};
+
 #define BASE_PEERINFO struct sLaika_peerInfo info;
 
+/* these will differ someday */
 struct sLaika_botInfo {
     BASE_PEERINFO
-    struct sLaika_peer *shellAuths[LAIKA_MAX_SHELLS]; /* currently connected shells */
 };
 
 struct sLaika_authInfo {
     BASE_PEERINFO
-    struct sLaika_peer *shellBot; /* currently connected shell */
-    uint32_t shellID;
 };
 
 #undef BASE_PEERINFO
+
+#define GETPINFOFROMPEER(x) ((struct sLaika_peerInfo*)x->uData)
+#define GETBINFOFROMPEER(x) ((struct sLaika_botInfo*)x->uData)
+#define GETAINFOFROMPEER(x) ((struct sLaika_authInfo*)x->uData)
 
 struct sLaika_botInfo *laikaC_newBotInfo(struct sLaika_cnc *cnc);
 struct sLaika_authInfo *laikaC_newAuthInfo(struct sLaika_cnc *cnc);
 void laikaC_freePeerInfo(struct sLaika_peer *peer, struct sLaika_peerInfo *pInfo);
 
-int laikaC_addShell(struct sLaika_botInfo *bInfo, struct sLaika_peer *auth);
-void laikaC_rmvShell(struct sLaika_botInfo *bInfo, struct sLaika_peer *auth);
+struct sLaika_shellInfo* laikaC_openShell(struct sLaika_peer *bot, struct sLaika_peer *auth, uint16_t cols, uint16_t rows);
+void laikaC_closeShell(struct sLaika_shellInfo *shell);
 
-void laikaC_closeBotShells(struct sLaika_peer *bot);
+void laikaC_closeShells(struct sLaika_peer *peer);
 
 void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
 void laikaC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);

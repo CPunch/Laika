@@ -58,19 +58,19 @@ enum {
     /* layout of LAIKAPKT_PINGPONG:
     *   NULL (empty packet)
     */
-    LAIKAPKT_SHELL_OPEN, /* if sent to bot, opens a shell. if sent to cnc, signifies you opened a shell */
+    LAIKAPKT_SHELL_OPEN,
     /* layout of LAIKAPKT_SHELL_OPEN:
-    *   uint32_t id; // this field is absent from the panel/auth client
+    *   uint32_t id;
     *   uint16_t cols;
     *   uint16_t rows;
     */
-    LAIKAPKT_SHELL_CLOSE, /* if sent to bot, closes a shell. if sent to cnc, signifies a shell was closed */
+    LAIKAPKT_SHELL_CLOSE,
     /* layout of LAIKAPKT_SHELL_CLOSE:
-    *   uint32_t id; // this field is absent from the panel/auth client
+    *   uint32_t id;
     */
-    LAIKAPKT_SHELL_DATA, /* if sent to bot, writes data to stdin of shell. if sent to cnc, writes to 'stdout' of shell */
+    LAIKAPKT_SHELL_DATA,
     /* layout of LAIKAPKT_SHELL_DATA
-    *   uint32_t id; // this field is absent from the panel/auth client
+    *   uint32_t id;
     *   char buf[VAR_PACKET_LENGTH-sizeof(uint32_t)];
     */
     LAIKAPKT_CONTENT_NEW,

