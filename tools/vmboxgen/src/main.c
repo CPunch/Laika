@@ -74,6 +74,7 @@ int main(int argv, char **argc) {
     /* shared */
     MAKESKIDDATA(LAIKA_CNC_IP);
     MAKESKIDDATA(LAIKA_CNC_PORT);
+    MAKESKIDDATA(LAIKA_PUBKEY);
     /* linux */
     MAKESKIDDATA(LAIKA_LIN_LOCK_FILE);
     MAKESKIDDATA(LAIKA_LIN_INSTALL_DIR);

