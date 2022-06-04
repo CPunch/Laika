@@ -9,7 +9,11 @@
 #include "persist.h"
 
 #ifdef _WIN32
+# ifndef DEBUG
   int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow) {
+# else
+  int main() {
+# endif
 #else
   int main() {
 #endif

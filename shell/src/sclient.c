@@ -388,13 +388,30 @@ void shellC_closeShell(tShell_client *client) {
 }
 
 void shellC_sendDataShell(tShell_client *client, uint8_t *data, size_t sz) {
-    uint32_t id = 0; /* we will *ALWAYS* only have one shell open */
+    uint32_t i, id = 0; /* we will *ALWAYS* only have one shell open */
+    struct sLaika_socket *sock = &client->peer->sock;
     /* check if we have a shell open */
     if (!shellC_isShellOpen(client))
         return;
 
     laikaS_startVarPacket(client->peer, LAIKAPKT_SHELL_DATA);
-    laikaS_writeInt(&client->peer->sock, &id, sizeof(uint32_t));
-    laikaS_write(&client->peer->sock, data, sz);
+    laikaS_writeInt(sock, &id, sizeof(uint32_t));
+    switch (client->openShell->osType) {
+        case LAIKA_OSTYPE: /* if we're the same as the target OS, line endings don't need to be converted! */
+            laikaS_write(sock, data, sz);
+            break;
+        default:
+            /* line endings have to be converted (ALWAYS LINUX->WIN for now) */
+            for (i = 0; i < sz; i++) {
+                if (data[i] == '\n') {
+                    /* convert to windows line endings */
+                    laikaS_writeByte(sock, '\r');
+                    laikaS_writeByte(sock, '\n');
+                } else {
+                    laikaS_writeByte(sock, data[i]);
+                }
+            }
+            break;
+    }
     laikaS_endVarPacket(client->peer);
 }
