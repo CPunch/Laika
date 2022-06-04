@@ -9,7 +9,7 @@
 #define LAIKA_MAX_PKTSIZE 4096
 
 #define LAIKA_HOSTNAME_LEN 64
-#define LAIKA_IPV4_LEN 22
+#define LAIKA_IPSTR_LEN 64
 #define LAIKA_INET_LEN 22
 
 #define LAIKA_SHELL_DATA_MAX_LENGTH 2048
@@ -99,7 +99,7 @@ enum {
     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
     *   char hostname[LAIKA_HOSTNAME_LEN];
     *   char inet[LAIKA_INET_LEN];
-    *   char ipv4[LAIKA_IPV4_LEN];
+    *   char ipStr[LAIKA_IPSTR_LEN];
     *   uint8_t peerType;
     *   uint8_t osType;
     */

@@ -118,18 +118,18 @@ void laikaS_connect(struct sLaika_socket *sock, char *ip, char *port) {
 
 void laikaS_bind(struct sLaika_socket *sock, uint16_t port) {
     socklen_t addressSize;
-    struct sockaddr_in address;
+    struct sockaddr_in6 address;
     int opt = 1;
 
     if (!SOCKETINVALID(sock->sock))
         LAIKA_ERROR("socket already setup!\n");
 
     /* open our socket */
-    sock->sock = socket(AF_INET, SOCK_STREAM, 0);
+    sock->sock = socket(AF_INET6, SOCK_STREAM, 0);
     if (SOCKETINVALID(sock->sock))
         LAIKA_ERROR("socket() failed!\n");
 
-    /* attach socket to the port */
+    /* allow reuse of local address */
 #ifdef _WIN32
     if (setsockopt(sock->sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(int)) != 0)
 #else
@@ -137,35 +137,32 @@ void laikaS_bind(struct sLaika_socket *sock, uint16_t port) {
 #endif
         LAIKA_ERROR("setsockopt() failed!\n");
 
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(port);
+    address.sin6_family = AF_INET6;
+    address.sin6_addr = in6addr_any;
+    address.sin6_port = htons(port);
 
-    addressSize = sizeof(struct sockaddr_in);
+    addressSize = sizeof(address);
 
     /* bind to the port */
-    if (SOCKETERROR(bind(sock->sock, (struct sockaddr *)&address, addressSize)))
+    if (SOCKETERROR(bind(sock->sock, (struct sockaddr*)&address, addressSize)))
         LAIKA_ERROR("bind() failed!\n");
 
     if (SOCKETERROR(listen(sock->sock, SOMAXCONN)))
         LAIKA_ERROR("listen() failed!\n");
 }
 
-void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from, char *ipv4) {
-    struct sockaddr_in address;
-    socklen_t addressSize = sizeof(struct sockaddr_in);
+void laikaS_acceptFrom(struct sLaika_socket *sock, struct sLaika_socket *from, char *ip) {
+    struct sockaddr_in6 address;
+    socklen_t addressSize = sizeof(address);
 
     sock->sock = accept(from->sock, (struct sockaddr*)&address, &addressSize);
     if (SOCKETINVALID(sock->sock))
         LAIKA_ERROR("accept() failed!\n");
 
-    /* read ipv4 */
-    if (ipv4) {
-        if (inet_ntop(AF_INET, &address.sin_addr, ipv4, LAIKA_IPV4_LEN) == NULL)
+    /* read ip */
+    if (ip) {
+        if (inet_ntop(AF_INET6, &address.sin6_addr, ip, LAIKA_IPSTR_LEN) == NULL)
             LAIKA_ERROR("inet_ntop() failed!\n");
-
-        /* restore null terminator */
-        ipv4[LAIKA_INET_LEN-1] = '\0';
     }
 }
 

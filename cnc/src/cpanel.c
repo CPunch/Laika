@@ -24,7 +24,7 @@ void laikaC_sendNewPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer) 
     laikaS_write(&authPeer->sock, peer->peerPub, sizeof(peer->peerPub));
     laikaS_write(&authPeer->sock, peer->hostname, LAIKA_HOSTNAME_LEN);
     laikaS_write(&authPeer->sock, peer->inet, LAIKA_INET_LEN);
-    laikaS_write(&authPeer->sock, peer->ipv4, LAIKA_IPV4_LEN);
+    laikaS_write(&authPeer->sock, peer->ipStr, LAIKA_IPSTR_LEN);
     laikaS_writeByte(&authPeer->sock, peer->type);
     laikaS_writeByte(&authPeer->sock, peer->osType);
 

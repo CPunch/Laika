@@ -46,7 +46,7 @@ struct sLaika_peer {
     struct sLaika_contentContext context;
     uint8_t peerPub[crypto_kx_PUBLICKEYBYTES]; /* connected peer's public key */
     uint8_t inKey[crypto_kx_SESSIONKEYBYTES], outKey[crypto_kx_SESSIONKEYBYTES];
-    char hostname[LAIKA_HOSTNAME_LEN], inet[LAIKA_INET_LEN], ipv4[LAIKA_IPV4_LEN];
+    char hostname[LAIKA_HOSTNAME_LEN], inet[LAIKA_INET_LEN], ipStr[LAIKA_IPSTR_LEN];
     struct sLaika_pollList *pList; /* pollList we're activeList in */
     struct sLaika_peerPacketInfo *packetTbl; /* const table to pull pkt data from */
     void *uData; /* data to be passed to pktHandler */

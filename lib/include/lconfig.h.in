@@ -14,7 +14,6 @@
 
 /* settings */
 #cmakedefine LAIKA_PERSISTENCE
-
 #cmakedefine LAIKA_OBFUSCATE
 
 /* raw obfuscated strings */

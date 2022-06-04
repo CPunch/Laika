@@ -353,7 +353,7 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
 
             LAIKA_TRY
                 /* setup and accept new peer */
-                laikaS_acceptFrom(&peer->sock, &cnc->sock, peer->ipv4);
+                laikaS_acceptFrom(&peer->sock, &cnc->sock, peer->ipStr);
                 laikaS_setNonBlock(&peer->sock);
 
                 /* add to our pollList */

