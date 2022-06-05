@@ -14,7 +14,7 @@ file(GLOB_RECURSE BOTHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/**.h)
 # include platform specific backends
 if(WIN32)
     file(GLOB_RECURSE BOTPLATFORMSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/win/**.c)
-    if (NOT RAWCMAKEBUILDTYPE STREQUAL "debug")
+    if (NOT LAIKA_DEBUG_BUILD)
         set(BOTFLAGS WIN32)
     endif ()
 elseif(UNIX AND NOT APPLE)
@@ -37,7 +37,7 @@ target_compile_definitions(LaikaBot PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
 target_include_directories(LaikaBot PUBLIC ${BOT_INCLUDEDIR})
 
 # strip symbols for UNIX binaries
-if((UNIX AND NOT APPLE) AND NOT RAWCMAKEBUILDTYPE STREQUAL "debug")
+if((UNIX AND NOT APPLE) AND NOT LAIKA_DEBUG_BUILD)
     message(STATUS "Stripping LaikaBot symbols...")
     target_link_options(LaikaBot PRIVATE -s)
 endif ()
