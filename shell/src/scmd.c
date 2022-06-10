@@ -32,14 +32,14 @@ int shellS_readInt(char *str) {
 
 /* ===========================================[[ Command Handlers ]]============================================= */
 
-void helpCMD(tShell_client *client, int args, char *argc[]);
+void helpCMD(tShell_client *client, int argc, char *argv[]);
 
-void quitCMD(tShell_client *client, int args, char *argc[]) {
+void quitCMD(tShell_client *client, int argc, char *argv[]) {
     PRINTINFO("Killing socket...\n");
     laikaS_kill(&client->peer->sock);
 }
 
-void listPeersCMD(tShell_client *client, int args, char *argc[]) {
+void listPeersCMD(tShell_client *client, int argc, char *argv[]) {
     int i;
 
     for (i = 0; i < client->peerTblCount; i++) {
@@ -50,14 +50,14 @@ void listPeersCMD(tShell_client *client, int args, char *argc[]) {
     }
 }
 
-void infoCMD(tShell_client *client, int args, char *argc[]) {
+void infoCMD(tShell_client *client, int argc, char *argv[]) {
     tShell_peer *peer;
     int id;
 
-    if (args < 2)
+    if (argc < 2)
         CMD_ERROR("Usage: info [PEER_ID]\n");
 
-    id = shellS_readInt(argc[1]);
+    id = shellS_readInt(argv[1]);
     peer = shellS_getPeer(client, id);
 
     /* print info */
@@ -65,15 +65,15 @@ void infoCMD(tShell_client *client, int args, char *argc[]) {
     shellP_printInfo(peer);
 }
 
-void openShellCMD(tShell_client *client, int args, char *argc[]) {
+void openShellCMD(tShell_client *client, int argc, char *argv[]) {
     uint8_t buf[LAIKA_SHELL_DATA_MAX_LENGTH];
     tShell_peer *peer;
     int id, sz, cols, rows;
 
-    if (args < 2)
+    if (argc < 2)
         CMD_ERROR("Usage: shell [PEER_ID]\n");
 
-    id = shellS_readInt(argc[1]);
+    id = shellS_readInt(argv[1]);
     peer = shellS_getPeer(client, id);
 
     PRINTINFO("Opening shell on peer %04d...\n");
@@ -136,7 +136,7 @@ tShell_cmdDef *shellS_findCmd(char *cmd) {
     return NULL;
 }
 
-void helpCMD(tShell_client *client, int args, char *argc[]) {
+void helpCMD(tShell_client *client, int argc, char *argv[]) {
     int i;
 
     shellT_printf("======= [[ %sCommand List%s ]] =======\n", shellT_getForeColor(TERM_BRIGHT_YELLOW), shellT_getForeColor(TERM_BRIGHT_WHITE));
@@ -156,13 +156,23 @@ void shellS_cleanupCmds(void) {
 char **shellS_splitCmd(char *cmd, int *argSize) {
     int argCount = 0;
     int argCap = 4;
+    char *temp;
     char **args = NULL;
     char *arg = cmd;
 
     do {
         /* replace space with NULL terminator */
-        if (arg != cmd)
+        if (arg != cmd) {
+            if (arg[-1] == '\\') { /* space is part of the argument */
+                /* remove the '\' character */
+                for (temp = arg-1; *temp != '\0'; temp++) {
+                    temp[0] = temp[1];
+                }
+                arg++;
+                continue;
+            }
             *arg++ = '\0';
+        }
 
         /* insert into our 'args' array */
         laikaM_growarray(char*, args, 1, argCount, argCap);
