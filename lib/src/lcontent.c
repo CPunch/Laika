@@ -110,6 +110,10 @@ struct sLaika_content* laikaF_newContent(struct sLaika_contentContext *context, 
     return content;
 }
 
+int laikaF_nextID(struct sLaika_peer *peer) {
+    return peer->context.nextID + 1;
+}
+
 int laikaF_sendContent(struct sLaika_peer *peer, FILE *fd, CONTENT_TYPE type) {
     struct sLaika_contentContext *context = &peer->context;
     struct sLaika_content *content = laikaF_newContent(context, fd, getSize(fd), context->nextID++, type, CONTENT_OUT);
@@ -180,7 +184,7 @@ void laikaF_handleContentNew(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
     contentType = laikaS_readByte(&peer->sock);
 
     content = laikaF_recvContent(peer, contentID, contentSize, contentType);
-    if (context->onNew && !context->onNew(context, content)) {
+    if (context->onNew && !context->onNew(peer, context, content)) {
         sendContentError(peer, contentID, CONTENT_ERR_REJECTED);
         rmvContent(context, content);
     }
@@ -200,7 +204,7 @@ void laikaF_handleContentError(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void 
 
     LAIKA_DEBUG("We received an errcode for id %d, err: %d\n", contentID, errCode);
     if (context->onError) /* check if event exists! */
-        context->onError(context, content, errCode);
+        context->onError(peer, context, content, errCode);
 
     rmvContent(context, content);
 }
@@ -226,6 +230,6 @@ void laikaF_handleContentChunk(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void 
         rmvContent(context, content);
     } else if ((content->processed += bodySz) == content->sz) {
         if (context->onReceived) /* check if event exists! */
-            context->onReceived(context, content);
+            context->onReceived(peer, context, content);
     }
 }

