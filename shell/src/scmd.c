@@ -15,7 +15,7 @@
 
 jmp_buf cmdE_err;
 
-/* ===========================================[[ Helper Functions ]]============================================= */
+/* ===================================[[ Helper Functions ]]==================================== */
 
 tShell_cmdDef *shellS_findCmd(char *cmd);
 
@@ -30,7 +30,7 @@ int shellS_readInt(char *str) {
     return atoi(str);
 }
 
-/* ===========================================[[ Command Handlers ]]============================================= */
+/* ===================================[[ Command Handlers ]]==================================== */
 
 void helpCMD(tShell_client *client, int argc, char *argv[]);
 
@@ -110,7 +110,7 @@ void openShellCMD(tShell_client *client, int argc, char *argv[]) {
     PRINTSUCC("Shell closed!\n");
 }
 
-/* =============================================[[ Command Table ]]============================================== */
+/* =====================================[[ Command Table ]]===================================== */
 
 #define CREATECMD(_cmd, _syntax, _help, _callback) ((tShell_cmdDef){.cmd = _cmd, .syntax = _syntax, .help = _help, .callback = _callback})
 

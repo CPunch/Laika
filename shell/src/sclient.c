@@ -13,7 +13,7 @@ void shell_pingTask(struct sLaika_taskService *service, struct sLaika_task *task
     laikaS_emptyOutPacket(client->peer, LAIKAPKT_PINGPONG);
 }
 
-/* ==============================================[[ PeerHashMap ]]=============================================== */
+/* ======================================[[ PeerHashMap ]]====================================== */
 
 typedef struct sShell_hashMapElem {
     int id;
@@ -33,7 +33,7 @@ uint64_t shell_ElemHash(const void *item, uint64_t seed0, uint64_t seed1) {
     return *(uint64_t*)(u->pub); /* hashes pub key (first 8 bytes) */
 }
 
-/* ============================================[[ Packet Handlers ]]============================================= */
+/* ====================================[[ Packet Handlers ]]==================================== */
 
 void shellC_handleHandshakeRes(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
     uint8_t endianness = laikaS_readByte(&peer->sock);
@@ -138,7 +138,9 @@ void shellC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
     shellC_closeShell(client);
 }
 
-/* ==============================================[[ Packet Table ]]============================================== */
+/* =====================================[[ Packet Table ]]====================================== */
+
+/* clang-format off */
 
 struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_RES,
@@ -171,6 +173,8 @@ struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
     true)
 };
 
+/* clang-format on */
+
 /* socket event */
 void shellC_onPollFail(struct sLaika_socket *sock, void *uData) {
     struct sLaika_peer *peer = (struct sLaika_peer*)sock;
@@ -179,7 +183,7 @@ void shellC_onPollFail(struct sLaika_socket *sock, void *uData) {
     laikaS_kill(&client->peer->sock);
 }
 
-/* ===============================================[[ Client API ]]=============================================== */
+/* ======================================[[ Client API ]]======================================= */
 
 void shellC_init(tShell_client *client) {
     laikaP_initPList(&client->pList);

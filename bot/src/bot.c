@@ -18,7 +18,9 @@ void laikaB_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) 
     /* stubbed */
 }
 
-/* =============================================[[ Packet Tables ]]============================================== */
+/* ====================================[[ Packet Tables ]]===================================== */
+
+/* clang-format off */
 
 struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_RES,
@@ -43,6 +45,8 @@ struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
     true),
 };
 
+/* clang-format on */
+
 /* socket event */
 void laikaB_onPollFail(struct sLaika_socket *sock, void *uData) {
     struct sLaika_peer *peer = (struct sLaika_peer*)sock;
@@ -51,7 +55,7 @@ void laikaB_onPollFail(struct sLaika_socket *sock, void *uData) {
     laikaS_kill(&bot->peer->sock);
 }
 
-/* ==================================================[[ Bot ]]=================================================== */
+/* ==========================================[[ Bot ]]========================================== */
 
 struct sLaika_bot *laikaB_newBot(void) {
     LAIKA_BOX_SKID_START(char*, cncPubKey, LAIKA_PUBKEY);

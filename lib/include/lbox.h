@@ -38,7 +38,7 @@ struct sLaikaB_box {
     uint8_t code[LAIKA_VM_CODESIZE];
 };
 
-/* ==============================================[[ Box Var API ]]=============================================== */
+/* ======================================[[ Box Var API ]]====================================== */
 
 #define LAIKA_BOX_STARTVAR(type, ident, box, data) \
     uint8_t __data##ident[LAIKA_VM_CODESIZE] = data; \
@@ -61,7 +61,7 @@ struct sLaikaB_box {
 # define LAIKA_BOX_SKID_END(ident) ((void)0) /* no-op */
 #endif
 
-/* ==============================================[[ Laika Boxes ]]=============================================== */
+/* ======================================[[ Laika Boxes ]]====================================== */
 
 /* BOX_SKID decodes null-terminated strings using a provided xor _key. aptly named lol */
 #define LAIKA_BOX_SKID(_key) { \
@@ -86,7 +86,7 @@ struct sLaikaB_box {
     } \
 }
 
-/* ==============================================[[ Raw Box API ]]=============================================== */
+/* ======================================[[ Raw Box API ]]====================================== */
 
 LAIKA_FORCEINLINE void* laikaB_unlock(struct sLaikaB_box *box, void *data) {
     struct sLaikaV_vm vm = {

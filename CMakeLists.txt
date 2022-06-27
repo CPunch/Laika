@@ -58,7 +58,7 @@ set(SODIUM_MINIMAL ON)
 set(SODIUM_STATIC ON)
 add_subdirectory(libsodium)
 
-# ========================================== [[ CONFIG DEFAULTS ]] ==========================================
+# ===================================== [[ CONFIG DEFAULTS ]] =====================================
 
 set(LAIKA_VMBOXCONFIG ${CMAKE_SOURCE_DIR}/lib/include/lboxconfig.h)
 
@@ -89,7 +89,7 @@ configure_file(${CMAKE_SOURCE_DIR}/lib/include/lconfig.h.in ${CMAKE_SOURCE_DIR}/
 # config vm boxes
 add_subdirectory(tools/vmboxgen)
 
-# =========================================== [[ BUILD TOOLING ]] ===========================================
+# ====================================== [[ BUILD TOOLING ]] ======================================
 
 # compile laikalib, tools, cnc & bot
 add_subdirectory(lib)

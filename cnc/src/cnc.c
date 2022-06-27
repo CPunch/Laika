@@ -8,7 +8,7 @@
 #include "cpeer.h"
 #include "cnc.h"
 
-/* ==============================================[[ PeerHashMap ]]=============================================== */
+/* ======================================[[ PeerHashMap ]]======================================= */
 
 typedef struct sCNC_PeerHashElem {
     struct sLaika_peer *peer;
@@ -27,7 +27,7 @@ uint64_t cnc_PeerElemHash(const void *item, uint64_t seed0, uint64_t seed1) {
     return *(uint64_t*)(u->pub); /* hashes pub key (first 8 bytes) */
 }
 
-/* ============================================[[ Packet Handlers ]]============================================= */
+/* ====================================[[ Packet Handlers ]]==================================== */
 
 bool checkPeerKey(struct sLaika_peer *peer, void *uData) {
     if (sodium_memcmp(peer->peerPub, uData, crypto_kx_PUBLICKEYBYTES) == 0)
@@ -93,7 +93,9 @@ void laikaC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) 
     laikaS_emptyOutPacket(peer, LAIKAPKT_PINGPONG); /* gg 2 ez */
 }
 
-/* =============================================[[ Packet Tables ]]============================================== */
+/* =====================================[[ Packet Tables ]]===================================== */
+
+/* clang-format off */
 
 #define DEFAULT_PKT_TBL \
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_REQ, \
@@ -139,7 +141,9 @@ struct sLaika_peerPacketInfo laikaC_authPktTbl[LAIKAPKT_MAXNONE] = {
 
 #undef DEFAULT_PKT_TBL
 
-/* ==================================================[[ CNC ]]=================================================== */
+/* clang-format on */
+
+/* ==========================================[[ CNC ]]========================================== */
 
 struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
     struct sLaika_cnc *cnc = laikaM_malloc(sizeof(struct sLaika_cnc));
@@ -401,7 +405,7 @@ void laikaC_sweepPeersTask(struct sLaika_taskService *service, struct sLaika_tas
     laikaC_iterPeers(cnc, sweepPeers, (void*)cnc);
 }
 
-/* ===============================================[[ Peer Iter ]]================================================ */
+/* =======================================[[ Peer Iter ]]======================================= */
 
 struct sWrapperData {
     tLaika_peerIter iter;

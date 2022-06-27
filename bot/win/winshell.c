@@ -97,7 +97,7 @@ void laikaB_freeRAWShell(struct sLaika_bot *bot, struct sLaika_shell *_shell) {
     laikaM_free(shell);
 }
 
-/* ============================================[[ Shell Handlers ]]============================================= */
+/* ====================================[[ Shell Handlers ]]===================================== */
 
 /* edited from https://github.com/microsoft/terminal/blob/main/samples/ConPTY/EchoCon/EchoCon/EchoCon.cpp */
 HRESULT CreatePseudoConsoleAndPipes(HPCON *phPC, HANDLE *phPipeIn, HANDLE *phPipeOut, int cols, int rows) {

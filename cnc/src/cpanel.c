@@ -41,7 +41,7 @@ void laikaC_sendRmvPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer) 
     laikaS_endOutPacket(authPeer);
 }
 
-/* =========================================[[ [Auth] Packet Handlers ]]========================================= */
+/* ================================[[ [Auth] Packet Handlers ]]================================= */
 
 void laikaC_handleAuthenticatedHandshake(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
     struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;

