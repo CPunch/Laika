@@ -52,11 +52,4 @@ void laikaC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
 void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
 void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
 
-/* content stream has finished */
-void laikaC_contentRecvEvent(struct sLaika_peer *peer, struct sLaika_contentContext *context, struct sLaika_content *content);
-/* request to open a content stream */
-bool laikaC_contentNewEvent(struct sLaika_peer *peer, struct sLaika_contentContext *context, struct sLaika_content *content);
-/* error happened on a stream */
-void laikaC_contentErrEvent(struct sLaika_peer *peer, struct sLaika_contentContext *context, struct sLaika_content *content, CONTENT_ERRCODE err);
-
 #endif

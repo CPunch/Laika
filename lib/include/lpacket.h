@@ -73,22 +73,6 @@ enum {
     *   uint32_t id;
     *   char buf[VAR_PACKET_LENGTH-sizeof(uint32_t)];
     */
-    LAIKAPKT_CONTENT_NEW,
-    /* layout of LAIKAPKT_CONTENT_NEW:
-    *   uint16_t id;
-    *   uint32_t sz;
-    *   uint8_t type;
-    */
-    LAIKAPKT_CONTENT_ERROR,
-    /* layout of LAIKAPKT_CONTENT_ERROR:
-    *   uint16_t id;
-    *   uint8_t errCode;
-    */
-    LAIKAPKT_CONTENT_CHUNK, /* variadic */
-    /* layout of LAIKAPKT_CONTENT_CHUNK:
-    *   uint16_t id;
-    *   uint8_t buf[VAR_PACKET_LENGTH-sizeof(uint16_t)];
-    */
 /* ==================================================[[ Auth ]]================================================== */
     LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ, /* second packet sent by authenticated peers (panel). there is no response packet */
     /* layout of LAIKAPKT_STAGE2_HANDSHAKE_REQ

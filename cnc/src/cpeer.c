@@ -157,20 +157,3 @@ void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     laikaS_write(&shell->auth->sock, buf, sz-sizeof(uint32_t));
     laikaS_endVarPacket(shell->auth);
 }
-
-/* ============================================[[ Content Handlers ]]============================================ */
-
-/* content stream has finished */
-void laikaC_contentRecvEvent(struct sLaika_peer *peer, struct sLaika_contentContext *context, struct sLaika_content *content) {
-
-}
-
-/* request to open a content stream */
-bool laikaC_contentNewEvent(struct sLaika_peer *peer, struct sLaika_contentContext *context, struct sLaika_content *content) {
-
-}
-
-/* error happened on a stream */
-void laikaC_contentErrEvent(struct sLaika_peer *peer, struct sLaika_contentContext *context, struct sLaika_content *content, CONTENT_ERRCODE err) {
-    
-}
