@@ -1,13 +1,15 @@
 #ifndef LAIKA_TASK_H
 #define LAIKA_TASK_H
 
-#include <time.h>
-
 #include "laika.h"
 
-typedef void (*taskCallback)(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData);
+#include <time.h>
 
-struct sLaika_task {
+typedef void (*taskCallback)(struct sLaika_taskService *service, struct sLaika_task *task,
+                             clock_t currTick, void *uData);
+
+struct sLaika_task
+{
     struct sLaika_task *next;
     taskCallback callback;
     void *uData;
@@ -15,14 +17,16 @@ struct sLaika_task {
     int delta;
 };
 
-struct sLaika_taskService {
+struct sLaika_taskService
+{
     struct sLaika_task *headTask;
 };
 
 void laikaT_initTaskService(struct sLaika_taskService *service);
 void laikaT_cleanTaskService(struct sLaika_taskService *service);
 
-struct sLaika_task *laikaT_newTask(struct sLaika_taskService *service, int delta, taskCallback callback, void *uData);
+struct sLaika_task *laikaT_newTask(struct sLaika_taskService *service, int delta,
+                                   taskCallback callback, void *uData);
 void laikaT_delTask(struct sLaika_taskService *service, struct sLaika_task *task);
 
 void laikaT_pollTasks(struct sLaika_taskService *service);

@@ -1,13 +1,14 @@
 #ifndef SHELLCMD_H
 #define SHELLCMD_H
 
-#include <string.h>
-
 #include "sclient.h"
+
+#include <string.h>
 
 typedef void (*shellCmdCallback)(tShell_client *client, int args, char *argc[]);
 
-typedef struct sShell_cmdDef {
+typedef struct sShell_cmdDef
+{
     const char *cmd;
     const char *help;
     const char *syntax;

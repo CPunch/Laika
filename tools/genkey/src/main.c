@@ -1,10 +1,11 @@
-#include <stdio.h>
-#include <string.h>
-
 #include "lerror.h"
 #include "lsodium.h"
 
-int main(int argv, char **argc) {
+#include <stdio.h>
+#include <string.h>
+
+int main(int argv, char **argc)
+{
     unsigned char priv[crypto_kx_SECRETKEYBYTES], pub[crypto_kx_PUBLICKEYBYTES];
     char buf[256];
 

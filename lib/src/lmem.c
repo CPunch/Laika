@@ -1,7 +1,9 @@
-#include "lerror.h"
 #include "lmem.h"
 
-void *laikaM_realloc(void *buf, size_t sz) {
+#include "lerror.h"
+
+void *laikaM_realloc(void *buf, size_t sz)
+{
     void *newBuf;
 
     /* are we free'ing the buffer? */

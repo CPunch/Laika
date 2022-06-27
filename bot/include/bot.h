@@ -3,14 +3,15 @@
 
 #include "laika.h"
 #include "lpacket.h"
-#include "lsocket.h"
 #include "lpeer.h"
-#include "ltask.h"
 #include "lpolllist.h"
+#include "lsocket.h"
 #include "lsodium.h"
+#include "ltask.h"
 
 struct sLaika_shell;
-struct sLaika_bot {
+struct sLaika_bot
+{
     uint8_t priv[crypto_kx_SECRETKEYBYTES], pub[crypto_kx_PUBLICKEYBYTES];
     struct sLaika_shell *shells[LAIKA_MAX_SHELLS];
     struct sLaika_pollList pList;
@@ -23,9 +24,11 @@ struct sLaika_bot {
 struct sLaika_bot *laikaB_newBot(void);
 void laikaB_freeBot(struct sLaika_bot *bot);
 
-void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port); /* can throw a LAIKA_ERROR */
+/* can throw a LAIKA_ERROR */
+void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port);
 bool laikaB_poll(struct sLaika_bot *bot);
 
-void laikaB_pingTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData);
+void laikaB_pingTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick,
+                     void *uData);
 
 #endif

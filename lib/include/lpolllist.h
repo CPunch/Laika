@@ -1,22 +1,24 @@
 #ifndef LAIKA_POLLLIST_H
 #define LAIKA_POLLLIST_H
 
-#include <stdbool.h>
-
+#include "hashmap.h"
 #include "laika.h"
 #include "lsocket.h"
-#include "hashmap.h"
+
+#include <stdbool.h>
 
 /* number of pollFDs or epollFDs we expect to start with */
 #define POLLSTARTCAP 8
 
-struct sLaika_pollEvent {
+struct sLaika_pollEvent
+{
     struct sLaika_socket *sock;
     bool pollIn;
     bool pollOut;
 };
 
-struct sLaika_pollList {
+struct sLaika_pollList
+{
     struct hashmap *sockets;
     struct sLaika_socket **outQueue; /* holds sockets which have data needed to be sent */
     struct sLaika_pollEvent *revents;

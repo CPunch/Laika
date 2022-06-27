@@ -1,0 +1,28 @@
+---
+Language:        Cpp
+# BasedOnStyle:  Mozilla
+AccessModifierOffset: -2
+AlignAfterOpenBracket: Align
+AlignArrayOfStructures: Right
+AlignConsecutiveMacros: AcrossEmptyLinesAndComments
+AlignConsecutiveAssignments: None
+AlignConsecutiveBitFields: None
+AlignConsecutiveDeclarations: None
+AlignEscapedNewlines: Right
+AlignOperands: Align
+AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: true
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: Never
+AlwaysBreakAfterReturnType: None
+BreakBeforeBraces: Mozilla
+IndentWidth: 4
+ColumnLimit: 100
+IncludeBlocks: Regroup
+IndentPPDirectives: AfterHash
+MacroBlockBegin: "^LAIKA_TRY$"
+MacroBlockEnd: "^LAIKA_TRYEND$"
+...
+

