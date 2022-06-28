@@ -1,8 +1,8 @@
 #ifndef LAIKA_SOCKET_H
 #define LAIKA_SOCKET_H
 
-
-/* clang-format will change the order of the included windows headers, this BREAKS THINGS. for now, make clang ignore this section */
+/* clang-format will change the order of the included windows headers, this BREAKS THINGS.
+   for now, make clang ignore this section */
  
 /* clang-format off */
 

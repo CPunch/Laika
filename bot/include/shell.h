@@ -4,6 +4,8 @@
 #include "laika.h"
 #include "lpacket.h"
 
+#include <time.h>
+
 #define LAIKA_SHELL_TASK_DELTA 50
 
 struct sLaika_bot;
