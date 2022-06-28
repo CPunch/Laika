@@ -1,6 +1,11 @@
 #ifndef LAIKA_SOCKET_H
 #define LAIKA_SOCKET_H
 
+
+/* clang-format will change the order of the included windows headers, this BREAKS THINGS. for now, make clang ignore this section */
+ 
+/* clang-format off */
+
 /* socket/winsock headers */
 #ifdef _WIN32
 /* windows */
@@ -8,8 +13,8 @@
 #        define NOMINMAX
 #    endif
 #    define _WINSOCK_DEPRECATED_NO_WARNINGS
-#    include <windows.h>
 #    include <winsock2.h>
+#    include <windows.h>
 #    include <ws2tcpip.h>
 #    pragma comment(lib, "Ws2_32.lib")
 
@@ -53,6 +58,8 @@ typedef void buffer_t;
 
 #include <fcntl.h>
 #include <stdbool.h>
+
+/* clang-format on */
 
 typedef enum
 {
