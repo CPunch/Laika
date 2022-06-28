@@ -1,8 +1,8 @@
 #ifndef LAIKA_SHELL_H
 #define LAIKA_SHELL_H
 
-#include <stddef.h>
-#include <stdbool.h>
+#include "laika.h"
+#include "lpacket.h"
 
 #define LAIKA_SHELL_TASK_DELTA 50
 
