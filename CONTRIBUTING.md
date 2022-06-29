@@ -9,6 +9,9 @@ HEAD: https://github.com/CPunch/Laika/tree/main
 - `/shell` is the main shell to connect to the CNC server with to issue commands. (Currently only targets Linux)
 - `/tools` holds tools for generating keypairs, etc.
 
+## Coding style
+Laika uses clang-format to enforce a consistent style across the codebase. Before committing changes, make sure to run `git clang-format` and add the changes to the commit. Pull requests with wrong styling will be rejected.
+
 ## Tasks and TODOs
 Looking for some simple tasks that need to get done for that sweet 'contributor' cred? Check here!
 
