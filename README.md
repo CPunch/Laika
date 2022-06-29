@@ -3,9 +3,8 @@
 <p align="center">
     <a href="https://github.com/CPunch/Laika/actions/workflows/check-build.yaml"><img src="https://github.com/CPunch/Laika/actions/workflows/check-build.yaml/badge.svg?branch=main" alt="Workflow"></a>
     <a href="https://github.com/CPunch/Laika/blob/main/LICENSE.md"><img src="https://img.shields.io/github/license/CPunch/Laika" alt="License"></a>
+    <a href="https://asciinema.org/a/499508" target="_blank"><img src="https://asciinema.org/a/499508.svg" /></a>
 </p>
-
-[![asciicast](https://asciinema.org/a/499508.svg)](https://asciinema.org/a/499508)
 
 Laika is a simple cross-platform Remote Access Toolkit stack for educational purposes. It allows encrypted communication across a custom binary protocol. The bot client supports both Windows & Linux environments, while the shell & CNC server specifically target Linux environments. Laika is meant to be small and discreet, Laika believes in hiding in plain sight.
 
@@ -47,7 +46,7 @@ I could add some padding to each packet to make it look pseudo-HTTP-like, howeve
 ## Configuration and compilation
 
 Make sure you have the following libraries and tools installed:
-- CMake (>=3.10)
+- CMake (>=3.16)
 - Compiler with C11 support (GCC >= 4.7, Clang >= 3.1, etc.)
 
 The only dependency (LibSodium) is vender'd and statically compiled against the `/lib`. This should be kept up-to-date against stable and security related updates to LibSodium.
@@ -77,7 +76,3 @@ Output binaries are put in the `./bin` folder
 ## Looking to contribute?
 
 Read `CONTRIBUTING.md`
-
-# Ansible-Playbook
-
-To setup a test VPS for a Laika CNC, check out [this ansible playbook](https://github.com/CPunch/Laika-Playbook).
