@@ -16,7 +16,7 @@ struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *pktTbl,
     peer->pList = pList;
     peer->uData = uData;
     peer->pktSize = 0;
-    peer->type = PEER_UNKNWN;
+    peer->type = PEER_PEER;
     peer->osType = OS_UNKNWN;
     peer->pktID = LAIKAPKT_MAXNONE;
     peer->outStart = -1;

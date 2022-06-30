@@ -87,7 +87,7 @@ struct sLaika_bot *laikaB_newBot(void)
         laikaS_newPeer(laikaB_pktTbl, &bot->pList, laikaB_onPollFail, (void *)bot, (void *)bot);
 
     laikaT_initTaskService(&bot->tService);
-    laikaT_newTask(&bot->tService, 5000, laikaB_pingTask, (void *)bot);
+    laikaT_newTask(&bot->tService, LAIKA_PING_INTERVAL, laikaB_pingTask, (void *)bot);
 
     /* init shells */
     for (i = 0; i < LAIKA_MAX_SHELLS; i++) {
