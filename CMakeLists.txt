@@ -9,9 +9,6 @@ execute_process(COMMAND git rev-parse --short HEAD OUTPUT_VARIABLE GIT_VERSION O
 # Set the project as the default startup project for VS
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT LaikaLib)
 
-# include our cmake modules
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules" ${CMAKE_MODULE_PATH})
-
 # Output binaries to the bin folder in the source directory
 if(WIN32)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/winbin)
@@ -37,10 +34,7 @@ if(RAWCMAKEBUILDTYPE STREQUAL "debug")
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
   else()
     message(STATUS "Adding sanitizer...")
-    #set(SANITIZE_ADDRESS TRUE)
-    #add_sanitizers(LaikaLib LaikaBot LaikaCNC)
-  
-    # bug in FindSanitizer.cmake ??? idfk, i'll investigate l8tr
+
     add_compile_options(-fsanitize=address)
     add_link_options(-fsanitize=address)
   endif ()
