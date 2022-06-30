@@ -244,6 +244,10 @@ bool laikaS_handlePeerIn(struct sLaika_socket *sock)
             !peer->packetTbl[peer->pktID].variadic)
             LAIKA_ERROR("requested packet id [%d] is not variadic!\n", peer->pktID);
 
+        /* sanity check minimum size */
+        if (peer->pktSize <= peer->packetTbl[peer->pktID].size)
+            LAIKA_ERROR("requested variable packet is too small!\n");
+
         /* if peer->useSecure is true, body is encrypted */
         laikaS_startInPacket(peer, true);
         goto _HandlePacketBody;

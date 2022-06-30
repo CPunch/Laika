@@ -103,7 +103,7 @@ void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_
     struct sLaika_shellInfo *shell;
     uint32_t id;
 
-    if (sz - sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH || sz <= sizeof(uint32_t))
+    if (sz - sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH)
         LAIKA_ERROR("laikaC_handleAuthenticatedShellData: Wrong data size!\n");
 
     laikaS_readInt(&authPeer->sock, &id, sizeof(uint32_t));
