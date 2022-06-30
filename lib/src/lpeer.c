@@ -28,6 +28,9 @@ struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *pktTbl,
     memset(peer->inet, 0, LAIKA_INET_LEN);
     memset(peer->ipStr, 0, LAIKA_IPSTR_LEN);
 
+    /* generate peer's salt */
+    laikaS_genSalt(peer);
+
     return peer;
 }
 
@@ -35,6 +38,16 @@ void laikaS_freePeer(struct sLaika_peer *peer)
 {
     laikaS_cleanSocket(&peer->sock);
     laikaM_free(peer);
+}
+
+void laikaS_setSalt(struct sLaika_peer *peer, uint8_t *salt)
+{
+    memcpy(peer->salt, salt, LAIKA_HANDSHAKE_SALT_LEN);
+}
+
+void laikaS_genSalt(struct sLaika_peer *peer)
+{
+    randombytes_buf(peer->salt, LAIKA_HANDSHAKE_SALT_LEN);
 }
 
 /* ===================================[[ Start/End Packets ]]=================================== */

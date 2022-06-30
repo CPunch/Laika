@@ -51,6 +51,7 @@ struct sLaika_peer
     uint8_t peerPub[crypto_kx_PUBLICKEYBYTES]; /* connected peer's public key */
     uint8_t inKey[crypto_kx_SESSIONKEYBYTES], outKey[crypto_kx_SESSIONKEYBYTES];
     char hostname[LAIKA_HOSTNAME_LEN], inet[LAIKA_INET_LEN], ipStr[LAIKA_IPSTR_LEN];
+    uint8_t salt[LAIKA_HANDSHAKE_SALT_LEN];  /* salt passed from the cnc's handshake response */
     struct sLaika_pollList *pList;           /* pollList we're activeList in */
     struct sLaika_peerPacketInfo *packetTbl; /* const table to pull pkt data from */
     void *uData;                             /* data to be passed to pktHandler */
@@ -67,6 +68,9 @@ struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *packetTbl,
                                    struct sLaika_pollList *pList, pollFailEvent onPollFail,
                                    void *onPollFailUData, void *uData);
 void laikaS_freePeer(struct sLaika_peer *peer);
+
+void laikaS_setSalt(struct sLaika_peer *peer, uint8_t *salt);
+void laikaS_genSalt(struct sLaika_peer *peer);
 
 void laikaS_setSecure(struct sLaika_peer *peer, bool flag);
 void laikaS_emptyOutPacket(struct sLaika_peer *peer,
