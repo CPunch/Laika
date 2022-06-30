@@ -81,7 +81,7 @@ endif ()
 
 # version details
 set(LAIKA_VERSION_MAJOR 0)
-set(LAIKA_VERSION_MINOR 3)
+set(LAIKA_VERSION_MINOR 4)
 
 message(STATUS "Building config file...")
 configure_file(${CMAKE_SOURCE_DIR}/lib/include/lconfig.h.in ${CMAKE_SOURCE_DIR}/lib/include/lconfig.h)

