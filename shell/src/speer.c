@@ -35,6 +35,8 @@ void shellP_freePeer(tShell_peer *peer)
 char *shellP_typeStr(tShell_peer *peer)
 {
     switch (peer->type) {
+    case PEER_PEER:
+        return "Peer";
     case PEER_BOT:
         return "Bot";
     case PEER_CNC:

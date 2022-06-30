@@ -222,7 +222,7 @@ void shellC_init(tShell_client *client)
     client->peerTblCount = 0;
 
     laikaT_initTaskService(&client->tService);
-    laikaT_newTask(&client->tService, 5000, shell_pingTask, client);
+    laikaT_newTask(&client->tService, LAIKA_PING_INTERVAL, shell_pingTask, client);
 
     /* load authenticated keypair */
     if (sodium_init() < 0) {

