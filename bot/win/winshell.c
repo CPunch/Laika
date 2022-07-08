@@ -23,7 +23,6 @@ HRESULT InitializeStartupInfoAttachedToPseudoConsole(STARTUPINFOEX *pStartupInfo
 
 struct sLaika_shell *laikaB_newRAWShell(struct sLaika_bot *bot, int cols, int rows, uint32_t id)
 {
-    ;
     TCHAR szComspec[MAX_PATH];
     struct sLaika_RAWshell *shell =
         (struct sLaika_RAWshell *)laikaM_malloc(sizeof(struct sLaika_RAWshell));

