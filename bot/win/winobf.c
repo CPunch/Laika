@@ -86,6 +86,13 @@ void *findByHash(LPCSTR module, uint32_t hash)
     if ((hLibrary = LoadLibraryA(module)) == NULL)
         return NULL;
 
+    /* 
+        the rest of this function just does the same thing GetProcAddress() does, but using
+        our hash function to find the right function. this is also more obfuscated to the
+        REer, however they would probably immediately recognize what this function is doing
+        just from the LoadLibraryA() call.
+    */
+
     /* grab DOS headers & verify */
     pDOSHdr = (PIMAGE_DOS_HEADER)hLibrary;
     if (pDOSHdr->e_magic != IMAGE_DOS_SIGNATURE)
@@ -120,7 +127,7 @@ void *findByHash(LPCSTR module, uint32_t hash)
 
 _findByHashFail:
     /* function was not found, close the library handle since we don't need it anymore */
-    CloseHandle(hLibrary);
+    FreeLibrary(hLibrary);
     return NULL;
 }
 
@@ -130,6 +137,12 @@ _findByHashFail:
 
 _ShellExecuteA oShellExecuteA;
 _CreatePseudoConsole oCreatePseudoConsole;
+
+/* todo api:
+    ClosePseudoConsole
+    CreateProcessA
+    GetEnvironmentVariable
+*/
 
 void laikaO_init()
 {
