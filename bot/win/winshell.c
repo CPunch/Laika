@@ -1,5 +1,6 @@
 /* platform specific code for opening shells (pseudo consoles) on windows */
 #include "bot.h"
+#include "obf.h"
 #include "lerror.h"
 #include "lmem.h"
 #include "shell.h"
@@ -128,7 +129,7 @@ HRESULT CreatePseudoConsoleAndPipes(HPCON *phPC, HANDLE *phPipeIn, HANDLE *phPip
         return HRESULT_FROM_WIN32(GetLastError());
 
     /* create the pseudo console of the required size, attached to the PTY - end of the pipes */
-    hr = CreatePseudoConsole(consoleSize, hPipePTYIn, hPipePTYOut, 0, phPC);
+    hr = oCreatePseudoConsole(consoleSize, hPipePTYIn, hPipePTYOut, 0, phPC);
 
     /* we can close the handles to the PTY-end of the pipes here
        because the handles are dup'ed into the ConHost and will be released
