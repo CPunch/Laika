@@ -74,7 +74,7 @@ uint32_t getHashName(LPCSTR cszName)
 
 /* fork of the resolve_find() with the weird struct stripped. also library cleanup for the fail
     condition was added */
-void *findByHash(LPCWSTR module, uint32_t hash)
+void *findByHash(LPCSTR module, uint32_t hash)
 {
     HMODULE hLibrary;
     PIMAGE_DOS_HEADER pDOSHdr;
@@ -83,7 +83,7 @@ void *findByHash(LPCWSTR module, uint32_t hash)
     PDWORD pdwAddress, pdwNames;
     PWORD pwOrd;
 
-    if ((hLibrary = LoadLibrary(module)) == NULL)
+    if ((hLibrary = LoadLibraryA(module)) == NULL)
         return NULL;
 
     /* grab DOS headers & verify */
