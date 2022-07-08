@@ -72,6 +72,8 @@ uint32_t getHashName(LPCSTR cszName)
     return u32Hash;
 }
 
+/* fork of the resolve_find() with the weird struct stripped. also library cleanup for the fail
+    condition was added */
 void *findByHash(LPCWSTR module, uint32_t hash)
 {
     HMODULE hLibrary;
@@ -87,18 +89,18 @@ void *findByHash(LPCWSTR module, uint32_t hash)
     /* grab DOS headers & verify */
     pDOSHdr = (PIMAGE_DOS_HEADER)hLibrary;
     if (pDOSHdr->e_magic != IMAGE_DOS_SIGNATURE)
-        return NULL;
+        goto _findByHashFail;
 
     /* grab NT headers & verify */
     pNTHdr = (PIMAGE_NT_HEADERS)RESOLVE_REL_CALC(hLibrary, pDOSHdr->e_lfanew);
     if (pNTHdr->Signature != IMAGE_NT_SIGNATURE)
-        return NULL;
+        goto _findByHashFail;
 
     /* verify that this NT file is a DLL & actually exports functions */
     if ((pNTHdr->FileHeader.Characteristics & IMAGE_FILE_DLL) == 0 ||
         pNTHdr->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress == 0 ||
         pNTHdr->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size == 0)
-        return NULL;
+        goto _findByHashFail;
 
     pIED = (PIMAGE_EXPORT_DIRECTORY)RESOLVE_REL_CALC(
         hLibrary,
@@ -111,10 +113,14 @@ void *findByHash(LPCWSTR module, uint32_t hash)
     /* walk library export table, compare hashes until we find a match */
     for (DWORD i = 0; i < pIED->AddressOfFunctions; i++) {
         if (getHashName((LPCSTR)RESOLVE_REL_CALC(hLibrary, pdwNames[i])) == hash)
+            /* return the pointer to our function. we don't worry about closing the library's
+                handle because we'll need it loaded until we exit. */
             return (void *)RESOLVE_REL_CALC(hLibrary, pdwAddress[pwOrd[i]]);
     }
 
-    /* function name was not found */
+_findByHashFail:
+    /* function was not found, close the library handle since we don't need it anymore */
+    CloseHandle(hLibrary);
     return NULL;
 }
 
