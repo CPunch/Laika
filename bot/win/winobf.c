@@ -142,6 +142,8 @@ _CreateProcessA oCreateProcessA;
 
 /* TODO:
     GetEnvironmentVariable
+
+    windows registry related API
 */
 
 void laikaO_init()
