@@ -3,6 +3,7 @@
 <p align="center">
     <a href="https://github.com/CPunch/Laika/actions/workflows/check-build.yaml"><img src="https://github.com/CPunch/Laika/actions/workflows/check-build.yaml/badge.svg?branch=main" alt="Workflow"></a>
     <a href="https://github.com/CPunch/Laika/blob/main/LICENSE.md"><img src="https://img.shields.io/github/license/CPunch/Laika" alt="License"></a>
+    <br>
     <a href="https://asciinema.org/a/499508" target="_blank"><img src="https://asciinema.org/a/499508.svg" /></a>
 </p>
 
@@ -23,55 +24,11 @@ Some notable features thus far:
 
 ## Why?
 
-Most public malware sources in the wild are nerf'd or poorly made. Laika is written in modern C, and strives to adhere to best practices while keeping a maintainable and readable code base. The reader is encouraged to compile a `MinSizeRel` build of Laika and open it up in their favorite disassembler. Take a look at how certain functions or subroutines look compared to its plaintext source. See if you can dump strings during runtime with a debugger, try to break Laika. Play both sides by breaking Laika, and improving it to make reversing and analysis harder. Most malware depend on the time that it takes to analyze a sample, this gives their malware time to do whatever before eventually being shutdown. Playing both sides will help give you insight into the methods and bitterness that is this cat and mouse game.
+I started this project to practice my systems programming skills, specifically networking related things. The networking code in this project (under `/lib`) is probably what I'm most proud of in this project. After that I start trying to learn some common obfuscation methods I've seen used in the wild. I've used this project mostly to improve my skills of managing a 'larger' project. Things relating to having a consistent code style, documenting features and development tasks are really important skills to have when managing a codebase like this.
 
-## Would this work in real world scenarios?
+## How do I use this?
 
-My hope is that this becomes complete enough to be accurate to real RAT sources seen in the wild. However since Laika uses a binary protocol, the traffic the bot/CNC create would look very suspect and scream to sysadmins. This is why most RATs/botnets nowadays use an HTTP-based protocol, not only to 'blend in' with traffic, but it also scales well with large networks of bots where the CNC can be deployed across multiple servers and have a generic HTTP load balancer.
-
-I could add some padding to each packet to make it look pseudo-HTTP-like, however I haven't given much thought to this.
-
-## CMake Definitions
-
-| Definition        | Description                             | Example                                                                           |
-| ----------------- | -------------------------------------   | --------------------------------------------------------------------------------- |
-| LAIKA_PUBKEY      | Sets CNC's public key                   | -DLAIKA_PUBKEY=997d026d1c65deb6c30468525132be4ea44116d6f194c142347b67ee73d18814   |
-| LAIKA_PRIVKEY     | Sets CNC's private key                  | -DLAIKA_PRIVKEY=1dbd33962f1e170d1e745c6d3e19175049b5616822fac2fa3535d7477957a841  |
-| LAIKA_CNC_IP      | Sets CNC's public ip                    | -DLAIKA_CNC_IP=127.0.0.1                                                          |
-| LAIKA_CNC_PORT    | Sets CNC's bind()'d port                | -DLAIKA_CNC_PORT=13337                                                            |
-| LAIKA_PERSISTENCE | Enables persistence for LaikaBot        | -DLAIKA_PERSISTENCE=On                                                            |
-| LAIKA_OBFUSCATE   | Enables string obfuscation for LaikaBot | -DLAIKA_OBFUSCATE=On                                                              |
-> examples are passed to `cmake -B <dir>`
-
-## Configuration and compilation
-
-Make sure you have the following libraries and tools installed:
-- CMake (>=3.16)
-- Compiler with C11 support (GCC >= 4.7, Clang >= 3.1, etc.)
-
-The only dependency (LibSodium) is vender'd and statically compiled against the `/lib`. This should be kept up-to-date against stable and security related updates to LibSodium.
-
-First, compile the target normally
-
-```sh
-$ cmake -B build && cmake --build build
-```
-
-Now, generate your custom key pair using `genKey`
-
-```sh
-$ ./bin/genKey
-```
-
-Next, rerun cmake, but passing your public and private keypairs
-
-```sh
-$ rm -rf bin build &&\
-    cmake -B build -DLAIKA_PUBKEY=997d026d1c65deb6c30468525132be4ea44116d6f194c142347b67ee73d18814 -DLAIKA_PRIVKEY=1dbd33962f1e170d1e745c6d3e19175049b5616822fac2fa3535d7477957a841 -DCMAKE_BUILD_TYPE=MinSizeRel &&\
-    cmake --build build
-```
-
-Output binaries are put in the `./bin` folder
+Please refer to the [Wiki](https://github.com/CPunch/Laika/wiki) for any questions relating to deployment, compilation & setup.
 
 ## Looking to contribute?
 
