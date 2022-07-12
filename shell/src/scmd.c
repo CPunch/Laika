@@ -84,7 +84,7 @@ void openShellCMD(tShell_client *client, int argc, char *argv[])
     id = shellS_readInt(argv[1]);
     peer = shellS_getPeer(client, id);
 
-    PRINTINFO("Opening shell on peer %04d...\n");
+    PRINTINFO("Opening shell on peer %04d...\n", id);
     PRINTINFO("Use CTRL+A to kill the shell\n");
 
     /* open shell on peer */

