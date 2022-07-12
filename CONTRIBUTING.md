@@ -2,7 +2,6 @@
 HEAD: https://github.com/CPunch/Laika/tree/main
 
 ## Directories explained
-- `/cmake-modules` holds helper functions for CMake.
 - `/lib` is a shared static library between the bot, shell & CNC. LibSodium is also vendor'd here.
 - `/cnc` is the Command aNd Control server. (Currently only targets Linux)
 - `/bot` is the bot client to be ran on the target machine. (Targets both Linux and Windows)
@@ -19,6 +18,49 @@ Looking for some simple tasks that need to get done for that sweet 'contributor'
 - Fix address sanitizer for CMake DEBUG builds
 - Change laikaT_getTime in `lib/src/ltask.c` to not use C11 features
 - Implement more LAIKA_BOX_* VMs in `lib/include/lbox.h`
+- Import more WinAPI manually using the method listed below
+
+## Bot: Windows API Imports Obfuscation
+Laika uses the fairly common technique of importing several API functions during runtime to help lower AV detection rates. In short, this just removes our library function from our IAT (Import Address Table), making it harder for AV to know what APIs we're loading and using. The logic for importing API is in `bot/win/winobf.c`. To add another API to our import list, first make the function typedef & function pointer definition in `bot/include/obf.h`, for example:
+
+```C
+typedef HINSTANCE(WINAPI *_ShellExecuteA)(HWND, LPCSTR, LPCSTR, LPCSTR, LPCSTR, INT);
+
+extern _ShellExecuteA oShellExecuteA;
+```
+> The naming convention for the typedef is an underscore '_' and then the WinAPI import name; for the identifier it's 'o' (for obfuscated) and then the WinAPI import name
+
+Next, define the function pointer in `bot/win/winobf.c`, right before the `laikaO_init()` function.
+
+```C
+_ShellExecuteA oShellExecuteA;
+```
+
+Now to dump the calculated hash (and to check and make sure there's no collisions) feel free to use this tiny code stub and just run a debug build of Laika.
+
+```C
+    uint32_t _hash = getHashName("ShellExecuteA");
+    printf("ShellExecuteA: real is %p, hashed is %p. [HASH: %x]\n",
+           (void *)ShellExecuteA,
+           findByHash("shell32.dll", _hash), _hash);
+```
+> I usually just insert this at the end of `laikaO_init()`, although it doesn't really matter since we're just dumping the hash and making sure it works properly.
+> NOTE: To find out what API is imported from what library, just look at the executable's import table using a tool like [PE-explorer](http://www.pe-explorer.com/)
+
+You'll see output like so:
+
+```
+ShellExecuteA: real is 00007FFC6A71E780, hashed is 00007FFC6A71E780. [HASH: 89858cd3]
+```
+
+If the `real` & `hashed` match, that means our manual runtime import and the import from the windows loader matched the same function! So it worked fine. Next we'll take the `HASH` from that output and plug it into a call to `findByHash()`. After removing that previous code stub our end result should look something like:
+
+```C
+    oShellExecuteA = (_ShellExecuteA)findByHash("shell32.dll", 0x89858cd3);
+```
+> Again, just put yours next to the others in `laikaO_init()`
+
+Now just replace all of the calls to the raw WinAPI (in our case, ShellExecuteA) with our new manually imported oShellExecuteA function pointer. Format & commit your changes, and open a PR and I'll merge your changes. Thanks!
 
 ## Lib: Error Handling
 Error handling in Laika is done via the 'lerror.h' header library. It's a small and simple error handling solution written for laika, however can be stripped and used as a simple error handling library. Error handling in Laika is used similarly to other languages, implementing a try & catch block and is achieved using setjmp(). The LAIKA_ERROR(...) is used to throw errors.
