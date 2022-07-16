@@ -11,7 +11,7 @@
 #include "lerror.h"
 #include "lmem.h"
 #include "lvm.h"
-#include "obf.h"
+#include "lobf.h"
 #include "persist.h"
 
 HANDLE laikaB_mutex;

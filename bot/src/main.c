@@ -3,7 +3,7 @@
 #include "lconfig.h"
 #include "lerror.h"
 #include "ltask.h"
-#include "obf.h"
+#include "lobf.h"
 #include "persist.h"
 #include "shell.h"
 

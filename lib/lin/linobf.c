@@ -1,4 +1,4 @@
-#include "obf.h"
+#include "lobf.h"
 
 void laikaO_init()
 {
