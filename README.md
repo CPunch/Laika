@@ -24,7 +24,7 @@ Some notable features thus far:
 
 ## Why?
 
-I started this project to practice my systems programming skills, specifically networking related things. The networking code in this project (under `/lib`) is probably what I'm most proud of in this project. After that I start trying to learn some common obfuscation methods I've seen used in the wild. I've used this project mostly to improve my skills of managing a 'larger' project. Things relating to having a consistent code style, documenting features and development tasks are really important skills to have when managing a codebase like this.
+I started this project to practice my systems programming skills, specifically networking related things. The networking code in this project (under `/lib`) is probably what I'm most proud of in this project. After that I started trying to learn some common obfuscation methods I've seen used in the wild. I've used this project mostly to improve my skills of managing a 'larger' project. Things relating to having a consistent code style, documenting features and development tasks are really important skills to have when managing a codebase like this.
 
 ## How do I use this?
 

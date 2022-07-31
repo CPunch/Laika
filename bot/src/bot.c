@@ -79,7 +79,6 @@ struct sLaika_bot *laikaB_newBot(void)
     struct sLaika_bot *bot = laikaM_malloc(sizeof(struct sLaika_bot));
     struct hostent *host;
     char *tempINBuf;
-    size_t _unused;
     int i;
 
     laikaP_initPList(&bot->pList);

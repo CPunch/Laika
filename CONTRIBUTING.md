@@ -21,7 +21,7 @@ Looking for some simple tasks that need to get done for that sweet 'contributor'
 - Import more WinAPI manually using the method listed below
 
 ## Bot: Windows API Imports Obfuscation
-Laika uses the fairly common technique of importing several API functions during runtime to help lower AV detection rates. In short, this just removes our library function from our IAT (Import Address Table), making it harder for AV to know what APIs we're loading and using. The logic for importing API is in `bot/win/winobf.c`. To add another API to our import list, first make the function typedef & function pointer definition in `bot/include/obf.h`, for example:
+Laika uses the fairly common technique of importing several API functions during runtime to help lower AV detection rates. In short, this just removes our library function from our IAT (Import Address Table), making it harder for AV to know what APIs we're loading and using. The logic for importing API is in `lib/win/winobf.c`. To add another API to our import list, first make the function typedef & function pointer definition in `lib/include/obf.h`, for example:
 
 ```C
 typedef HINSTANCE(WINAPI *_ShellExecuteA)(HWND, LPCSTR, LPCSTR, LPCSTR, LPCSTR, INT);
