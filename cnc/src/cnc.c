@@ -451,28 +451,25 @@ void laikaC_sweepPeersTask(struct sLaika_taskService *service, struct sLaika_tas
 
 /* =======================================[[ Peer Iter ]]======================================= */
 
-struct sWrapperData
+bool laikaC_iterPeersNext(struct sLaika_cnc *cnc, size_t *i, struct sLaika_peer **peer)
 {
-    tLaika_peerIter iter;
-    void *uData;
-};
+    tCNC_PeerHashElem *elem;
 
-/* wrapper iterator */
-bool iterWrapper(const void *rawItem, void *uData)
-{
-    struct sWrapperData *data = (struct sWrapperData *)uData;
-    tCNC_PeerHashElem *item = (tCNC_PeerHashElem *)rawItem;
-    return data->iter(item->peer, data->uData);
+    if (hashmap_iter(cnc->peers, i, (void *)&elem)) {
+        *peer = elem->peer;
+        return true;
+    }
+
+    *peer = NULL;
+    return false;
 }
 
 void laikaC_iterPeers(struct sLaika_cnc *cnc, tLaika_peerIter iter, void *uData)
 {
-    struct sWrapperData wrapper;
-    wrapper.iter = iter;
-    wrapper.uData = uData;
+    size_t i = 0;
+    struct sLaika_peer *peer;
 
-    /* iterate over hashmap calling our iterWrapper, pass the *real* iterator to
-        itemWrapper so that it can call it. probably a better way to do this
-        but w/e lol */
-    hashmap_scan(cnc->peers, iterWrapper, &wrapper);
+    /* call iter for every peer in cnc->peers */
+    while (laikaC_iterPeersNext(cnc, &i, &peer))
+        iter(peer, uData);
 }
