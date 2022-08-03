@@ -433,11 +433,10 @@ void laikaC_sweepPeersTask(struct sLaika_taskService *service, struct sLaika_tas
     struct sLaika_peer *peer;
     struct sLaika_peerInfo *pInfo;
     size_t i = 0;
-    long currTime;
+    long currTime = laikaT_getTime();
 
     while (laikaC_iterPeersNext(cnc, &i, &peer)) {
         pInfo = GETPINFOFROMPEER(peer);
-        currTime = laikaT_getTime();
 
         /* peer has been silent for a while, kill 'em */
         if (currTime - pInfo->lastPing > LAIKA_PEER_TIMEOUT) {
