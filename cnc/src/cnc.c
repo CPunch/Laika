@@ -426,27 +426,28 @@ struct sLaika_peer *laikaC_getPeerByPub(struct sLaika_cnc *cnc, uint8_t *pub)
     return elem ? elem->peer : NULL;
 }
 
-bool sweepPeers(struct sLaika_peer *peer, void *uData)
-{
-    struct sLaika_peerInfo *pInfo = GETPINFOFROMPEER(peer);
-    struct sLaika_cnc *cnc = (struct sLaika_cnc *)uData;
-    long currTime = laikaT_getTime();
-
-    /* peer has been silent for a while, kill 'em */
-    if (currTime - pInfo->lastPing > LAIKA_PEER_TIMEOUT) {
-        LAIKA_DEBUG("timeout reached for %p! [%d]\n", peer, currTime - pInfo->lastPing);
-        laikaC_killPeer(cnc, peer);
-    }
-
-    return true;
-}
-
 void laikaC_sweepPeersTask(struct sLaika_taskService *service, struct sLaika_task *task,
                            clock_t currTick, void *uData)
 {
     struct sLaika_cnc *cnc = (struct sLaika_cnc *)uData;
+    struct sLaika_peer *peer;
+    struct sLaika_peerInfo *pInfo;
+    size_t i = 0;
+    long currTime;
 
-    laikaC_iterPeers(cnc, sweepPeers, (void *)cnc);
+    while (laikaC_iterPeersNext(cnc, &i, &peer)) {
+        pInfo = GETPINFOFROMPEER(peer);
+        currTime = laikaT_getTime();
+
+        /* peer has been silent for a while, kill 'em */
+        if (currTime - pInfo->lastPing > LAIKA_PEER_TIMEOUT) {
+            LAIKA_DEBUG("timeout reached for %p! [%ld]\n", peer, currTime);
+            laikaC_killPeer(cnc, peer);
+
+            /* reset peer iterator (since the hashmap mightve been reallocated/changed) */
+            i = 0;
+        }
+    }
 }
 
 /* =======================================[[ Peer Iter ]]======================================= */

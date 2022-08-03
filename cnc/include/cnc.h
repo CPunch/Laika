@@ -54,6 +54,7 @@ struct sLaika_peer *laikaC_getPeerByPub(struct sLaika_cnc *cnc, uint8_t *pub);
 void laikaC_sweepPeersTask(struct sLaika_taskService *service, struct sLaika_task *task,
                            clock_t currTick, void *uData);
 
+bool laikaC_iterPeersNext(struct sLaika_cnc *cnc, size_t *i, struct sLaika_peer **peer);
 void laikaC_iterPeers(struct sLaika_cnc *cnc, tLaika_peerIter iter, void *uData);
 
 #endif
