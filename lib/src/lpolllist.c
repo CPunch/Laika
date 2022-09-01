@@ -34,12 +34,10 @@ void laikaP_initPList(struct sLaika_pollList *pList)
     /* setup hashmap */
     pList->sockets = hashmap_new(sizeof(tLaika_hashMapElem), POLLSTARTCAP, 0, 0, elem_hash,
                                  elem_compare, NULL, NULL);
-    pList->revents = NULL; /* laikaP_pollList() will allocate the buffer */
-    pList->reventCap = POLLSTARTCAP / GROW_FACTOR;
-    pList->reventCount = 0;
-    pList->outQueue = NULL;
-    pList->outCap = POLLSTARTCAP / GROW_FACTOR;
-    pList->outCount = 0;
+
+    /* laikaP_pollList() will allocate these buffer */
+    laikaM_initVector(pList->revents, POLLSTARTCAP / GROW_FACTOR);
+    laikaM_initVector(pList->outQueue, POLLSTARTCAP / GROW_FACTOR);
 
 #ifdef LAIKA_USE_EPOLL
     /* setup our epoll */
@@ -48,11 +46,8 @@ void laikaP_initPList(struct sLaika_pollList *pList)
         LAIKA_ERROR("epoll_create() failed!\n");
 
 #else
-    pList->fds = NULL; /* laikaP_addSock will allocate the buffer */
-    pList->fdCapacity =
-        POLLSTARTCAP /
-        GROW_FACTOR; /* div by GROW_FACTOR since laikaM_growarray multiplies by GROW_FACTOR */
-    pList->fdCount = 0;
+    /* laikaP_addSock will allocate this buffer */
+    laikaM_initVector(pList->fds, POLLSTARTCAP / GROW_FACTOR);
 #endif
 }
 
@@ -85,8 +80,8 @@ void laikaP_addSock(struct sLaika_pollList *pList, struct sLaika_socket *sock)
 
 #else
     /* allocate space in array & add PollFD */
-    laikaM_growarray(PollFD, pList->fds, 1, pList->fdCount, pList->fdCapacity);
-    pList->fds[pList->fdCount++] = (PollFD){sock->sock, POLLIN};
+    laikaM_growVector(PollFD, pList->fds, 1);
+    pList->fds[laikaM_countVector(pList->fds)++] = (PollFD){sock->sock, POLLIN};
 #endif
 }
 
@@ -98,9 +93,9 @@ void laikaP_rmvSock(struct sLaika_pollList *pList, struct sLaika_socket *sock)
     hashmap_delete(pList->sockets, &(tLaika_hashMapElem){.fd = sock->sock, .sock = sock});
 
     /* make sure peer isn't in outQueue */
-    for (i = 0; i < pList->outCount; i++) {
+    for (i = 0; i < laikaM_countVector(pList->outQueue); i++) {
         if ((void *)pList->outQueue[i] == (void *)sock) {
-            laikaM_rmvarray(pList->outQueue, pList->outCount, i, 1);
+            laikaM_rmvVector(pList->outQueue, i, 1);
         }
     }
 
@@ -114,10 +109,10 @@ void laikaP_rmvSock(struct sLaika_pollList *pList, struct sLaika_socket *sock)
 #else
 
     /* search fds for socket, remove it and shrink array */
-    for (i = 0; i < pList->fdCount; i++) {
+    for (i = 0; i < laikaM_countVector(pList->fds); i++) {
         if (pList->fds[i].fd == sock->sock) {
             /* remove from array */
-            laikaM_rmvarray(pList->fds, pList->fdCount, i, 1);
+            laikaM_rmvVector(pList->fds, i, 1);
             break;
         }
     }
@@ -140,7 +135,7 @@ void laikaP_addPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock
     int i;
 
     /* search fds for socket, add POLLOUT flag */
-    for (i = 0; i < pList->fdCount; i++) {
+    for (i = 0; i < laikaM_countVector(pList->fds); i++) {
         if (pList->fds[i].fd == sock->sock) {
             pList->fds[i].events = POLLIN | POLLOUT;
             break;
@@ -167,7 +162,7 @@ void laikaP_rmvPollOut(struct sLaika_pollList *pList, struct sLaika_socket *sock
     int i;
 
     /* search fds for socket, remove POLLOUT flag */
-    for (i = 0; i < pList->fdCount; i++) {
+    for (i = 0; i < laikaM_countVector(pList->fds); i++) {
         if (pList->fds[i].fd == sock->sock) {
             pList->fds[i].events = POLLIN;
             break;
@@ -183,18 +178,18 @@ void laikaP_pushOutQueue(struct sLaika_pollList *pList, struct sLaika_socket *so
     int i;
 
     /* first, check that we don't have this peer in the queue already */
-    for (i = 0; i < pList->outCount; i++) {
+    for (i = 0; i < laikaM_countVector(pList->outQueue); i++) {
         if (pList->outQueue[i] == sock)
             return; /* found it :) */
     }
 
-    laikaM_growarray(struct sLaika_socket *, pList->outQueue, 1, pList->outCount, pList->outCap);
-    pList->outQueue[pList->outCount++] = sock;
+    laikaM_growVector(struct sLaika_socket *, pList->outQueue, 1);
+    pList->outQueue[laikaM_countVector(pList->outQueue)++] = sock;
 }
 
 void laikaP_resetOutQueue(struct sLaika_pollList *pList)
 {
-    pList->outCount = 0; /* ez lol */
+    laikaM_countVector(pList->outQueue) = 0; /* ez lol */
 }
 
 void laikaP_flushOutQueue(struct sLaika_pollList *pList)
@@ -203,7 +198,7 @@ void laikaP_flushOutQueue(struct sLaika_pollList *pList)
     int i;
 
     /* flush pList's outQueue */
-    for (i = 0; i < pList->outCount; i++) {
+    for (i = 0; i < laikaM_countVector(pList->outQueue); i++) {
         sock = pList->outQueue[i];
         LAIKA_DEBUG("sending OUT to %p\n", sock);
         if (sock->onPollOut && !sock->onPollOut(sock) && sock->onPollFail)
@@ -216,7 +211,7 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
 {
     int nEvents, i;
 
-    pList->reventCount = 0; /* reset revent array */
+    laikaM_countVector(pList->revents) = 0; /* reset revent array */
 #ifdef LAIKA_USE_EPOLL
     /* fastpath: we store the sLaika_socket* pointer directly in the epoll_data_t, saving us a
        lookup into our socket hashmap not to mention the various improvements epoll() has over
@@ -229,9 +224,8 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
 
     for (i = 0; i < nEvents; i++) {
         /* add event to revent array */
-        laikaM_growarray(struct sLaika_pollEvent, pList->revents, 1, pList->reventCount,
-                         pList->reventCap);
-        pList->revents[pList->reventCount++] =
+        laikaM_growVector(struct sLaika_pollEvent, pList->revents, 1);
+        pList->revents[laikaM_countVector(pList->revents)++] =
             (struct sLaika_pollEvent){.sock = pList->ep_events[i].data.ptr,
                                       .pollIn = pList->ep_events[i].events & EPOLLIN,
                                       .pollOut = pList->ep_events[i].events & EPOLLOUT};
@@ -252,9 +246,8 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
                 pList->sockets, &(tLaika_hashMapElem){.fd = (SOCKET)pfd.fd});
 
             /* insert event into revents array */
-            laikaM_growarray(struct sLaika_pollEvent, pList->revents, 1, pList->reventCount,
-                             pList->reventCap);
-            pList->revents[pList->reventCount++] =
+            laikaM_growVector(struct sLaika_pollEvent, pList->revents, 1);
+            pList->revents[laikaM_countVector(pList->revents)++] =
                 (struct sLaika_pollEvent){.sock = elem->sock,
                                           .pollIn = pfd.revents & POLLIN,
                                           .pollOut = pfd.revents & POLLOUT};
@@ -264,7 +257,7 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
     }
 #endif
 
-    *_nevents = pList->reventCount;
+    *_nevents = laikaM_countVector(pList->revents);
 
     /* return revents array */
     return pList->revents;

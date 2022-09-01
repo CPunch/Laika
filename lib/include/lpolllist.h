@@ -4,6 +4,7 @@
 #include "hashmap.h"
 #include "laika.h"
 #include "lsocket.h"
+#include "lmem.h"
 
 #include <stdbool.h>
 
@@ -20,22 +21,16 @@ struct sLaika_pollEvent
 struct sLaika_pollList
 {
     struct hashmap *sockets;
-    struct sLaika_socket **outQueue; /* holds sockets which have data needed to be sent */
-    struct sLaika_pollEvent *revents;
+    laikaM_newVector(struct sLaika_socket *, outQueue); /* holds sockets which have data needed to be sent */
+    laikaM_newVector(struct sLaika_pollEvent, revents);
 #ifdef LAIKA_USE_EPOLL
     /* epoll */
     struct epoll_event ev, ep_events[MAX_EPOLL_EVENTS];
     SOCKET epollfd;
 #else
     /* raw poll descriptor */
-    PollFD *fds;
-    int fdCapacity;
-    int fdCount;
+    laikaM_newVector(PollFD, fds);
 #endif
-    int reventCap;
-    int reventCount;
-    int outCap;
-    int outCount;
 };
 
 void laikaP_initPList(struct sLaika_pollList *pList);

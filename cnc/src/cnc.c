@@ -455,7 +455,7 @@ bool laikaC_iterPeersNext(struct sLaika_cnc *cnc, size_t *i, struct sLaika_peer 
 {
     tCNC_PeerHashElem *elem;
 
-    if (hashmap_iter(cnc->peers, i, (void *)&elem)) {
+    if (hashmap_iter(cnc->peers, i, (void **)&elem)) {
         *peer = elem->peer;
         return true;
     }
