@@ -16,7 +16,7 @@ Looking for some simple tasks that need to get done for that sweet 'contributor'
 
 - Change `lib/lin/linshell.c` to use openpty() instead of forkpty() for BSD support
 - Fix address sanitizer for CMake DEBUG builds
-- Change laikaT_getTime in `lib/src/ltask.c` to not use C11 features
+- Change laikaT_getTime in `lib/src/core/ltask.c` to not use C11 features
 - Implement more LAIKA_BOX_* VMs in `lib/include/core/lbox.h`
 - Import more WinAPI manually using the method listed below
 
@@ -63,7 +63,7 @@ If the `real` & `hashed` match, that means our manual runtime import and the imp
 Now just replace all of the calls to the raw WinAPI (in our case, ShellExecuteA) with our new manually imported oShellExecuteA function pointer. Format & commit your changes, and open a PR and I'll merge your changes. Thanks!
 
 ## Lib: Error Handling
-Error handling in Laika is done via the 'core/lerror.h' header library. It's a small and simple error handling solution written for laika, however can be stripped and used as a simple error handling library. Error handling in Laika is used similarly to other languages, implementing a try & catch block and is achieved using setjmp(). The LAIKA_ERROR(...) is used to throw errors.
+Error handling in Laika is done via the 'lib/core/lerror.h' header library. It's a small and simple error handling solution written for laika, however can be stripped and used as a simple error handling library. Error handling in Laika is used similarly to other languages, implementing a try & catch block and is achieved using setjmp() & longjmp(). The LAIKA_ERROR(...) macro is used to throw errors.
 
 Example:
 ```C 
@@ -84,8 +84,7 @@ Some minor inconveniences include:
 - not thread safe.
 
 ## Lib: Packet Handlers
-
-Laika has a simple binary protocol & a small backend (see `lib/src/lpeer.c`) to handle packets to/from peers. `lib/include/net/lpacket.h` includes descriptions for each packet type. For an example of proper packet handler definitions see `bot/src/bot.c`. It boils down to passing a sLaika_peerPacketInfo table to laikaS_newPeer. To add packet handlers to the bot, add your handler info to laikaB_pktTbl in `bot/src/bot.c`. To add packet handlers to the shell, add your handler info to shellC_pktTbl in `shell/src/sclient.c`. For adding packet handlers to cnc, make sure you add them to the corresponding table in `cnc/src/cnc.c`, laikaC_botPktTbl for packets being received from a bot peer, laikaC_authPktTbl for packets being received from an auth peer (shell), or DEFAULT_PKT_TBL if it's received by all peer types (things like handshakes, keep-alive, etc.)
+Laika has a simple binary protocol & a small backend (see `lib/src/net/lpeer.c`) to handle packets to/from peers. `lib/include/net/lpacket.h` includes descriptions for each packet type. For an example of proper packet handler definitions see `bot/src/bot.c`. It boils down to passing a sLaika_peerPacketInfo table to laikaS_newPeer. To add packet handlers to the bot, add your handler info to laikaB_pktTbl in `bot/src/bot.c`. To add packet handlers to the shell, add your handler info to shellC_pktTbl in `shell/src/sclient.c`. For adding packet handlers to cnc, make sure you add them to the corresponding table in `cnc/src/cnc.c`, laikaC_botPktTbl for packets being received from a bot peer, laikaC_authPktTbl for packets being received from an auth peer (shell), or DEFAULT_PKT_TBL if it's received by all peer types (things like handshakes, keep-alive, etc.)
 
 ## Lib: Task Service
 Tasks can be scheduled on a delta-period (call X function every approximate N seconds). laikaT_pollTasks() is used to check & run any currently queued tasks. This is useful for sending keep-alive packets, polling shell pipes, or other repeatably scheduled tasks. Most laikaT_pollTasks() calls are done in the peerHandler for each client/server.
@@ -94,5 +93,4 @@ Tasks can be scheduled on a delta-period (call X function every approximate N se
 Laika has a tiny VM for decrypting sensitive information. For details on the ISA read `lib/include/core/lvm.h`, for information on how to use them read `lib/include/core/lbox.h`. Feel free to write your own boxes and contribute them :D
 
 ## Bot: Platform-specific backends
-
 `bot/win` and `bot/lin` include code for platform-specific code that can't be quickly "ifdef"d away. These mainly include stuff like persistence or opening pseudo-ttys.
