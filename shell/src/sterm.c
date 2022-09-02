@@ -15,8 +15,42 @@
 #define cursorBackward(x) printf("\033[%dD", (x))
 #define clearLine()       printf("\033[2K")
 
+/* =================================[[ DEPRECATED ARRAY API ]]================================== */
+
+/*
+    this whole target needs to be rewritten, so these macros have been embedded here until a
+    rewrite can be done. this is the only section of the entire codebase that relies too heavily
+    on these to quickly exchange into the vector api equivalent. there's technically a memory leak
+    here since the array is never free'd, but since the array is expected to live the entire
+    lifetime of the program it's safe to leave as-is for now.
+*/
+
+#define laikaM_growarray(type, buf, needed, count, capacity)                                       \
+    if (count + needed >= capacity || buf == NULL) {                                               \
+        capacity = (capacity + needed) * GROW_FACTOR;                                              \
+        buf = (type *)laikaM_realloc(buf, sizeof(type) * capacity);                                \
+    }
+
+/* moves array elements above indx down by numElem, removing numElem elements at indx */
+#define laikaM_rmvarray(buf, count, indx, numElem)                                                 \
+    do {                                                                                           \
+        int _i, _sz = ((count - indx) - numElem);                                                  \
+        for (_i = 0; _i < _sz; _i++)                                                               \
+            buf[indx + _i] = buf[indx + numElem + _i];                                             \
+        count -= numElem;                                                                          \
+    } while (0);
+
+/* moves array elements above indx up by numElem, inserting numElem elements at indx */
+#define laikaM_insertarray(buf, count, indx, numElem)                                              \
+    do {                                                                                           \
+        int _i;                                                                                    \
+        for (_i = count; _i > indx; _i--)                                                          \
+            buf[_i] = buf[_i - 1];                                                                 \
+        count += numElem;                                                                          \
+    } while (0);
+
 struct termios orig_termios;
-char *cmd, *prompt = "$> ";
+char *cmd = NULL, *prompt = "$> ";
 int cmdCount = 0, cmdCap = 4, cmdCursor = 0;
 
 void shellT_conioTerm(void)

@@ -23,7 +23,7 @@ tShell_cmdDef *shellS_findCmd(char *cmd);
 
 tShell_peer *shellS_getPeer(tShell_client *client, int id)
 {
-    if (id < 0 || id >= client->peerTblCount || client->peerTbl[id] == NULL)
+    if (id < 0 || id >= laikaM_countVector(client->peerTbl) || client->peerTbl[id] == NULL)
         CMD_ERROR("Not a valid peer ID! [%d]\n", id);
 
     return client->peerTbl[id];
@@ -48,7 +48,7 @@ void listPeersCMD(tShell_client *client, int argc, char *argv[])
 {
     int i;
 
-    for (i = 0; i < client->peerTblCount; i++) {
+    for (i = 0; i < laikaM_countVector(client->peerTbl); i++) {
         if (client->peerTbl[i]) {
             shellT_printf("%04d ", i);
             shellP_printInfo(client->peerTbl[i]);
@@ -172,11 +172,10 @@ void shellS_cleanupCmds(void)
 
 char **shellS_splitCmd(char *cmd, int *argSize)
 {
-    int argCount = 0;
-    int argCap = 4;
     char *temp;
-    char **args = NULL;
     char *arg = cmd;
+    laikaM_newVector(char *, args);
+    laikaM_initVector(args, 4);
 
     do {
         /* replace space with NULL terminator */
@@ -192,12 +191,12 @@ char **shellS_splitCmd(char *cmd, int *argSize)
             *arg++ = '\0';
         }
 
-        /* insert into our 'args' array */
-        laikaM_growarray(char *, args, 1, argCount, argCap);
-        args[argCount++] = arg;
+        /* insert into our 'args' vector */
+        laikaM_growVector(char *, args, 1);
+        args[laikaM_countVector(args)++] = arg;
     } while ((arg = strchr(arg, ' ')) != NULL); /* while we still have a delimiter */
 
-    *argSize = argCount;
+    *argSize = laikaM_countVector(args);
     return args;
 }
 

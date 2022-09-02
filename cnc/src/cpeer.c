@@ -155,7 +155,7 @@ void laikaC_handlePeerLoginReq(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void 
         break;
     case PEER_AUTH:
         /* check that peer's pubkey is authenticated */
-        if (!laikaK_checkAuth(peer->peerPub, cnc->authKeys, cnc->authKeysCount))
+        if (!laikaK_checkAuth(peer->peerPub, cnc->authKeys, laikaM_countVector(cnc->authKeys)))
             LAIKA_ERROR("laikaC_handlePeerHandshake: Unauthorized panel!\n");
 
         LAIKA_DEBUG("Accepted authenticated panel %p\n", peer);

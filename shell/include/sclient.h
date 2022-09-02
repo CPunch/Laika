@@ -2,6 +2,7 @@
 #define SHELLCLIENT_H
 
 #include "hashmap.h"
+#include "lmem.h"
 #include "lpeer.h"
 #include "lsodium.h"
 #include "ltask.h"
@@ -15,9 +16,7 @@ typedef struct sShell_client
     struct sLaika_peer *peer;
     tShell_peer *openShell; /* if not NULL, shell is open on peer */
     struct hashmap *peers;
-    tShell_peer **peerTbl;
-    int peerTblCount;
-    int peerTblCap;
+    laikaM_newVector(tShell_peer *, peerTbl);
 } tShell_client;
 
 #define shellC_isShellOpen(x) (x->openShell != NULL)

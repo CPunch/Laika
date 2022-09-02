@@ -217,9 +217,7 @@ void shellC_init(tShell_client *client)
     client->peers = hashmap_new(sizeof(tShell_hashMapElem), 8, 0, 0, shell_ElemHash,
                                 shell_ElemCompare, NULL, NULL);
     client->openShell = NULL;
-    client->peerTbl = NULL;
-    client->peerTblCap = 4;
-    client->peerTblCount = 0;
+    laikaM_initVector(client->peerTbl, 4);
 
     laikaT_initTaskService(&client->tService);
     laikaT_newTask(&client->tService, LAIKA_PING_INTERVAL, shell_pingTask, client);
@@ -254,7 +252,7 @@ void shellC_cleanup(tShell_client *client)
     laikaT_cleanTaskService(&client->tService);
 
     /* free peers */
-    for (i = 0; i < client->peerTblCount; i++) {
+    for (i = 0; i < laikaM_countVector(client->peerTbl); i++) {
         if (client->peerTbl[i])
             shellP_freePeer(client->peerTbl[i]);
     }
@@ -346,16 +344,15 @@ int shellC_addPeer(tShell_client *client, tShell_peer *newPeer)
 {
     /* find empty ID */
     int id;
-    for (id = 0; id < client->peerTblCount; id++) {
+    for (id = 0; id < laikaM_countVector(client->peerTbl); id++) {
         if (client->peerTbl[id] == NULL) /* it's empty! */
             break;
     }
 
-    /* if we didn't find an empty id, grow the array */
-    if (id == client->peerTblCount) {
-        laikaM_growarray(tShell_peer *, client->peerTbl, 1, client->peerTblCount,
-                         client->peerTblCap);
-        client->peerTblCount++;
+    /* if we didn't find an empty id, grow the array (ID is already set to the correct index) */
+    if (id == laikaM_countVector(client->peerTbl)) {
+        laikaM_growVector(tShell_peer *, client->peerTbl, 1);
+        laikaM_countVector(client->peerTbl)++;
     }
 
     /* add to peer lookup table */
