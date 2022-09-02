@@ -50,12 +50,8 @@ void laikaS_initSocket(struct sLaika_socket *sock, pollEvent onPollIn, pollEvent
     sock->onPollIn = onPollIn;
     sock->onPollOut = onPollOut;
     sock->uData = uData;
-    sock->inBuf = NULL;
-    sock->inCap = 8;
-    sock->inCount = 0;
-    sock->outBuf = NULL;
-    sock->outCap = 8;
-    sock->outCount = 0;
+    laikaM_initVector(sock->inBuf, 8);
+    laikaM_initVector(sock->outBuf, 8);
     sock->flipEndian = false;
     sock->setPollOut = false;
 
@@ -197,44 +193,44 @@ bool laikaS_setNonBlock(struct sLaika_socket *sock)
 
 void laikaS_consumeRead(struct sLaika_socket *sock, size_t sz)
 {
-    laikaM_rmvarray(sock->inBuf, sock->inCount, 0, sz);
+    laikaM_rmvVector(sock->inBuf, 0, sz);
 }
 
 void laikaS_zeroWrite(struct sLaika_socket *sock, size_t sz)
 {
-    laikaM_growarray(uint8_t, sock->outBuf, sz, sock->outCount, sock->outCap);
+    laikaM_growVector(uint8_t, sock->outBuf, sz);
 
     /* set NULL bytes */
-    memset(&sock->outBuf[sock->outCount], 0, sz);
-    sock->outCount += sz;
+    memset(&sock->outBuf[laikaM_countVector(sock->outBuf)], 0, sz);
+    laikaM_countVector(sock->outBuf) += sz;
 }
 
 void laikaS_read(struct sLaika_socket *sock, void *buf, size_t sz)
 {
     memcpy(buf, sock->inBuf, sz);
-    laikaM_rmvarray(sock->inBuf, sock->inCount, 0, sz);
+    laikaM_rmvVector(sock->inBuf, 0, sz);
 }
 
 void laikaS_write(struct sLaika_socket *sock, void *buf, size_t sz)
 {
     /* make sure we have enough space to copy the buffer */
-    laikaM_growarray(uint8_t, sock->outBuf, sz, sock->outCount, sock->outCap);
+    laikaM_growVector(uint8_t, sock->outBuf, sz);
 
     /* copy the buffer, then increment outCount */
-    memcpy(&sock->outBuf[sock->outCount], buf, sz);
-    sock->outCount += sz;
+    memcpy(&sock->outBuf[laikaM_countVector(sock->outBuf)], buf, sz);
+    laikaM_countVector(sock->outBuf) += sz;
 }
 
 void laikaS_writeKeyEncrypt(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub)
 {
     /* make sure we have enough space to encrypt the buffer */
-    laikaM_growarray(uint8_t, sock->outBuf, LAIKAENC_SIZE(sz), sock->outCount, sock->outCap);
+    laikaM_growVector(uint8_t, sock->outBuf, LAIKAENC_SIZE(sz));
 
     /* encrypt the buffer into outBuf */
-    if (crypto_box_seal(&sock->outBuf[sock->outCount], buf, sz, pub) != 0)
+    if (crypto_box_seal(&sock->outBuf[laikaM_countVector(sock->outBuf)], buf, sz, pub) != 0)
         LAIKA_ERROR("Failed to encrypt!\n");
 
-    sock->outCount += LAIKAENC_SIZE(sz);
+    laikaM_countVector(sock->outBuf) += LAIKAENC_SIZE(sz);
 }
 
 void laikaS_readKeyDecrypt(struct sLaika_socket *sock, void *buf, size_t sz, uint8_t *pub,
@@ -244,21 +240,21 @@ void laikaS_readKeyDecrypt(struct sLaika_socket *sock, void *buf, size_t sz, uin
     if (crypto_box_seal_open(buf, sock->inBuf, LAIKAENC_SIZE(sz), pub, priv) != 0)
         LAIKA_ERROR("Failed to decrypt!\n");
 
-    laikaM_rmvarray(sock->inBuf, sock->inCount, 0, LAIKAENC_SIZE(sz));
+    laikaM_rmvVector(sock->inBuf, 0, LAIKAENC_SIZE(sz));
 }
 
 void laikaS_writeByte(struct sLaika_socket *sock, uint8_t data)
 {
-    laikaM_growarray(uint8_t, sock->outBuf, 1, sock->outCount, sock->outCap);
-    sock->outBuf[sock->outCount++] = data;
+    laikaM_growVector(uint8_t, sock->outBuf, 1);
+    sock->outBuf[laikaM_countVector(sock->outBuf)++] = data;
 }
 
 uint8_t laikaS_readByte(struct sLaika_socket *sock)
 {
     uint8_t tmp = *sock->inBuf;
 
-    /* pop 1 byte */
-    laikaM_rmvarray(sock->inBuf, sock->inCount, 0, 1);
+    /* consume 1 byte */
+    laikaM_rmvVector(sock->inBuf, 0, 1);
     return tmp;
 }
 
@@ -302,15 +298,16 @@ void laikaS_writeInt(struct sLaika_socket *sock, void *buf, size_t sz)
 RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed)
 {
     RAWSOCKCODE errCode = RAWSOCK_OK;
-    int i, rcvd, start = sock->inCount;
+    int i, rcvd, start = laikaM_countVector(sock->inBuf);
 
     /* sanity check */
     if (sz == 0)
         return RAWSOCK_OK;
 
     /* make sure we have enough space to recv */
-    laikaM_growarray(uint8_t, sock->inBuf, sz, sock->inCount, sock->inCap);
-    rcvd = recv(sock->sock, (buffer_t *)&sock->inBuf[sock->inCount], sz, LN_MSG_NOSIGNAL);
+    laikaM_growVector(uint8_t, sock->inBuf, sz);
+    rcvd = recv(sock->sock, (buffer_t *)&sock->inBuf[laikaM_countVector(sock->inBuf)], sz,
+                LN_MSG_NOSIGNAL);
 
     if (rcvd == 0) {
         errCode = RAWSOCK_CLOSED;
@@ -340,7 +337,7 @@ RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed
 #endif
 
         /* recv() worked, add rcvd to inCount */
-        sock->inCount += rcvd;
+        laikaM_countVector(sock->inBuf) += rcvd;
     }
     *processed = rcvd;
     return errCode;
@@ -397,7 +394,7 @@ _rawWriteExit:
 #endif
 
     /* trim sent data from outBuf */
-    laikaM_rmvarray(sock->outBuf, sock->outCount, 0, sentBytes);
+    laikaM_rmvVector(sock->outBuf, 0, sentBytes);
 
     *processed = sentBytes;
     return errCode;

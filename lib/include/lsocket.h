@@ -55,6 +55,7 @@ typedef void buffer_t;
 #endif
 #include "laika.h"
 #include "lsodium.h"
+#include "lmem.h"
 
 #include <fcntl.h>
 #include <stdbool.h>
@@ -79,12 +80,8 @@ struct sLaika_socket
     pollEvent onPollIn;
     pollEvent onPollOut;
     void *uData;     /* passed to onPollFail */
-    uint8_t *outBuf; /* raw data to be sent() */
-    uint8_t *inBuf;  /* raw data we recv()'d */
-    int outCount;
-    int inCount;
-    int outCap;
-    int inCap;
+    laikaM_newVector(uint8_t, outBuf); /* raw data to be sent() */
+    laikaM_newVector(uint8_t, inBuf);  /* raw data we recv()'d */
     bool flipEndian;
     bool setPollOut; /* is EPOLLOUT/POLLOUT is set on sock's pollfd ? */
 };
