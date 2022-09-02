@@ -38,7 +38,7 @@ typedef char buffer_t;
 #        include <sys/epoll.h>
 /* max events for epoll() */
 #        define MAX_EPOLL_EVENTS 128
-//#        define LAIKA_USE_EPOLL
+#        define LAIKA_USE_EPOLL
 #    endif
 #    include <errno.h>
 #    include <unistd.h>

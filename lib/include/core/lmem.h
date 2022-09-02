@@ -25,11 +25,11 @@
 #define laikaM_newVector(type, name)                                                               \
     type *name;                                                                                    \
     int name##_COUNT;                                                                              \
-    int name##_CAP;
+    int name##_CAP
 #define laikaM_initVector(name, startCap)                                                          \
     name = NULL;                                                                                   \
     name##_COUNT = 0;                                                                              \
-    name##_CAP = startCap;
+    name##_CAP = startCap
 
 #define laikaM_growVector(type, name, needed)                                                      \
     if (name##_COUNT + needed >= name##_CAP || name == NULL) {                                     \
