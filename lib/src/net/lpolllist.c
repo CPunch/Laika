@@ -231,14 +231,14 @@ struct sLaika_pollEvent *laikaP_poll(struct sLaika_pollList *pList, int timeout,
                                       .pollOut = pList->ep_events[i].events & EPOLLOUT};
     }
 #else
-    nEvents = poll(pList->fds, pList->fdCount,
-                   timeout); /* poll returns -1 for error, or the number of events */
+    /* poll returns -1 for error, or the number of events */
+    nEvents = poll(pList->fds, laikaM_countVector(pList->fds), timeout);
 
     if (SOCKETERROR(nEvents))
         LAIKA_ERROR("poll() failed!\n");
 
     /* walk through the returned poll fds, if they have an event, add it to our revents array */
-    for (i = 0; i < pList->fdCount && nEvents > 0; i++) {
+    for (i = 0; i < laikaM_countVector(pList->fds) && nEvents > 0; i++) {
         PollFD pfd = pList->fds[i];
         if (pList->fds[i].revents != 0) {
             /* grab socket from hashmap */
