@@ -1,9 +1,9 @@
 /* platform specific code for opening shells in linux */
 
 #include "bot.h"
-#include "lerror.h"
-#include "lmem.h"
-#include "ltask.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
+#include "core/ltask.h"
 #include "shell.h"
 
 #include <pty.h>

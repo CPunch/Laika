@@ -1,6 +1,6 @@
-#include "ltask.h"
+#include "core/ltask.h"
 
-#include "lmem.h"
+#include "core/lmem.h"
 
 /* this is the only reason C11 support is needed, i cba to write windows/linux specific stuff to get
    the current time in ms also side note: microsoft? more like micropenis */

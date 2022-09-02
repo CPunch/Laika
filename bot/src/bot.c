@@ -1,9 +1,9 @@
 #include "bot.h"
 
-#include "lbox.h"
-#include "lerror.h"
-#include "lmem.h"
-#include "lsodium.h"
+#include "core/lbox.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
+#include "core/lsodium.h"
 #include "shell.h"
 
 void laikaB_handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uData)

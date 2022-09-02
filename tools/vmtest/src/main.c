@@ -1,5 +1,5 @@
-#include "lbox.h"
-#include "lvm.h"
+#include "core/lbox.h"
+#include "core/lvm.h"
 
 #include <stdio.h>
 #include <string.h>

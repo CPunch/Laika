@@ -1,4 +1,4 @@
-#include "lpacket.h"
+#include "net/lpacket.h"
 
 #ifdef DEBUG
 const char *laikaD_getPacketName(LAIKAPKT_ID id)

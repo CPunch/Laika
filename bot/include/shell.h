@@ -2,7 +2,7 @@
 #define LAIKA_SHELL_H
 
 #include "laika.h"
-#include "lpacket.h"
+#include "net/lpacket.h"
 
 #include <time.h>
 

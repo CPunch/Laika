@@ -1,10 +1,10 @@
 #ifndef LAIKA_BOX_H
 #define LAIKA_BOX_H
 
+#include "core/lmem.h"
+#include "core/lsodium.h"
+#include "core/lvm.h"
 #include "laika.h"
-#include "lmem.h"
-#include "lsodium.h"
-#include "lvm.h"
 
 #include <inttypes.h>
 

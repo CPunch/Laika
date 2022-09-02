@@ -1,7 +1,7 @@
-#include "lpeer.h"
+#include "net/lpeer.h"
 
-#include "lerror.h"
-#include "lmem.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
 
 struct sLaika_peer *laikaS_newPeer(struct sLaika_peerPacketInfo *pktTbl,
                                    struct sLaika_pollList *pList, pollFailEvent onPollFail,

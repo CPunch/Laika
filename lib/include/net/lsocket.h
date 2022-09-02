@@ -3,7 +3,7 @@
 
 /* clang-format will change the order of the included windows headers, this BREAKS THINGS.
    for now, make clang ignore this section */
- 
+
 /* clang-format off */
 
 /* socket/winsock headers */
@@ -54,8 +54,8 @@ typedef void buffer_t;
 #    define SOCKETERROR(x)   (x == -1)
 #endif
 #include "laika.h"
-#include "lsodium.h"
-#include "lmem.h"
+#include "core/lsodium.h"
+#include "core/lmem.h"
 
 #include <fcntl.h>
 #include <stdbool.h>
@@ -79,7 +79,7 @@ struct sLaika_socket
     pollFailEvent onPollFail;
     pollEvent onPollIn;
     pollEvent onPollOut;
-    void *uData;     /* passed to onPollFail */
+    void *uData;                       /* passed to onPollFail */
     laikaM_newVector(uint8_t, outBuf); /* raw data to be sent() */
     laikaM_newVector(uint8_t, inBuf);  /* raw data we recv()'d */
     bool flipEndian;

@@ -1,4 +1,4 @@
-#include "lsodium.h"
+#include "core/lsodium.h"
 
 #include <string.h>
 

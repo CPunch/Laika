@@ -9,8 +9,8 @@
     fit this specific use case.
 */
 
+#include "core/lerror.h"
 #include "laika.h"
-#include "lerror.h"
 
 #include <inttypes.h>
 

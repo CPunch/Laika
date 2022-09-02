@@ -1,7 +1,7 @@
-#include "lpolllist.h"
+#include "net/lpolllist.h"
 
-#include "lerror.h"
-#include "lmem.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
 
 /* ===================================[[ Helper Functions ]]==================================== */
 

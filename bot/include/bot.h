@@ -1,13 +1,13 @@
 #ifndef LAIKA_BOT_H
 #define LAIKA_BOT_H
 
+#include "core/lsodium.h"
+#include "core/ltask.h"
 #include "laika.h"
-#include "lpacket.h"
-#include "lpeer.h"
-#include "lpolllist.h"
-#include "lsocket.h"
-#include "lsodium.h"
-#include "ltask.h"
+#include "net/lpacket.h"
+#include "net/lpeer.h"
+#include "net/lpolllist.h"
+#include "net/lsocket.h"
 
 struct sLaika_shell;
 struct sLaika_bot

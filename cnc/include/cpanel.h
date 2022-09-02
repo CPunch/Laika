@@ -2,7 +2,7 @@
 #define LAIKA_CNC_PANEL_H
 
 #include "cnc.h"
-#include "lpeer.h"
+#include "net/lpeer.h"
 
 void laikaC_sendPeerList(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer);
 void laikaC_sendNewPeer(struct sLaika_peer *authPeer, struct sLaika_peer *bot);

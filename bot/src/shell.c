@@ -1,8 +1,8 @@
 #include "shell.h"
 
 #include "bot.h"
-#include "lerror.h"
-#include "lmem.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
 
 #include <inttypes.h>
 #include <stdio.h>

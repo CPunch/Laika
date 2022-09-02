@@ -1,8 +1,8 @@
 #ifndef SHELLPEER_H
 #define SHELLPEER_H
 
-#include "lpeer.h"
-#include "lsodium.h"
+#include "core/lsodium.h"
+#include "net/lpeer.h"
 
 typedef struct sShell_peer
 {

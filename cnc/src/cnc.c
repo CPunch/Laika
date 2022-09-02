@@ -1,12 +1,12 @@
 #include "cnc.h"
 
+#include "core/lerror.h"
+#include "core/lmem.h"
+#include "core/lsodium.h"
+#include "core/ltask.h"
 #include "cpanel.h"
 #include "cpeer.h"
-#include "lerror.h"
-#include "lmem.h"
-#include "lsocket.h"
-#include "lsodium.h"
-#include "ltask.h"
+#include "net/lsocket.h"
 
 /* ======================================[[ PeerHashMap ]]======================================= */
 

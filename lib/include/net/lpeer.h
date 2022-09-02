@@ -1,11 +1,11 @@
 #ifndef LAIKA_PEER_H
 #define LAIKA_PEER_H
 
+#include "core/lsodium.h"
 #include "laika.h"
-#include "lpacket.h"
-#include "lpolllist.h"
-#include "lsocket.h"
-#include "lsodium.h"
+#include "net/lpacket.h"
+#include "net/lpolllist.h"
+#include "net/lsocket.h"
 
 typedef enum
 {

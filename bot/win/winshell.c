@@ -1,8 +1,8 @@
 /* platform specific code for opening shells (pseudo consoles) on windows */
 #include "bot.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
 #include "lobf.h"
-#include "lerror.h"
-#include "lmem.h"
 #include "shell.h"
 
 #include <process.h>

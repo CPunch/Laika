@@ -1,10 +1,10 @@
 #ifndef LAIKA_POLLLIST_H
 #define LAIKA_POLLLIST_H
 
-#include "hashmap.h"
+#include "core/hashmap.h"
+#include "core/lmem.h"
 #include "laika.h"
-#include "lmem.h"
-#include "lsocket.h"
+#include "net/lsocket.h"
 
 #include <stdbool.h>
 

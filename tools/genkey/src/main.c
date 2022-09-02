@@ -1,5 +1,5 @@
-#include "lerror.h"
-#include "lsodium.h"
+#include "core/lerror.h"
+#include "core/lsodium.h"
 
 #include <stdio.h>
 #include <string.h>

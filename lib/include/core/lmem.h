@@ -14,8 +14,8 @@
 #    define ENDVLA(var)        ((void)0) /* no op */
 #endif
 
-#define laikaM_malloc(sz) laikaM_realloc(NULL, sz)
-#define laikaM_free(buf)  laikaM_realloc(buf, 0)
+#define laikaM_malloc(sz)        laikaM_realloc(NULL, sz)
+#define laikaM_free(buf)         laikaM_realloc(buf, 0)
 
 /* ========================================[[ Vectors ]]======================================== */
 

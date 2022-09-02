@@ -1,6 +1,6 @@
 #include "sterm.h"
 
-#include "lmem.h"
+#include "core/lmem.h"
 #include "scmd.h"
 
 #define KEY_ESCAPE        0x001b

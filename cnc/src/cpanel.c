@@ -1,9 +1,9 @@
 #include "cpanel.h"
 
 #include "cnc.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
 #include "cpeer.h"
-#include "lerror.h"
-#include "lmem.h"
 
 void laikaC_sendPeerList(struct sLaika_cnc *cnc, struct sLaika_peer *authPeer)
 {

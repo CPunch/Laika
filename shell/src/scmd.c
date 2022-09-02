@@ -1,7 +1,7 @@
 #include "scmd.h"
 
-#include "lerror.h"
-#include "lmem.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
 #include "sclient.h"
 #include "speer.h"
 #include "sterm.h"

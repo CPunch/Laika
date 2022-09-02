@@ -2,10 +2,10 @@
 #define LAIKA_CNC_PEER_H
 
 #include "laika.h"
-#include "lpacket.h"
-#include "lpeer.h"
-#include "lpolllist.h"
-#include "lsocket.h"
+#include "net/lpacket.h"
+#include "net/lpeer.h"
+#include "net/lpolllist.h"
+#include "net/lsocket.h"
 
 struct sLaika_peerInfo
 {

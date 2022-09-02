@@ -1,6 +1,6 @@
-#include "lmem.h"
+#include "core/lmem.h"
 
-#include "lerror.h"
+#include "core/lerror.h"
 
 void *laikaM_realloc(void *buf, size_t sz)
 {

@@ -1,10 +1,10 @@
-#include "lsocket.h"
+#include "net/lsocket.h"
 
-#include "lerror.h"
-#include "lmem.h"
-#include "lpacket.h"
-#include "lpolllist.h"
-#include "lsodium.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
+#include "core/lsodium.h"
+#include "net/lpacket.h"
+#include "net/lpolllist.h"
 
 static int _LNSetup = 0;
 

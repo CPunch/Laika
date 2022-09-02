@@ -1,9 +1,9 @@
 #include "sclient.h"
 
-#include "lerror.h"
-#include "lmem.h"
-#include "lpacket.h"
-#include "lsodium.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
+#include "core/lsodium.h"
+#include "net/lpacket.h"
 #include "sterm.h"
 
 void shell_pingTask(struct sLaika_taskService *service, struct sLaika_task *task, clock_t currTick,

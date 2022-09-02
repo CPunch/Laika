@@ -1,7 +1,7 @@
 #include "cnc.h"
-#include "ini.h"
+#include "core/ini.h"
+#include "core/ltask.h"
 #include "lconfig.h"
-#include "ltask.h"
 
 #include <stdio.h>
 

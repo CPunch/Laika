@@ -1,11 +1,11 @@
 #ifndef SHELLCLIENT_H
 #define SHELLCLIENT_H
 
-#include "hashmap.h"
-#include "lmem.h"
-#include "lpeer.h"
-#include "lsodium.h"
-#include "ltask.h"
+#include "core/hashmap.h"
+#include "core/lmem.h"
+#include "core/lsodium.h"
+#include "core/ltask.h"
+#include "net/lpeer.h"
 #include "speer.h"
 
 typedef struct sShell_client

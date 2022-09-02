@@ -6,11 +6,11 @@
 
 #pragma comment(lib, "Shlwapi.lib")
 
-#include "lbox.h"
+#include "core/lbox.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
+#include "core/lvm.h"
 #include "lconfig.h"
-#include "lerror.h"
-#include "lmem.h"
-#include "lvm.h"
 #include "lobf.h"
 #include "persist.h"
 

@@ -1,7 +1,7 @@
 #include "speer.h"
 
-#include "lmem.h"
-#include "lpacket.h"
+#include "core/lmem.h"
+#include "net/lpacket.h"
 #include "sterm.h"
 
 tShell_peer *shellP_newPeer(PEERTYPE type, OSTYPE osType, uint8_t *pubKey, char *hostname,

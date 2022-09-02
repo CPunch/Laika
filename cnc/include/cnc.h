@@ -1,14 +1,14 @@
 #ifndef LAIKA_CNC_H
 #define LAIKA_CNC_H
 
-#include "hashmap.h"
+#include "core/hashmap.h"
+#include "core/lmem.h"
+#include "core/ltask.h"
 #include "laika.h"
-#include "lmem.h"
-#include "lpacket.h"
-#include "lpeer.h"
-#include "lpolllist.h"
-#include "lsocket.h"
-#include "ltask.h"
+#include "net/lpacket.h"
+#include "net/lpeer.h"
+#include "net/lpolllist.h"
+#include "net/lsocket.h"
 
 /* kill peers if they haven't ping'd within a minute */
 #define LAIKA_PEER_TIMEOUT 60 * 1000

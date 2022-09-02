@@ -1,10 +1,10 @@
 /* platform specific code for achieving persistence on linux */
 
-#include "lbox.h"
+#include "core/lbox.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
 #include "lconfig.h"
-#include "lerror.h"
-#include "lmem.h"
-#include "lsocket.h"
+#include "net/lsocket.h"
 #include "persist.h"
 
 #include <pwd.h>

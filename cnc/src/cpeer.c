@@ -1,8 +1,8 @@
 #include "cpeer.h"
 
 #include "cnc.h"
-#include "lerror.h"
-#include "lmem.h"
+#include "core/lerror.h"
+#include "core/lmem.h"
 
 /* =======================================[[ Peer Info ]]======================================= */
 

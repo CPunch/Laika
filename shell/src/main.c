@@ -1,4 +1,4 @@
-#include "ini.h"
+#include "core/ini.h"
 #include "sclient.h"
 #include "sterm.h"
 
