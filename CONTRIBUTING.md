@@ -16,8 +16,8 @@ Looking for some simple tasks that need to get done for that sweet 'contributor'
 
 - Change `lib/lin/linshell.c` to use openpty() instead of forkpty() for BSD support
 - Fix address sanitizer for CMake DEBUG builds
-- Change laikaT_getTime in `lib/src/core/ltask.c` to not use C11 features
-- Implement more LAIKA_BOX_* VMs in `lib/include/core/lbox.h`
+- Change laikaT_getTime in `lib/src/core/ltask.c` to not use C11 features and maybe review my linked list implementation :(
+- Implement more LAIKA_BOX_* VMs in `lib/include/core/lbox.h`s
 - Import more WinAPI manually using the method listed below
 
 ## Bot: Windows API Imports Obfuscation

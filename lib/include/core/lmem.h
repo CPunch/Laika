@@ -26,6 +26,7 @@
     type *name;                                                                                    \
     int name##_COUNT;                                                                              \
     int name##_CAP
+
 #define laikaM_initVector(name, startCap)                                                          \
     name = NULL;                                                                                   \
     name##_COUNT = 0;                                                                              \
