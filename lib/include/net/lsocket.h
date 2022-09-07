@@ -88,8 +88,6 @@ struct sLaika_socket
 
 #define laikaS_isAlive(arg) (arg->sock != INVALID_SOCKET)
 
-bool laikaS_isBigEndian(void);
-
 void laikaS_init(void);
 void laikaS_cleanUp(void);
 
@@ -114,10 +112,10 @@ void laikaS_readKeyDecrypt(struct sLaika_socket *sock, void *buf, size_t sz, uin
                            uint8_t *priv); /* decrypts & reads to buf using pub & priv key*/
 void laikaS_writeByte(struct sLaika_socket *sock, uint8_t data);
 uint8_t laikaS_readByte(struct sLaika_socket *sock);
-void laikaS_readInt(struct sLaika_socket *sock, void *buf,
-                    size_t sz); /* reads INT, respecting endianness */
-void laikaS_writeInt(struct sLaika_socket *sock, void *buf,
-                     size_t sz); /* writes INT, respecting endianness */
+void laikaS_writeu16(struct sLaika_socket *sock, uint16_t i); /* writes UINT16, respecting endianness */
+uint16_t laikaS_readu16(struct sLaika_socket *sock); /* reads UINT16, respecting endianness */
+void laikaS_writeu32(struct sLaika_socket *sock, uint32_t i); /* writes UINT32, respecting endianness */
+uint32_t laikaS_readu32(struct sLaika_socket *sock); /* reads UINT32, respecting endianness */
 
 RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed);
 RAWSOCKCODE laikaS_rawSend(struct sLaika_socket *sock, size_t sz, int *processed);

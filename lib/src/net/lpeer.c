@@ -232,7 +232,7 @@ bool laikaS_handlePeerIn(struct sLaika_socket *sock)
             LAIKA_ERROR("couldn't read whole LAIKAPKT_VARPKT\n");
 
         /* read packet size */
-        laikaS_readInt(&peer->sock, (void *)&peer->pktSize, sizeof(LAIKAPKT_SIZE));
+        peer->pktSize = laikaS_readu16(&peer->sock);
 
         if (peer->pktSize > LAIKA_MAX_PKTSIZE)
             LAIKA_ERROR("variable packet too large!\n");

