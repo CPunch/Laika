@@ -8,17 +8,6 @@
 
 static int _LNSetup = 0;
 
-bool laikaS_isBigEndian(void)
-{
-    union
-    {
-        uint32_t i;
-        uint8_t c[4];
-    } _indxint = {0xDEADB33F};
-
-    return _indxint.c[0] == 0xDE;
-}
-
 void laikaS_init(void)
 {
     if (_LNSetup++ > 0)
@@ -258,41 +247,46 @@ uint8_t laikaS_readByte(struct sLaika_socket *sock)
     return tmp;
 }
 
-void laikaS_readInt(struct sLaika_socket *sock, void *buf, size_t sz)
+void laikaS_writeu16(struct sLaika_socket *sock, uint16_t i)
 {
-    if (sock->flipEndian) {
-        VLA(uint8_t, tmp, sz); /* allocate tmp buffer to hold data while we switch endianness */
-        int k;
+    uint16_t tmp = i; /* copy int to buffer (which we can reverse if need-be) */
 
-        laikaS_read(sock, (void *)tmp, sz);
+    if (sock->flipEndian)
+        laikaM_reverse((uint8_t *)&tmp, sizeof(tmp));
 
-        /* copy tmp buffer to user buffer, flipping endianness */
-        for (k = 0; k < sz; k++)
-            *((uint8_t *)buf + k) = tmp[sz - k - 1];
-
-        ENDVLA(tmp);
-    } else {
-        /* just a wrapper for laikaS_read */
-        laikaS_read(sock, buf, sz);
-    }
+    laikaS_write(sock, (void *)&tmp, sizeof(tmp));
 }
 
-void laikaS_writeInt(struct sLaika_socket *sock, void *buf, size_t sz)
+uint16_t laikaS_readu16(struct sLaika_socket *sock)
 {
-    if (sock->flipEndian) {
-        VLA(uint8_t, tmp, sz); /* allocate tmp buffer to hold data while we switch endianness */
-        int k;
+    uint16_t tmp;
+    laikaS_read(sock, (void *)&tmp, sizeof(tmp));
 
-        /* copy user buffer to tmp buffer, flipping endianness */
-        for (k = 0; k < sz; k++)
-            tmp[k] = *((uint8_t *)buf + (sz - k - 1));
+    if (sock->flipEndian)
+        laikaM_reverse((uint8_t *)&tmp, sizeof(tmp));
 
-        laikaS_write(sock, (void *)tmp, sz);
-        ENDVLA(tmp);
-    } else {
-        /* just a wrapper for laikaS_write */
-        laikaS_write(sock, buf, sz);
-    }
+    return tmp;
+}
+
+void laikaS_writeu32(struct sLaika_socket *sock, uint32_t i)
+{
+    uint32_t tmp = i; /* copy int to buffer (which we can reverse if need-be) */
+
+    if (sock->flipEndian)
+        laikaM_reverse((uint8_t *)&tmp, sizeof(tmp));
+
+    laikaS_write(sock, (void *)&tmp, sizeof(tmp));
+}
+
+uint32_t laikaS_readu32(struct sLaika_socket *sock)
+{
+    uint32_t tmp;
+    laikaS_read(sock, (void *)&tmp, sizeof(tmp));
+
+    if (sock->flipEndian)
+        laikaM_reverse((uint8_t *)&tmp, sizeof(tmp));
+
+    return tmp;
 }
 
 RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed)

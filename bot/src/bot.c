@@ -12,7 +12,7 @@ void laikaB_handleHandshakeResponse(struct sLaika_peer *peer, LAIKAPKT_SIZE sz, 
     uint8_t endianness = laikaS_readByte(&peer->sock);
     laikaS_read(&peer->sock, saltBuf, LAIKA_HANDSHAKE_SALT_LEN);
 
-    peer->sock.flipEndian = endianness != laikaS_isBigEndian();
+    peer->sock.flipEndian = endianness != laikaM_isBigEndian();
 
     /* set peer salt */
     laikaS_setSalt(peer, saltBuf);

