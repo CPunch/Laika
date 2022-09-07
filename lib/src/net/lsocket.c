@@ -31,6 +31,8 @@ void laikaS_cleanUp(void)
 #endif
 }
 
+/* ======================================[[ Socket API ]]======================================= */
+
 void laikaS_initSocket(struct sLaika_socket *sock, pollEvent onPollIn, pollEvent onPollOut,
                        pollFailEvent onPollFail, void *uData)
 {
@@ -180,6 +182,8 @@ bool laikaS_setNonBlock(struct sLaika_socket *sock)
     return true;
 }
 
+/* =====================================[[ Socket stream ]]===================================== */
+
 void laikaS_consumeRead(struct sLaika_socket *sock, size_t sz)
 {
     laikaM_rmvVector(sock->inBuf, 0, sz);
@@ -289,53 +293,7 @@ uint32_t laikaS_readu32(struct sLaika_socket *sock)
     return tmp;
 }
 
-RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed)
-{
-    RAWSOCKCODE errCode = RAWSOCK_OK;
-    int i, rcvd, start = laikaM_countVector(sock->inBuf);
-
-    /* sanity check */
-    if (sz == 0)
-        return RAWSOCK_OK;
-
-    /* make sure we have enough space to recv */
-    laikaM_growVector(uint8_t, sock->inBuf, sz);
-    rcvd = recv(sock->sock, (buffer_t *)&sock->inBuf[laikaM_countVector(sock->inBuf)], sz,
-                LN_MSG_NOSIGNAL);
-
-    if (rcvd == 0) {
-        errCode = RAWSOCK_CLOSED;
-    } else if (SOCKETERROR(rcvd) &&
-               LN_ERRNO != LN_EWOULD
-#ifndef _WIN32
-               /* if it's a posix system, also make sure its not a EAGAIN result (which is a
-                  recoverable error, there's just nothing to read lol) */
-               && LN_ERRNO != EAGAIN
-#endif
-    ) {
-        /* if the socket closed or an error occurred, return the error result */
-        errCode = RAWSOCK_ERROR;
-    } else if (rcvd > 0) {
-#if 0
-        /* for debugging */
-        printf("---recv'd %d bytes---\n", rcvd);
-        for (i = 1; i <= rcvd; i++) {
-            printf("%.2x ", sock->inBuf[sock->inCount + (i-1)]);
-            if (i % 16 == 0) {
-                printf("\n");
-            } else if (i % 8 == 0) {
-                printf("\t");
-            }
-        }
-        printf("\n");
-#endif
-
-        /* recv() worked, add rcvd to inCount */
-        laikaM_countVector(sock->inBuf) += rcvd;
-    }
-    *processed = rcvd;
-    return errCode;
-}
+/* ===================================[[ Socket send/recv ]]==================================== */
 
 RAWSOCKCODE laikaS_rawSend(struct sLaika_socket *sock, size_t sz, int *processed)
 {
@@ -373,23 +331,43 @@ RAWSOCKCODE laikaS_rawSend(struct sLaika_socket *sock, size_t sz, int *processed
     } while ((sentBytes += sent) < sz);
 
 _rawWriteExit:
-#if 0
-    /* for debugging */
-    printf("---sent %d bytes---\n", sent);
-    for (i = 1; i <= sentBytes; i++) {
-        printf("%.2x ", sock->outBuf[i-1]);
-        if (i % 16 == 0) {
-            printf("\n");
-        } else if (i % 8 == 0) {
-            printf("\t");
-        }
-    }
-    printf("\n");
-#endif
-
     /* trim sent data from outBuf */
     laikaM_rmvVector(sock->outBuf, 0, sentBytes);
 
     *processed = sentBytes;
+    return errCode;
+}
+
+RAWSOCKCODE laikaS_rawRecv(struct sLaika_socket *sock, size_t sz, int *processed)
+{
+    RAWSOCKCODE errCode = RAWSOCK_OK;
+    int i, rcvd, start = laikaM_countVector(sock->inBuf);
+
+    /* sanity check */
+    if (sz == 0)
+        return RAWSOCK_OK;
+
+    /* make sure we have enough space to recv */
+    laikaM_growVector(uint8_t, sock->inBuf, sz);
+    rcvd = recv(sock->sock, (buffer_t *)&sock->inBuf[laikaM_countVector(sock->inBuf)], sz,
+                LN_MSG_NOSIGNAL);
+
+    if (rcvd == 0) {
+        errCode = RAWSOCK_CLOSED;
+    } else if (SOCKETERROR(rcvd) &&
+               LN_ERRNO != LN_EWOULD
+#ifndef _WIN32
+               /* if it's a posix system, also make sure its not a EAGAIN result (which is a
+                  recoverable error, there's just nothing to read lol) */
+               && LN_ERRNO != EAGAIN
+#endif
+    ) {
+        /* if the socket closed or an error occurred, return the error result */
+        errCode = RAWSOCK_ERROR;
+    } else if (rcvd > 0) {
+        /* recv() worked, add rcvd to inCount */
+        laikaM_countVector(sock->inBuf) += rcvd;
+    }
+    *processed = rcvd;
     return errCode;
 }
