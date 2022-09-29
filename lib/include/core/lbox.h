@@ -93,15 +93,14 @@ struct sLaikaB_box
 LAIKA_FORCEINLINE void *laikaB_unlock(struct sLaikaB_box *box, void *data)
 {
     struct sLaikaV_vm vm = {
-  /* boxes have 2 reserved constants, [0] for the output, [1] for the input */
-        .constList =
-            {
-                        [LAIKA_BOX_UNLOCKED_INDX] = LAIKA_MAKE_VM_PTR(box->unlockedData),
-                        [LAIKA_BOX_SCRATCH_INDX] = LAIKA_MAKE_VM_PTR(box->scratch),
-                        [LAIKA_BOX_DATA_INDX] = LAIKA_MAKE_VM_PTR(data),
-                        },
-        .code = {                                                               0 },
-        .stack = {                                                               0 },
+        /* boxes have 3 reserved constants */
+        .constList = {
+            [LAIKA_BOX_UNLOCKED_INDX] = LAIKA_MAKE_VM_PTR(box->unlockedData),
+            [LAIKA_BOX_SCRATCH_INDX] = LAIKA_MAKE_VM_PTR(box->scratch),
+            [LAIKA_BOX_DATA_INDX] = LAIKA_MAKE_VM_PTR(data),
+        },
+        .code = {0}, /* zero initalized */
+        .stack = {0}, /* zero initalized */
         .pc = 0
     };
 

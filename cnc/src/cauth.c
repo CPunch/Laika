@@ -1,4 +1,4 @@
-#include "cpanel.h"
+#include "cauth.h"
 
 #include "cnc.h"
 #include "core/lerror.h"

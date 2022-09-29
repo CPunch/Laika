@@ -4,7 +4,7 @@
 #include "core/lmem.h"
 #include "core/lsodium.h"
 #include "core/ltask.h"
-#include "cpanel.h"
+#include "cauth.h"
 #include "cpeer.h"
 #include "net/lsocket.h"
 
