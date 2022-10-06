@@ -7,6 +7,7 @@
 #    include <process.h>
 #    include <windows.h>
 
+#ifdef LAIKA_OBFUSCATE
 /* WINAPI types */
 typedef HINSTANCE(WINAPI *_ShellExecuteA)(HWND, LPCSTR, LPCSTR, LPCSTR, LPCSTR, INT);
 typedef HRESULT(WINAPI *_CreatePseudoConsole)(COORD, HANDLE, HANDLE, DWORD, HPCON *);
@@ -25,6 +26,19 @@ extern _RegOpenKeyExA oRegOpenKeyExA;
 extern _RegCloseKey oRegCloseKey;
 extern _RegSetValueExA oRegSetValueExA;
 extern _RegQueryValueExA oRegQueryValueExA;
+#else
+
+/* disabling obfuscation by macro magic :O */
+#define oShellExecuteA ShellExecuteA
+#define oCreatePseudoConsole CreatePseudoConsole
+#define oClosePseudoConsole ClosePseudoConsole
+#define oCreateProcessA CreateProcessA
+#define oRegOpenKeyExA RegOpenKeyExA
+#define oRegCloseKey RegCloseKey
+#define oRegSetValueExA RegSetValueExA
+#define oRegQueryValueExA RegQueryValueExA
+
+#endif
 #endif
 
 void laikaO_init();

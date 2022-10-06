@@ -1,6 +1,6 @@
 #include "net/lpacket.h"
 
-#ifdef DEBUG
+#ifdef LAIKA_DEBUG_BUILD
 const char *laikaD_getPacketName(LAIKAPKT_ID id)
 {
     const char *PKTNAMES[] = {"LAIKAPKT_VARPKT",

@@ -30,9 +30,6 @@ if(LAIKA_OBFUSCATE)
     add_dependencies(LaikaBot VMBoxGen)
 endif ()
 
-# add the 'DEBUG' preprocessor definition if we're compiling as Debug
-target_compile_definitions(LaikaBot PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
-
 # add include directory
 target_include_directories(LaikaBot PUBLIC ${BOT_INCLUDEDIR})
 

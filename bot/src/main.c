@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 #ifdef _WIN32
-#    ifndef DEBUG
+#    ifndef LAIKA_DEBUG_BUILD
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
 {
 #    else

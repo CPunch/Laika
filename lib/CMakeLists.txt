@@ -24,8 +24,8 @@ target_link_libraries(LaikaLib PUBLIC sodium)
 # make sure we're compiled *AFTER* lboxconfig.h has been generated
 add_dependencies(LaikaLib VMBoxGen)
 
-# add the version definitions and the 'DEBUG' preprocessor definition if we're compiling as Debug
-target_compile_definitions(LaikaLib PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
+# add the version definitions
+target_compile_definitions(LaikaLib PUBLIC)
 
 # add include directory
 target_include_directories(LaikaLib PUBLIC ${LIB_INCLUDEDIR} ${CMAKE_CURRENT_SOURCE_DIR}/libsodium/libsodium/src/libsodium/include)

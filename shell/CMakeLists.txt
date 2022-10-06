@@ -13,8 +13,5 @@ file(GLOB_RECURSE SHELLHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/**.h)
 add_executable(LaikaShell ${SHELLSOURCE} ${SHELLHEADERS})
 target_link_libraries(LaikaShell PUBLIC LaikaLib)
 
-# add the 'DEBUG' preprocessor definition if we're compiling as Debug
-target_compile_definitions(LaikaShell PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
-
 # add include directory
 target_include_directories(LaikaShell PUBLIC ${SHELL_INCLUDEDIR})

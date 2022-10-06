@@ -1,6 +1,7 @@
 #ifndef LAIKA_PACKET_H
 #define LAIKA_PACKET_H
 
+#include "lconfig.h"
 #include <inttypes.h>
 
 #define LAIKA_MAGIC                 "LAI\x12"
@@ -121,7 +122,7 @@ enum
 typedef uint8_t LAIKAPKT_ID;
 typedef uint16_t LAIKAPKT_SIZE;
 
-#ifdef DEBUG
+#ifdef LAIKA_DEBUG_BUILD
 const char *laikaD_getPacketName(LAIKAPKT_ID);
 #endif
 

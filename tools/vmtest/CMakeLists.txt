@@ -10,5 +10,3 @@ file(GLOB_RECURSE VMTESTSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c)
 add_executable(vmTest ${VMTESTSOURCE})
 target_link_libraries(vmTest PUBLIC LaikaLib)
 
-# add the 'DEBUG' preprocessor definition if we're compiling as Debug
-target_compile_definitions(vmTest PUBLIC "$<$<CONFIG:Debug>:DEBUG>")

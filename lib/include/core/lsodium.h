@@ -1,6 +1,7 @@
 #ifndef LAIKA_RSA_H
 #define LAIKA_RSA_H
 
+#include "lconfig.h"
 #include "sodium.h"
 
 #include <stdbool.h>

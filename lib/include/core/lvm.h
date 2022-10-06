@@ -76,7 +76,7 @@ enum
     OP_TESTJMP, /* if stk_indx[uint8_t] != 0, pc += [int8_t] */
 
     /* misc. */
-#ifdef DEBUG
+#ifdef LAIKA_DEBUG_BUILD
     OP_DEBUG
 #endif
 };
@@ -154,7 +154,7 @@ LAIKA_FORCEINLINE void laikaV_execute(struct sLaikaV_vm *vm)
 
             break;
         }
-#ifdef DEBUG
+#ifdef LAIKA_DEBUG_BUILD
         case OP_DEBUG: {
             int i;
 

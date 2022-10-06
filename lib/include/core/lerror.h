@@ -24,10 +24,10 @@
 
 /* LAIKA_ERROR(printf args):
         if called after a LAIKA_TRY block will jump to the previous LAIKA_CATCH/LAIKA_TRYEND block,
-    otherwise program is exit()'d. if DEBUG is defined printf is called with passed args, else
+    otherwise program is exit()'d. if LAIKA_DEBUG_BUILD is defined printf is called with passed args, else
     arguments are ignored.
 */
-#ifndef DEBUG
+#ifndef LAIKA_DEBUG_BUILD
 #    define LAIKA_ERROR(...)                                                                       \
         do {                                                                                       \
             if (LAIKA_ISPROTECTED)                                                                 \

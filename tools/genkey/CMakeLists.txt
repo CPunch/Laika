@@ -9,6 +9,3 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 file(GLOB_RECURSE GENKEYSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/**.c)
 add_executable(genKey ${GENKEYSOURCE})
 target_link_libraries(genKey PUBLIC LaikaLib)
-
-# add the 'DEBUG' preprocessor definition if we're compiling as Debug
-target_compile_definitions(genKey PUBLIC "$<$<CONFIG:Debug>:DEBUG>")
