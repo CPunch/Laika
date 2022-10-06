@@ -89,9 +89,9 @@ add_subdirectory(tools/vmboxgen)
 # compile laikalib, tools, cnc & bot
 add_subdirectory(lib)
 add_subdirectory(tools)
+add_subdirectory(bot)
 
 # these subprojects don't support windows (sorry)
-add_subdirectory(bot) # windows support Soon:tm:
 if(NOT WIN32 AND (UNIX AND NOT APPLE))
   add_subdirectory(cnc)
   add_subdirectory(shell)
