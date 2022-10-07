@@ -12,15 +12,16 @@ Laika is a simple cross-platform Remote Access Toolkit stack for educational pur
 Some notable features thus far:
 - [X] Lightweight, the bot alone is 183kb (`MinSizeRel`) and uses very little resources minimizing Laika's footprint.
 - [X] Authentication & packet encryption using LibSodium and a predetermined public CNC key. (generated with `bin/genKey`)
-- [X] Server and Shell configuration through `.ini` files.
-- [X] Ability to open shells remotely on the victim's machine.
+- [X] CNC and Shell configuration through `.ini` files.
+- [X] Open shells remotely on the victim machine.
 - [X] Persistence across reboot: (toggled with `-DLAIKA_PERSISTENCE=On`)
     - [X] Persistence via Cron on Linux-based systems.
     - [X] Persistence via Windows Registry.
 - [X] Uses obfuscation techniques also seen in the wild (string obfuscation, tiny VMs executing sensitive operations, etc.)
 - [ ] Simple configuration using CMake:
-    - [X] Setting keypairs (`-DLAIKA_PUBKEY=? -DLAIKA_PRIVKEY=?`, etc.)
-    - [ ] Obfuscation modes
+    - [X] Setting keypairs (`-DLAIKA_CNC_IP=? -DLAIKA_CNC_PORT=?`, etc.)
+    - [X] Enabling/Disabling Obfuscation (`-DLAIKA_OBFUSCATE=On`)
+        - [ ] Obfuscation modes
 
 ## How do I use this?
 
