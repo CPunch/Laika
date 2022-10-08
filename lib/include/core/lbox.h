@@ -63,13 +63,15 @@ struct sLaikaB_box
 #    define LAIKA_BOX_SKID_END(ident)                   ((void)0) /* no-op */
 #endif
 
+/* clang-format off */
+
 /* ======================================[[ Laika Boxes ]]====================================== */
 
 /* BOX_SKID decodes null-terminated strings using a provided xor _key. aptly named lol */
 #define LAIKA_BOX_SKID(_key)                                                                       \
     {                                                                                              \
         .unlockedData = {0}, /* reserved */                                                        \
-            .code = {        /* stack layout:                                                      \
+            .code = { /* stack layout:                                                             \
                            [0] - unlockedData (ptr)                                                \
                            [1] - data (ptr)                                                        \
                            [2] - key (uint8_t)                                                     \
@@ -83,7 +85,7 @@ struct sLaikaB_box
                       LAIKA_MAKE_VM_IAB(OP_WRITE, 0, 3),      /* write data to unlockedData */     \
                       LAIKA_MAKE_VM_IA(OP_INCPTR, 0),                                              \
                       LAIKA_MAKE_VM_IA(OP_INCPTR, 1),                                              \
-                      LAIKA_MAKE_VM_IAB(OP_TESTJMP, 3, -17), /* exit loop on null terminator */    \
+                      LAIKA_MAKE_VM_IAB(OP_TESTJMP, 3, -17),  /* exit loop on null terminator */   \
                       OP_EXIT                                                                      \
             }                                                                                      \
     }
@@ -99,7 +101,7 @@ LAIKA_FORCEINLINE void *laikaB_unlock(struct sLaikaB_box *box, void *data)
             [LAIKA_BOX_SCRATCH_INDX] = LAIKA_MAKE_VM_PTR(box->scratch),
             [LAIKA_BOX_DATA_INDX] = LAIKA_MAKE_VM_PTR(data),
         },
-        .code = {0}, /* zero initalized */
+        .code = {0},  /* zero initalized */
         .stack = {0}, /* zero initalized */
         .pc = 0
     };
@@ -115,6 +117,8 @@ LAIKA_FORCEINLINE void laikaB_lock(struct sLaikaB_box *box)
     sodium_memzero(box->unlockedData, LAIKA_BOX_HEAPSIZE);
     sodium_memzero(box->scratch, LAIKA_BOX_SCRATCH_SIZE);
 }
+
+/* clang-format on */
 
 /* include KEY_* & DATA_* macros for each obfuscated string */
 #include "lboxconfig.h"

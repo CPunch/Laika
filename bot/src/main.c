@@ -9,6 +9,10 @@
 
 #include <stdio.h>
 
+/* if LAIKA_PERSISTENCE is defined, this will specify the timeout for 
+    retrying to connect to the CNC server */
+#define LAIKA_RETRY_CONNECT 5
+
 #ifdef _WIN32
 #    ifndef LAIKA_DEBUG_BUILD
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
@@ -54,9 +58,9 @@ int main()
         laikaB_freeBot(bot);
 #ifdef LAIKA_PERSISTENCE
 #    ifdef _WIN32
-        Sleep(5000);
+        Sleep(LAIKA_RETRY_CONNECT*1000);
 #    else
-        sleep(5);
+        sleep(LAIKA_RETRY_CONNECT);
 #    endif
     } while (1);
 
